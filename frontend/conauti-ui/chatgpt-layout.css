@@ -362,6 +362,41 @@ html[data-myteacher-theme] #root .mtc-app .mtc-danger button {
   background:#dc2626!important;color:#fff!important;
 }
 
+/* Controles visibles de imagen y pantalla, con la misma paleta del chat. */
+html[data-myteacher-theme] #root .mtc-app .mtc-attachment-input {
+  display:none!important;
+}
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer button.mtc-visual-action {
+  position:static!important;
+  display:inline-flex!important;
+  justify-content:center;
+  align-items:center;
+  gap:6px;
+  width:auto!important;
+  min-width:0!important;
+  min-height:34px!important;
+  padding:6px 10px!important;
+  border:1px solid var(--mtc-border)!important;
+  border-radius:999px!important;
+  background:var(--mtc-surface)!important;
+  color:var(--mtc-text)!important;
+  font-size:12px!important;
+  font-weight:600!important;
+  box-shadow:none!important;
+}
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer button.mtc-visual-action:hover {
+  background:var(--mtc-surface-hover)!important;
+  border-color:var(--mtc-accent)!important;
+}
+@media(max-width:400px) {
+  html[data-myteacher-theme] #root .mtc-app form.mtc-composer button.mtc-visual-action {
+    width:34px!important;
+    min-width:34px!important;
+    padding:0!important;
+  }
+  #root .mtc-app .mtc-visual-action span:last-child {display:none;}
+}
+
 /* MY TEACHER IA - SIDEBAR CLARO SIN CAMBIOS EN EL MODO OSCURO */
 html[data-myteacher-theme="light"] #root .mtc-app .mtc-sidebar {
   --mtc-text:#183247;
