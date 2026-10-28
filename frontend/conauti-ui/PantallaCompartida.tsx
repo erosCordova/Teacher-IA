@@ -234,7 +234,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
     setPregunta("");
     setEstado("Analizando la vista actual...");
     const id = ++dialogIdRef.current;
-    setHistorial(previous => [...previous, { id, role: "alumno", text: consulta }].slice(-16));
+    setHistorial(previous => [...previous, { id, role: "alumno" as const, text: consulta }].slice(-16));
     const request = new AbortController();
     imageRequestRef.current = request;
     try {
@@ -260,7 +260,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
       if (!mountedRef.current || request.signal.aborted) return;
       lastQuestionRef.current = consulta;
       lastAnswerRef.current = result.analysis;
-      setHistorial(previous => [...previous, { id: ++dialogIdRef.current, role: "tutor", text: result.analysis }].slice(-16));
+      setHistorial(previous => [...previous, { id: ++dialogIdRef.current, role: "tutor" as const, text: result.analysis }].slice(-16));
       setEstado("Respuesta lista. Puedes seguir preguntando.");
       hablar(result.analysis);
     } catch (fallo) {
