@@ -142,8 +142,8 @@ function App() {
     const file = event.currentTarget.files?.[0]
     event.currentTarget.value = ''
     if (!file) return
-    if (file.size === 0 || file.size > 8_000_000) {
-      setNotice('El archivo debe pesar entre 1 byte y 8 MB.')
+    if (file.size === 0 || file.size > 4_000_000) {
+      setNotice('El archivo debe pesar entre 1 byte y 4 MB.')
       return
     }
     setNotice('')
@@ -409,7 +409,11 @@ function App() {
         )
         if (!response.ok) {
           const body: { detail?: string } | null = await response.json().catch(() => null)
-          throw new Error(body?.detail || 'No se pudo leer el archivo seleccionado.')
+          throw new Error(
+            response.status === 404
+              ? 'El servicio de documentos no está disponible en esta versión. Actualiza la página.'
+              : (body?.detail || 'No se pudo leer el archivo seleccionado.')
+          )
         }
         const result: { filename: string; excerpt: string; stored: boolean } = await response.json()
         const question = promptToSend || 'Ayúdame a comprender este archivo paso a paso.'
@@ -816,7 +820,7 @@ function App() {
                           anyFileInput.current?.click()
                         }}>
                           <span aria-hidden="true">📎</span>
-                          <span><strong>Subir archivo</strong><small>Cualquier formato · hasta 8 MB</small></span>
+                          <span><strong>Subir archivo</strong><small>Cualquier formato · hasta 4 MB</small></span>
                         </button>
                         <button type="button" role="menuitem" onClick={() => {
                           setToolsOpen(false)
