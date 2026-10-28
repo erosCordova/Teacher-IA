@@ -1,0 +1,154 @@
+/* MYTEACHER_ERROR_COACH_GRID_V3 */
+
+.mt-historial-lista {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/*
+ * El historial tiene tres hijos por ejercicio:
+ * 1. Datos del ejercicio
+ * 2. Estado de la respuesta
+ * 3. Tutor de Gemini
+ *
+ * El tercer hijo debe ocupar una fila completa,
+ * nunca crear una tercera columna implicita.
+ */
+
+.mt-historial-lista .mt-historial-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.mt-historial-lista
+.mt-historial-item > div:first-child {
+  grid-column: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.mt-historial-lista
+.mt-historial-item > .mt-historial-estado {
+  grid-column: 2;
+  max-width: 100%;
+}
+
+.mt-historial-lista
+.mt-historial-item > .mt-error-coach {
+  grid-column: 1 / -1;
+  grid-row: auto;
+  justify-self: stretch;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.mt-error-coach,
+.mt-error-coach * {
+  box-sizing: border-box;
+}
+
+.mt-error-coach > button {
+  display: inline-block;
+  max-width: 100%;
+  min-height: 42px;
+  padding: 11px 14px;
+  border: 1px solid #526ce7;
+  border-radius: 10px;
+  background: transparent;
+  color: #526ce7;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.mt-error-coach > button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.mt-error-coach > button:focus-visible {
+  outline: 3px solid #62b3ff;
+  outline-offset: 2px;
+}
+
+.mt-error-coach-respuesta {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-top: 12px;
+  padding: 15px;
+  border: 1px solid var(--mh-line);
+  border-radius: 12px;
+  background: var(--mh-bg);
+  overflow-wrap: anywhere;
+}
+
+.mt-error-coach-respuesta strong,
+.mt-error-coach-respuesta p {
+  color: var(--mh-text);
+}
+
+.mt-error-coach-respuesta p {
+  white-space: pre-wrap;
+  line-height: 1.65;
+  font-size: 13px;
+}
+
+.mt-error-coach-respuesta small {
+  color: var(--mh-muted);
+}
+
+.mt-error-coach-error {
+  padding: 12px;
+  border-radius: 10px;
+  background: #fff0f0;
+  color: #a52c35 !important;
+  overflow-wrap: anywhere;
+}
+
+[data-theme="dark"]
+.mt-error-coach > button,
+.dark .mt-error-coach > button {
+  color: #a9bbff;
+  border-color: #8b9ff5;
+}
+
+@media (max-width: 600px) {
+  .mt-historial-lista .mt-historial-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mt-historial-lista
+  .mt-historial-item > div:first-child,
+
+  .mt-historial-lista
+  .mt-historial-item > .mt-historial-estado,
+
+  .mt-historial-lista
+  .mt-historial-item > .mt-error-coach {
+    grid-column: 1 / -1;
+    justify-self: start;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .mt-historial-lista
+  .mt-historial-item > .mt-error-coach {
+    justify-self: stretch;
+  }
+
+  .mt-error-coach > button {
+    width: 100%;
+  }
+}

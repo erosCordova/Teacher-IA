@@ -1,0 +1,1800 @@
+:root {
+  font-family: Inter, system-ui, Arial, sans-serif;
+  background: #f5f8ff;
+  color: #1a2b46;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input, textarea { font: inherit; }
+button { cursor: pointer; }
+
+button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #82b6ff;
+  outline-offset: 2px;
+}
+
+.app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 285px minmax(0,1fr);
+}
+
+.sidebar {
+  background: white;
+  border-right: 1px solid #e4eaf4;
+  padding: 22px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 23px;
+}
+
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.brand strong { display: block; font-size: 20px; }
+.brand small { color: #728199; font-size: 12px; }
+
+.logo {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg,#3978ed,#1cb8ad);
+  border-radius: 16px;
+  color: white;
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 15px;
+}
+
+.logo.compact {
+  width: 44px;
+  height: 44px;
+  font-size: 24px;
+  margin: 0;
+}
+
+.primary {
+  color: white;
+  background: #3477ed;
+  border: 0;
+  border-radius: 11px;
+  padding: 12px 16px;
+  font-weight: 700;
+}
+
+.primary:hover:not(:disabled) { background: #245ec8; }
+.full { width: 100%; }
+
+nav { display: grid; gap: 6px; }
+
+nav button {
+  text-align: left;
+  border: 0;
+  border-radius: 10px;
+  padding: 13px;
+  background: transparent;
+  color: #506078;
+}
+
+nav button.active,
+nav button:hover {
+  background: #eaf2ff;
+  color: #245ec8;
+}
+
+.history { flex: 1; }
+.history h3 { font-size: 13px; }
+
+input {
+  border: 1px solid #d8e2ef;
+  border-radius: 10px;
+  padding: 12px;
+  background: white;
+  color: #1a2b46;
+}
+
+.history input { width: 100%; }
+
+.history-item {
+  display: flex;
+  align-items: center;
+  margin-top: 7px;
+  gap: 3px;
+}
+
+.history-item button {
+  background: transparent;
+  border: 0;
+  padding: 8px;
+  color: #506078;
+}
+
+.history-item:hover { background: #eef5ff; }
+
+.history-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.account {
+  border-top: 1px solid #e4eaf4;
+  padding-top: 15px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.account button {
+  border: 0;
+  background: transparent;
+  color: #245ec8;
+  font-weight: 700;
+}
+
+.main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  padding: 22px 30px;
+  background: white;
+  border-bottom: 1px solid #e4eaf4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbar h1 { margin: 6px 0 0; font-size: 25px; }
+
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #3477ed;
+  font-weight: 800;
+}
+
+.phase {
+  background: #e5faf0;
+  color: #17845c;
+  padding: 8px 13px;
+  border-radius: 25px;
+  font-size: 12px;
+}
+
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.messages {
+  flex: 1;
+  min-height: 260px;
+  padding: 24px;
+}
+
+.welcome {
+  max-width: 650px;
+  margin: 8vh auto;
+  text-align: center;
+}
+
+.star { font-size: 55px; color: #3477ed; }
+.welcome h2 { font-size: 32px; }
+
+.welcome p,
+.panel p,
+.muted { color: #6a7a90; line-height: 1.6; }
+
+.subjects,.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 20px;
+}
+
+.subjects button,.actions button {
+  border: 1px solid #d8e2f0;
+  background: white;
+  color: #405c7b;
+  padding: 10px 14px;
+  border-radius: 25px;
+}
+
+.subjects button:hover,.actions button:hover {
+  background: #eaf2ff;
+}
+
+.message-list {
+  max-width: 800px;
+  margin: 0 auto;
+  display: grid;
+  gap: 13px;
+}
+
+.message {
+  background: white;
+  border: 1px solid #dce5f2;
+  border-radius: 16px;
+  padding: 14px 17px;
+  max-width: 85%;
+  overflow-wrap: anywhere;
+}
+
+.message.mine {
+  justify-self: end;
+  background: #e8f1ff;
+}
+
+.message p { white-space: pre-wrap; }
+.message small { color: #74849c; }
+
+.composer-area {
+  width: min(900px,100%);
+  margin: 0 auto;
+  padding: 15px;
+}
+
+.actions { margin: 0 0 13px; }
+
+.composer {
+  background: white;
+  border: 1px solid #dce5f2;
+  border-radius: 17px;
+  padding: 12px;
+}
+
+.composer textarea {
+  width: 100%;
+  min-height: 75px;
+  padding: 8px;
+  resize: vertical;
+  border: 0;
+  background: transparent;
+  outline: none;
+  color: #1a2b46;
+}
+
+.composer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.composer-bottom small { color: #7a899d; }
+.centered { text-align: center; font-size: 12px; }
+
+.panel {
+  background: white;
+  border: 1px solid #e2eaf4;
+  border-radius: 19px;
+  padding: 30px;
+  width: min(750px,calc(100% - 36px));
+  margin: 30px auto;
+}
+
+.info {
+  background: #eaf4ff;
+  color: #3b597a;
+  padding: 17px;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.secondary {
+  background: white;
+  color: #245ec8;
+  border: 1px solid #c8d9f2;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.danger-zone {
+  margin-top: 35px;
+  padding-top: 20px;
+  border-top: 1px solid #e4eaf4;
+}
+
+.danger-zone h3 { color: #b42318; }
+
+.danger-zone label {
+  display: block;
+  margin: 15px 0 8px;
+}
+
+.danger-zone input {
+  display: block;
+  width: 100%;
+  max-width: 350px;
+}
+
+.danger {
+  margin-top: 14px;
+  padding: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #b42318;
+  color: white;
+}
+
+.auth,.center {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg,#e3efff,#e7faf1);
+}
+
+.auth-card {
+  width: min(100%,430px);
+  background: white;
+  border-radius: 23px;
+  padding: 35px;
+  box-shadow: 0 20px 60px #00000012;
+}
+
+.auth-card h1 { font-size: 30px; }
+.auth-card p { color: #6a7a90; }
+
+.auth-card label {
+  display: block;
+  margin: 15px 0 7px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.auth-card input { width: 100%; }
+.auth-card form .primary { margin-top: 20px; }
+
+.tabs {
+  display: flex;
+  gap: 5px;
+  background: #eef4fc;
+  padding: 5px;
+  border-radius: 12px;
+  margin: 25px 0;
+}
+
+.tabs button {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 11px;
+  border-radius: 9px;
+}
+
+.tabs button.selected {
+  background: white;
+  color: #245ec8;
+  font-weight: 700;
+}
+
+.notice {
+  margin: 15px;
+  padding: 13px;
+  background: #eaf2ff;
+  border: 1px solid #d0e1ff;
+  border-radius: 11px;
+  color: #285a95;
+  display: flex;
+  justify-content: space-between;
+}
+
+.notice button {
+  border: 0;
+  background: transparent;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+}
+
+@media(max-width:780px) {
+  .app { display: block; }
+
+  .sidebar {
+    gap: 12px;
+    padding: 15px;
+    border-bottom: 1px solid #e4eaf4;
+  }
+
+  nav { display: flex; overflow-x: auto; }
+  nav button { white-space: nowrap; }
+  .history { max-height: 180px; overflow-y: auto; }
+  .topbar { padding: 18px; }
+  .topbar h1 { font-size: 21px; }
+  .phase { display: none; }
+  .messages { padding: 15px; }
+  .message { max-width: 96%; }
+}
+
+@media(prefers-reduced-motion:reduce) {
+  * {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* CONAUTI - HISTORIAL AVANZADO */
+
+.historial-avanzado {
+  flex: 1;
+  min-height: 160px;
+  min-width: 0;
+}
+
+.historial-avanzado h3 {
+  font-size: 13px;
+  margin: 0 0 12px;
+}
+
+.historial-avanzado > input {
+  display: block;
+  width: 100%;
+}
+
+.historial-estado {
+  color: #64748b;
+  font-size: 11px;
+  margin: 10px 0;
+}
+
+.historial-lista {
+  max-height: 39vh;
+  overflow-y: auto;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+}
+
+.historial-fila {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.historial-fila:hover,
+.historial-fila.elegida {
+  background: #eaf2ff;
+}
+
+.historial-fila button {
+  border: 0;
+  background: transparent;
+  color: #415471;
+  padding: 7px;
+  border-radius: 7px;
+}
+
+.historial-fila button:hover {
+  background: #dce9ff;
+}
+
+.historial-titulo {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.historial-titulo span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.historial-titulo small {
+  display: block;
+  color: #71829b;
+  margin-top: 3px;
+  font-size: 10px;
+}
+
+.historial-paginacion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 12px;
+}
+
+.historial-paginacion button {
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #d4e1f2;
+  color: #245ec8;
+}
+
+.historial-paginacion button:disabled {
+  opacity: .4;
+}
+
+.historial-vacio {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.mensajes-anteriores {
+  justify-self: center;
+  background: white;
+  color: #245ec8;
+  border: 1px solid #cbdcf4;
+  border-radius: 10px;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+}
+
+@media(max-width:780px) {
+  .historial-lista {
+    max-height: 190px;
+  }
+}
+
+/* CONAUTI - MOTOR PEDAGOGICO */
+
+.guia-pedagogica {
+  padding: 12px 15px;
+  border: 1px solid #cbdcf4;
+  border-radius: 14px;
+  background: #f2f7ff;
+  margin: 8px 0;
+}
+
+.guia-pedagogica-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  color: #1f4785;
+  font-size: 12px;
+}
+
+.guia-pedagogica-cabecera span {
+  color: #46648c;
+}
+
+.guia-pedagogica-acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.guia-pedagogica-acciones button {
+  border: 1px solid #b8cdf0;
+  background: #fff;
+  color: #245ec8;
+  border-radius: 9px;
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.guia-pedagogica-acciones button:hover {
+  background: #e4eeff;
+}
+
+.guia-pedagogica p {
+  color: #58708d;
+  font-size: 11px;
+  margin: 9px 0 0;
+}
+
+/* CONAUTI - MOTOR PEDAGOGICO */
+
+.guia-pedagogica {
+  padding: 12px 15px;
+  border: 1px solid #cbdcf4;
+  border-radius: 14px;
+  background: #f2f7ff;
+  margin: 8px 0;
+}
+
+.guia-pedagogica-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  color: #1f4785;
+  font-size: 12px;
+}
+
+.guia-pedagogica-cabecera span {
+  color: #46648c;
+}
+
+.guia-pedagogica-acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.guia-pedagogica-acciones button {
+  border: 1px solid #b8cdf0;
+  background: #fff;
+  color: #245ec8;
+  border-radius: 9px;
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.guia-pedagogica-acciones button:hover {
+  background: #e4eeff;
+}
+
+.guia-pedagogica p {
+  color: #58708d;
+  font-size: 11px;
+  margin: 9px 0 0;
+}
+
+/* CONAUTI FASE 08 */
+
+.conauti-voz {
+  padding: 13px 15px;
+  border: 1px solid #a9d4e8;
+  background: #f0fbff;
+  border-radius: 14px;
+  margin: 8px 0;
+  color: #22506b;
+}
+
+.conauti-voz-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+
+.conauti-voz-cabecera span {
+  color: #446c85;
+  font-size: 11px;
+}
+
+.conauti-voz-acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.conauti-voz-acciones button {
+  border: 1px solid #8cbfe0;
+  border-radius: 9px;
+  padding: 9px 13px;
+  background: white;
+  color: #16608c;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.conauti-voz-acciones button:hover {
+  background: #dff3ff;
+}
+
+.conauti-voz-acciones button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.conauti-voz-medidor {
+  width: 100%;
+  height: 9px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #d1e9f5;
+  margin-top: 12px;
+}
+
+.conauti-voz-medidor > div {
+  height: 100%;
+  border-radius: inherit;
+  background: #1b91bd;
+  transition: width 100ms;
+}
+
+.conauti-voz p {
+  font-size: 11px;
+  margin: 10px 0 5px;
+}
+
+.conauti-voz small {
+  font-size: 10px;
+  color: #55758a;
+}
+
+/* VOZ CONAUTI F08 */
+.conauti-voz {
+  background: #edfaff;
+  border: 1px solid #b3dbeb;
+  padding: 14px;
+  border-radius: 14px;
+  margin: 10px 0;
+}
+.conauti-voz-superior {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  color: #155a78;
+  font-size: 12px;
+}
+.conauti-voz-superior span {
+  font-size: 11px;
+  color: #568094;
+}
+.conauti-voz-botones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.conauti-voz-botones button {
+  padding: 9px 13px;
+  background: white;
+  color: #16638c;
+  border: 1px solid #99cce3;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.conauti-voz-botones button:hover {
+  background: #def2ff;
+}
+.conauti-voz-botones button:disabled {
+  opacity: .5;
+}
+.conauti-voz-nivel {
+  background: #d0eaf7;
+  height: 9px;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+.conauti-voz-nivel > div {
+  background: #1491c6;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 100ms;
+}
+.conauti-voz p {
+  margin: 9px 0 5px;
+  font-size: 11px;
+}
+.conauti-voz small {
+  color: #52758a;
+  font-size: 10px;
+}
+
+/* CONAUTI FASE09 DIALOGO */
+.conauti-dialogo {
+  border: 1px solid #b9cafa;
+  border-radius: 15px;
+  background: #f2f5ff;
+  padding: 14px;
+  margin: 10px 0;
+  color: #24386d;
+}
+.conauti-dialogo-top {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+}
+.conauti-dialogo-top span {
+  color: #3755a0;
+  font-size: 11px;
+  text-transform: capitalize;
+}
+.conauti-dialogo p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 10px 0;
+}
+.conauti-dialogo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.conauti-dialogo-buttons button {
+  padding: 9px 13px;
+  border: 1px solid #b6c8f3;
+  background: white;
+  color: #254e9a;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.conauti-dialogo-buttons button:hover {
+  background: #e1eaff;
+}
+.conauti-dialogo-buttons button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.conauti-dialogo-level {
+  height: 10px;
+  margin: 12px 0;
+  border-radius: 999px;
+  background: #d5e0fb;
+  overflow: hidden;
+}
+.conauti-dialogo-level div {
+  height: 100%;
+  background: #4f76e1;
+  border-radius: inherit;
+  transition: width 120ms;
+}
+.conauti-dialogo-voice {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 11px;
+  margin: 12px 0;
+}
+.conauti-dialogo-voice select {
+  max-width: 100%;
+  padding: 7px;
+  border: 1px solid #b6c8f3;
+  border-radius: 8px;
+  background: white;
+  color: #24386d;
+}
+.conauti-dialogo small {
+  display: block;
+  margin-top: 12px;
+  font-size: 10px;
+  color: #667ba5;
+  line-height: 1.5;
+}
+
+/* CONAUTI CHATGPT START */
+
+:root {
+  --gpt-bg: #ffffff;
+  --gpt-side: #f9f9f9;
+  --gpt-text: #171717;
+  --gpt-muted: #727272;
+  --gpt-line: #e9e9e9;
+  --gpt-soft: #f4f4f4;
+  --gpt-hover: #ededed;
+}
+
+html {
+  background: var(--gpt-bg);
+}
+
+body {
+  margin: 0;
+  background: var(--gpt-bg) !important;
+  color: var(--gpt-text);
+  font-family: Inter, ui-sans-serif, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+#root {
+  background: var(--gpt-bg);
+  min-height: 100dvh;
+  color: var(--gpt-text);
+}
+
+/* Distribución en dos columnas cuando existe
+   una barra lateral directa en la aplicación. */
+
+#root > div:has(> aside),
+#root > div:has(> .sidebar) {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  min-height: 100dvh;
+  background: #fff;
+}
+
+#root > div:has(> aside) > :not(aside),
+#root > div:has(> .sidebar) > :not(.sidebar) {
+  min-width: 0;
+}
+
+/* Barra lateral al estilo ChatGPT */
+
+#root aside,
+#root .sidebar,
+#root .side-panel,
+#root .history-sidebar {
+  background: var(--gpt-side);
+  color: var(--gpt-text);
+  border-right: 1px solid #ececec;
+  box-shadow: none;
+}
+
+#root > div > aside,
+#root > div > .sidebar {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#root aside button,
+#root .sidebar button,
+#root .history-sidebar button {
+  border-radius: 10px;
+  box-shadow: none;
+  border-color: transparent;
+  background: transparent;
+  color: #282828;
+  text-align: left;
+}
+
+#root aside button:hover,
+#root .sidebar button:hover {
+  background: var(--gpt-hover);
+  box-shadow: none;
+  transform: none;
+}
+
+#root aside input,
+#root .sidebar input {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  box-shadow: none;
+}
+
+/* Cabecera sencilla */
+
+#root header {
+  background: rgba(255,255,255,.98);
+  box-shadow: none;
+  border-bottom-color: var(--gpt-line);
+}
+
+#root h1 {
+  font-size: clamp(22px, 2.2vw, 30px);
+  letter-spacing: -.04em;
+  color: #202020;
+  line-height: 1.2;
+}
+
+#root h2,
+#root h3 {
+  color: #282828;
+}
+
+/* Área central de conversación */
+
+#root .messages,
+#root .message-list {
+  width: 100%;
+  max-width: 830px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(12px, 3vw, 32px);
+  padding-right: clamp(12px, 3vw, 32px);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+#root .message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Mensajes del usuario */
+
+#root .message-list article.message.user,
+#root .message-list article.message[data-role="user"],
+#root .message-list article.message.message-user {
+  width: fit-content;
+  max-width: min(85%, 680px);
+  margin-left: auto;
+  margin-right: 0;
+  padding: 14px 18px;
+  border-radius: 23px;
+  border: 0;
+  background: #f4f4f4;
+  box-shadow: none;
+  color: #202020;
+  text-align: left;
+}
+
+/* Respuestas del asistente sin tarjetas enormes */
+
+#root .message-list article.message.assistant,
+#root .message-list article.message[data-role="assistant"],
+#root .message-list article.message.message-assistant {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 12px 3px 20px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #202020;
+}
+
+/* Restablecer apariencia heredada de tarjetas grandes */
+
+#root .message-list article.message {
+  border-color: #ededed;
+  box-shadow: none;
+  line-height: 1.7;
+}
+
+#root .message-list article.message p {
+  line-height: 1.7;
+  margin: 6px 0 13px;
+}
+
+#root .message-list article.message time,
+#root .message-list article.message small {
+  color: #888;
+  font-size: 11px;
+}
+
+/* Editor inferior con forma de cápsula */
+
+#root form:has(textarea) {
+  position: sticky;
+  bottom: 12px;
+  z-index: 12;
+  width: calc(100% - 24px);
+  max-width: 790px;
+  margin: 26px auto 12px;
+  padding: 11px 14px;
+  border: 1px solid #e3e3e3;
+  border-radius: 27px;
+  background: #fff;
+  box-shadow: 0 5px 25px rgba(0,0,0,.075);
+}
+
+#root form:has(textarea) textarea {
+  min-height: 46px;
+  max-height: 180px;
+  width: 100%;
+  border: 0;
+  border-radius: 15px;
+  background: transparent;
+  color: #1d1d1d;
+  box-shadow: none;
+  resize: vertical;
+}
+
+#root form:has(textarea) textarea:focus {
+  outline: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+#root form:has(textarea) button[type="submit"] {
+  border-radius: 50%;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 8px;
+  background: #171717;
+  color: #fff;
+  border-color: #171717;
+  box-shadow: none;
+}
+
+#root form:has(textarea) button[type="submit"]:hover {
+  background: #373737;
+  transform: none;
+}
+
+/* Herramientas contraídas, como en un chat real */
+
+#root .conauti-gpt-voice-tools,
+#root .conauti-gpt-learning-tools {
+  width: calc(100% - 24px);
+  max-width: 790px;
+  margin: 10px auto;
+  border-radius: 16px;
+  border: 1px solid var(--gpt-line);
+  background: #fff;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+#root .conauti-gpt-voice-tools > summary,
+#root .conauti-gpt-learning-tools > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  list-style: none;
+  user-select: none;
+}
+
+#root .conauti-gpt-voice-tools > summary::-webkit-details-marker,
+#root .conauti-gpt-learning-tools > summary::-webkit-details-marker {
+  display: none;
+}
+
+#root .conauti-gpt-voice-tools > summary::after,
+#root .conauti-gpt-learning-tools > summary::after {
+  content: "⌄";
+  margin-left: auto;
+  color: #777;
+  font-size: 17px;
+}
+
+#root .conauti-gpt-voice-tools[open] > summary::after,
+#root .conauti-gpt-learning-tools[open] > summary::after {
+  content: "⌃";
+}
+
+#root .conauti-gpt-voice-tools > summary:hover,
+#root .conauti-gpt-learning-tools > summary:hover {
+  background: var(--gpt-soft);
+}
+
+#root .conauti-gpt-voice-tools > summary small {
+  margin-left: auto;
+  color: #777;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+#root .conauti-gpt-voice-tools > summary::after {
+  margin-left: 0;
+}
+
+#root .conauti-gpt-voice-body {
+  padding: 12px 15px 17px;
+  border-top: 1px solid var(--gpt-line);
+}
+
+#root .conauti-gpt-voice-body .conauti-dialogo,
+#root .conauti-gpt-voice-body .conauti-voz,
+#root .conauti-gpt-learning-tools .guia-pedagogica {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e9e9e9;
+  box-shadow: none;
+  margin: 8px 0;
+  padding: 14px;
+}
+
+#root .conauti-gpt-voice-body button,
+#root .conauti-gpt-learning-tools button {
+  background: #f4f4f4;
+  color: #252525;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+#root .conauti-gpt-voice-body button:hover,
+#root .conauti-gpt-learning-tools button:hover {
+  background: #e9e9e9;
+  transform: none;
+  box-shadow: none;
+}
+
+#root .conauti-gpt-voice-body .conauti-dialogo-top span,
+#root .conauti-gpt-voice-body .conauti-voz-superior span {
+  background: #f2f2f2;
+  border: 0;
+  color: #555;
+}
+
+#root .conauti-gpt-voice-body .conauti-dialogo-level,
+#root .conauti-gpt-voice-body .conauti-voz-nivel {
+  background: #e8e8e8;
+}
+
+#root .conauti-gpt-voice-body .conauti-dialogo-level > div,
+#root .conauti-gpt-voice-body .conauti-voz-nivel > div {
+  background: #171717;
+}
+
+/* Botones en general: sobrios y compactos */
+
+#root button {
+  transition: background .15s ease,
+    border-color .15s ease,
+    opacity .15s ease;
+}
+
+#root button:focus-visible,
+#root summary:focus-visible {
+  outline: 3px solid rgba(60,100,220,.35);
+  outline-offset: 2px;
+}
+
+/* Panel pedagógico discreto */
+
+#root .conauti-gpt-learning-tools .guia-pedagogica {
+  padding: 16px;
+}
+
+#root .conauti-gpt-learning-tools .guia-pedagogica-cabecera {
+  color: #333;
+}
+
+#root .conauti-gpt-learning-tools .guia-pedagogica p {
+  color: #6b6b6b;
+}
+
+/* Móviles */
+
+@media (max-width: 900px) {
+  #root > div:has(> aside),
+  #root > div:has(> .sidebar) {
+    display: block;
+  }
+
+  #root > div > aside,
+  #root > div > .sidebar {
+    position: relative;
+    height: auto;
+    max-height: 32vh;
+    border-right: 0;
+    border-bottom: 1px solid #ececec;
+  }
+}
+
+@media (max-width: 600px) {
+  #root .messages,
+  #root .message-list {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  #root .message-list article.message.user {
+    max-width: 92%;
+  }
+
+  #root .conauti-gpt-voice-tools,
+  #root .conauti-gpt-learning-tools {
+    width: calc(100% - 16px);
+  }
+
+  #root form:has(textarea) {
+    width: calc(100% - 16px);
+    bottom: 7px;
+    padding: 8px;
+    border-radius: 22px;
+  }
+
+  #root .conauti-gpt-voice-tools > summary small {
+    display: none;
+  }
+
+  #root .conauti-gpt-voice-body {
+    padding: 10px;
+  }
+}
+
+/* CONAUTI CHATGPT END */
+
+/* CONAUTI FLECHA FINAL START */
+
+/* Cápsula de dos niveles: texto arriba,
+   herramientas abajo */
+
+#root form.conauti-gpt-composer {
+  display: block !important;
+  position: sticky !important;
+  bottom: 14px !important;
+  z-index: 30 !important;
+
+  width: min(850px, calc(100% - 24px)) !important;
+  min-height: 135px !important;
+  max-width: 850px !important;
+
+  margin: 16px auto !important;
+  padding: 15px 19px 69px !important;
+
+  background: #ffffff !important;
+  border: 1px solid #e7e7e7 !important;
+  border-radius: 30px !important;
+  box-shadow: 0 5px 24px rgba(0,0,0,.07) !important;
+}
+
+/* Editor: ocupa toda la parte superior */
+
+#root form.conauti-gpt-composer textarea {
+  display: block !important;
+  width: 100% !important;
+  min-height: 57px !important;
+  max-height: 150px !important;
+
+  margin: 0 !important;
+  padding: 6px 2px !important;
+
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+
+  resize: none !important;
+  color: #242424 !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+}
+
+#root form.conauti-gpt-composer textarea::placeholder {
+  color: #929292 !important;
+  opacity: 1 !important;
+}
+
+#root form.conauti-gpt-composer > :has(textarea) {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Botón + abajo a la izquierda */
+
+#root form.conauti-gpt-composer
+.conauti-composer-left {
+  display: flex !important;
+  position: absolute !important;
+
+  left: 13px !important;
+  bottom: 11px !important;
+
+  align-items: center !important;
+  z-index: 5 !important;
+}
+
+/* Etiqueta del modelo y micrófono */
+
+#root form.conauti-gpt-composer
+.conauti-composer-right {
+  display: flex !important;
+  position: absolute !important;
+
+  right: 72px !important;
+  bottom: 12px !important;
+
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 11px !important;
+
+  width: auto !important;
+  z-index: 5 !important;
+}
+
+#root form.conauti-gpt-composer
+.conauti-composer-model {
+  display: inline-flex !important;
+  color: #909090 !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  padding: 0 3px !important;
+}
+
+/* Iconos secundarios */
+
+#root form.conauti-gpt-composer
+.conauti-composer-icon {
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+
+  box-shadow: none !important;
+  color: #262626 !important;
+  cursor: pointer !important;
+}
+
+#root form.conauti-gpt-composer
+.conauti-composer-icon:hover {
+  background: #f3f3f3 !important;
+  transform: none !important;
+}
+
+/* Botón Enviar auténtico, al extremo derecho */
+
+#root form.conauti-gpt-composer
+button.conauti-composer-send {
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+
+  position: absolute !important;
+  right: 11px !important;
+  bottom: 10px !important;
+
+  width: 45px !important;
+  height: 45px !important;
+  min-width: 45px !important;
+  min-height: 45px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  background: #3478f6 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  box-shadow: none !important;
+
+  color: transparent !important;
+  font-size: 0 !important;
+
+  cursor: pointer !important;
+  z-index: 7 !important;
+}
+
+#root form.conauti-gpt-composer
+.conauti-composer-send-holder {
+  position: static !important;
+}
+
+/* Ocultar el texto o icono anterior
+   sin modificar el evento real de envío */
+
+#root form.conauti-gpt-composer
+button.conauti-composer-send > * {
+  display: none !important;
+}
+
+#root form.conauti-gpt-composer
+button.conauti-composer-send::before {
+  content: "" !important;
+  display: block !important;
+  width: 24px !important;
+  height: 24px !important;
+
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 19V5M5 12l7-7 7 7'/%3E%3C/svg%3E")
+    center / contain no-repeat !important;
+}
+
+#root form.conauti-gpt-composer
+button.conauti-composer-send:hover:not(:disabled) {
+  background: #2468e7 !important;
+  transform: none !important;
+}
+
+#root form.conauti-gpt-composer
+button.conauti-composer-send:disabled {
+  background: #bfc7d5 !important;
+  opacity: .65 !important;
+  cursor: not-allowed !important;
+}
+
+/* No duplicar el botón azul de voz.
+   La conversación se abre desde el menú + */
+
+#root form.conauti-gpt-composer
+.conauti-composer-voice {
+  display: none !important;
+}
+
+/* Menú del botón + */
+
+#root .conauti-composer-menu {
+  position: absolute !important;
+  left: 0 !important;
+  bottom: calc(100% + 14px) !important;
+
+  width: 285px !important;
+  max-width: calc(100vw - 40px) !important;
+
+  padding: 8px !important;
+  background: white !important;
+  border: 1px solid #e7e7e7 !important;
+  border-radius: 17px !important;
+
+  box-shadow: 0 15px 45px rgba(0,0,0,.15) !important;
+  z-index: 70 !important;
+}
+
+#root form.conauti-gpt-composer
+.conauti-composer-menu button {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+
+  width: 100% !important;
+  min-height: 42px !important;
+  padding: 9px 11px !important;
+
+  background: #fff !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+
+  color: #252525 !important;
+  font-size: 13px !important;
+  text-align: left !important;
+}
+
+#root form.conauti-gpt-composer
+.conauti-composer-menu button:hover {
+  background: #f3f3f3 !important;
+}
+
+/* Mantener visible la ventana flotante de voz */
+
+#root details.conauti-gpt-voice-tools[open],
+#root details.conauti-gpt-learning-tools[open] {
+  z-index: 70 !important;
+}
+
+/* Adaptación a teléfonos */
+
+@media (max-width: 650px) {
+  #root form.conauti-gpt-composer {
+    width: calc(100% - 16px) !important;
+    min-height: 126px !important;
+
+    bottom: 8px !important;
+    padding: 12px 14px 64px !important;
+    border-radius: 26px !important;
+  }
+
+  #root form.conauti-gpt-composer textarea {
+    font-size: 15px !important;
+    min-height: 54px !important;
+  }
+
+  #root form.conauti-gpt-composer
+  .conauti-composer-left {
+    left: 8px !important;
+    bottom: 8px !important;
+  }
+
+  #root form.conauti-gpt-composer
+  .conauti-composer-right {
+    right: 62px !important;
+    bottom: 9px !important;
+    gap: 4px !important;
+  }
+
+  #root form.conauti-gpt-composer
+  .conauti-composer-model {
+    display: none !important;
+  }
+
+  #root form.conauti-gpt-composer
+  button.conauti-composer-send {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+    right: 8px !important;
+    bottom: 8px !important;
+  }
+}
+
+/* CONAUTI FLECHA FINAL END */
+
+
+/* CONAUTI COMPOSER GLOBAL START */
+
+/* El nombre del proveedor no aparece en la barra. */
+
+#root .conauti-composer-model {
+  display: none !important;
+}
+
+/* La misma barra sirve para chats nuevos y existentes. */
+
+#root form.conauti-gpt-composer {
+  display: block !important;
+  position: sticky !important;
+  bottom: 14px !important;
+
+  width: min(850px, calc(100% - 24px)) !important;
+  max-width: 850px !important;
+  min-height: 132px !important;
+
+  margin: 16px auto !important;
+  padding: 15px 18px 67px !important;
+
+  background: #ffffff !important;
+  border: 1px solid #e5e5e5 !important;
+  border-radius: 30px !important;
+  box-shadow: 0 5px 22px rgba(0,0,0,.07) !important;
+}
+
+/* Texto en la parte superior. */
+
+#root form.conauti-gpt-composer textarea {
+  display: block !important;
+
+  width: 100% !important;
+  min-height: 56px !important;
+  max-height: 150px !important;
+
+  padding: 6px 2px !important;
+  margin: 0 !important;
+
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+
+  resize: none !important;
+  outline: none !important;
+
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  color: #222222 !important;
+}
+
+#root form.conauti-gpt-composer
+textarea::placeholder {
+  color: #929292 !important;
+}
+
+/* Botón + abajo a la izquierda. */
+
+#root form.conauti-gpt-composer
+.conauti-composer-left {
+  position: absolute !important;
+  left: 12px !important;
+  bottom: 11px !important;
+}
+
+/* Micrófono abajo a la derecha. */
+
+#root form.conauti-gpt-composer
+.conauti-composer-right {
+  position: absolute !important;
+
+  right: 67px !important;
+  bottom: 12px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+/* Flecha azul de Enviar al extremo derecho. */
+
+#root form.conauti-gpt-composer
+button.conauti-composer-send {
+  position: absolute !important;
+
+  right: 10px !important;
+  bottom: 10px !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 44px !important;
+  height: 44px !important;
+
+  min-width: 44px !important;
+  min-height: 44px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  background: #3478f6 !important;
+  color: transparent !important;
+
+  border: 0 !important;
+  border-radius: 50% !important;
+  box-shadow: none !important;
+
+  font-size: 0 !important;
+  z-index: 8 !important;
+}
+
+#root form.conauti-gpt-composer
+button.conauti-composer-send > * {
+  display: none !important;
+}
+
+#root form.conauti-gpt-composer
+button.conauti-composer-send::before {
+  content: "" !important;
+
+  display: block !important;
+  width: 24px !important;
+  height: 24px !important;
+
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 19V5M5 12l7-7 7 7'/%3E%3C/svg%3E")
+    center / contain no-repeat !important;
+}
+
+#root form.conauti-gpt-composer
+button.conauti-composer-send:disabled {
+  background: #bfc7d5 !important;
+  opacity: .65 !important;
+}
+
+/* El modo de conversación sigue en el menú +. */
+
+#root form.conauti-gpt-composer
+.conauti-composer-voice {
+  display: none !important;
+}
+
+/* El montaje global no debe ocupar espacio visual. */
+
+#conauti-composer-root {
+  display: contents;
+}
+
+@media (max-width: 650px) {
+  #root form.conauti-gpt-composer {
+    width: calc(100% - 16px) !important;
+    padding: 12px 13px 64px !important;
+    min-height: 125px !important;
+    bottom: 8px !important;
+  }
+
+  #root form.conauti-gpt-composer
+  .conauti-composer-right {
+    right: 60px !important;
+    bottom: 9px !important;
+  }
+
+  #root form.conauti-gpt-composer
+  button.conauti-composer-send {
+    right: 8px !important;
+    bottom: 8px !important;
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+  }
+}
+
+/* CONAUTI COMPOSER GLOBAL END */

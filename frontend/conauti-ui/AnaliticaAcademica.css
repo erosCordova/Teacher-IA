@@ -1,0 +1,303 @@
+.ma-academica {
+  --ma-fondo: #ffffff;
+  --ma-panel: #f3f7ff;
+  --ma-texto: #1c2c46;
+  --ma-muted: #68778e;
+  --ma-borde: #dce5f3;
+  --ma-acento: #526ee9;
+
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: clamp(18px, 3vw, 27px);
+  margin: 22px 0;
+  border: 1px solid var(--ma-borde);
+  border-radius: 21px;
+  background: var(--ma-fondo);
+  color: var(--ma-texto);
+}
+
+.ma-academica * {
+  box-sizing: border-box;
+}
+
+.ma-cabecera,
+.ma-panel-cabecera,
+.ma-materia-info,
+.ma-meta-titulos {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ma-academica h2,
+.ma-academica h3 {
+  margin: 0;
+  color: var(--ma-texto);
+}
+
+.ma-academica h2 {
+  margin-top: 8px;
+  font-size: clamp(20px, 2.5vw, 27px);
+}
+
+.ma-academica h3 {
+  font-size: 17px;
+}
+
+.ma-academica p {
+  line-height: 1.6;
+  color: var(--ma-muted);
+}
+
+.ma-etiqueta {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .11em;
+  color: var(--ma-acento);
+}
+
+.ma-distintivo {
+  border-radius: 25px;
+  background: #e7f4ec;
+  color: #24744a;
+  padding: 9px 12px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.ma-indicadores {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.ma-indicador {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 17px;
+  border-radius: 14px;
+  background: var(--ma-panel);
+  min-width: 0;
+}
+
+.ma-indicador span {
+  font-size: 12px;
+  color: var(--ma-muted);
+}
+
+.ma-indicador strong {
+  font-size: 27px;
+  color: var(--ma-texto);
+}
+
+.ma-indicador small {
+  color: var(--ma-muted);
+  font-size: 11px;
+}
+
+.ma-paneles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.ma-panel {
+  background: var(--ma-panel);
+  border: 1px solid var(--ma-borde);
+  border-radius: 16px;
+  padding: clamp(15px, 2vw, 20px);
+  min-width: 0;
+}
+
+.ma-panel-cabecera span {
+  color: var(--ma-muted);
+  font-size: 12px;
+}
+
+.ma-grafico {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 9px;
+  height: 192px;
+  margin: 25px 0;
+}
+
+.ma-dia {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  color: var(--ma-muted);
+}
+
+.ma-dia > strong {
+  font-size: 12px;
+  color: var(--ma-texto);
+}
+
+.ma-dia > span {
+  font-size: 11px;
+}
+
+.ma-columna {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  max-width: 48px;
+  height: 130px;
+  border-radius: 9px;
+  background: var(--ma-fondo);
+  overflow: hidden;
+}
+
+.ma-barra-dia {
+  width: 100%;
+  min-height: 0;
+  border-radius: 9px 9px 0 0;
+  background: linear-gradient(
+    180deg, #6ebbec, #546eea
+  );
+  transition: height .25s ease;
+}
+
+.ma-meta {
+  border-top: 1px solid var(--ma-borde);
+  padding-top: 16px;
+}
+
+.ma-meta-titulos {
+  font-size: 12px;
+}
+
+.ma-meta-titulos span {
+  color: var(--ma-muted);
+}
+
+.ma-progreso-meta,
+.ma-barra-materia {
+  height: 9px;
+  background: var(--ma-borde);
+  border-radius: 20px;
+  overflow: hidden;
+  margin-top: 11px;
+}
+
+.ma-progreso-meta > div,
+.ma-barra-materia > div {
+  height: 100%;
+  background: linear-gradient(
+    90deg, #42c6a1, #5877ed
+  );
+  border-radius: inherit;
+}
+
+.ma-meta p {
+  font-size: 12px;
+  margin-bottom: 0;
+}
+
+.ma-materias {
+  display: grid;
+  gap: 25px;
+  margin: 25px 0;
+}
+
+.ma-materia-info strong {
+  font-size: 14px;
+}
+
+.ma-materia-info span {
+  font-size: 13px;
+  color: var(--ma-acento);
+  font-weight: 700;
+}
+
+.ma-materia small {
+  display: block;
+  margin-top: 9px;
+  color: var(--ma-muted);
+}
+
+.ma-consejo {
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--ma-fondo);
+  color: var(--ma-texto);
+}
+
+.ma-consejo strong {
+  font-size: 13px;
+}
+
+.ma-consejo p {
+  font-size: 12px;
+  margin-bottom: 0;
+}
+
+.ma-aclaracion {
+  font-size: 11px;
+  margin-top: 16px;
+}
+
+.ma-sin-datos {
+  padding: 15px;
+  border-radius: 12px;
+  background: var(--ma-panel);
+}
+
+.ma-error {
+  padding: 14px;
+  border-radius: 12px;
+  background: #fff0f0;
+  color: #a52735 !important;
+}
+
+[data-theme="dark"] .ma-academica,
+.dark .ma-academica {
+  --ma-fondo: #1e293b;
+  --ma-panel: #29364c;
+  --ma-texto: #f2f5ff;
+  --ma-muted: #b6c1d5;
+  --ma-borde: #44516b;
+  --ma-acento: #91a9ff;
+}
+
+@media (max-width: 900px) {
+  .ma-indicadores {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ma-paneles {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 500px) {
+  .ma-grafico {
+    gap: 5px;
+  }
+
+  .ma-dia > span {
+    font-size: 10px;
+  }
+
+  .ma-indicador {
+    padding: 13px;
+  }
+
+  .ma-indicador strong {
+    font-size: 23px;
+  }
+
+  .ma-distintivo {
+    display: none;
+  }
+}

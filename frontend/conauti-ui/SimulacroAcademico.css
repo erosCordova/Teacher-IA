@@ -1,0 +1,315 @@
+.mt-simulacro {
+  --ms-bg: #fff;
+  --ms-panel: #f1f6ff;
+  --ms-text: #20314d;
+  --ms-muted: #667892;
+  --ms-border: #dce5f2;
+  --ms-accent: #456be5;
+
+  box-sizing: border-box;
+  margin-top: 24px;
+  padding: clamp(16px, 3vw, 24px);
+  border: 1px solid var(--ms-border);
+  border-radius: 18px;
+  background: var(--ms-bg);
+  color: var(--ms-text);
+}
+
+.mt-simulacro * {
+  box-sizing: border-box;
+}
+
+.mt-simulacro-cabecera,
+.mt-simulacro-estado,
+.mt-simulacro-pistas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mt-simulacro h3,
+.mt-simulacro h4 {
+  color: var(--ms-text);
+  margin: 8px 0;
+}
+
+.mt-simulacro h3 {
+  font-size: 20px;
+}
+
+.mt-simulacro h4 {
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.mt-simulacro p {
+  color: var(--ms-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.mt-simulacro-etiqueta {
+  color: var(--ms-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.mt-simulacro-meta {
+  padding: 9px 12px;
+  border-radius: 30px;
+  background: var(--ms-panel);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mt-simulacro-inicio {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 17px;
+  border-radius: 13px;
+  background: var(--ms-panel);
+}
+
+.mt-simulacro-inicio label {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.mt-simulacro select {
+  padding: 11px;
+  border-radius: 10px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-bg);
+  color: var(--ms-text);
+  font: inherit;
+}
+
+.mt-simulacro button {
+  min-height: 43px;
+  padding: 10px 14px;
+  border: 1px solid var(--ms-border);
+  border-radius: 10px;
+  background: var(--ms-bg);
+  color: var(--ms-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mt-simulacro button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.mt-simulacro button:focus-visible,
+.mt-simulacro select:focus-visible {
+  outline: 3px solid #65b2ff;
+  outline-offset: 2px;
+}
+
+.mt-simulacro button.mt-simulacro-principal {
+  background: var(--ms-accent);
+  border-color: var(--ms-accent);
+  color: #fff;
+}
+
+.mt-simulacro-ejercicio {
+  margin-top: 19px;
+  padding: 17px;
+  background: var(--ms-panel);
+  border-radius: 14px;
+}
+
+.mt-simulacro-estado {
+  font-size: 13px;
+}
+
+.mt-simulacro-estado span {
+  color: var(--ms-muted);
+  text-transform: capitalize;
+}
+
+.mt-simulacro-progreso {
+  height: 9px;
+  margin: 15px 0;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--ms-border);
+}
+
+.mt-simulacro-progreso > div {
+  height: 100%;
+  background: #37ae8d;
+  border-radius: inherit;
+}
+
+.mt-simulacro-opciones {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.mt-simulacro .mt-simulacro-opciones button {
+  text-align: left;
+  background: var(--ms-bg);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.mt-simulacro .mt-simulacro-opciones button.mt-simulacro-elegida {
+  border-color: var(--ms-accent);
+}
+
+.mt-simulacro .mt-simulacro-opciones button[aria-pressed="true"] {
+  border: 2px solid var(--ms-accent);
+  background: var(--ms-panel);
+}
+
+.mt-simulacro-pistas {
+  margin-bottom: 15px;
+}
+
+.mt-simulacro-pistas span {
+  font-size: 12px;
+  color: var(--ms-muted);
+}
+
+.mt-simulacro-pista,
+.mt-simulacro-correccion,
+.mt-simulacro-resumen {
+  border: 1px solid var(--ms-border);
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--ms-bg);
+}
+
+.mt-simulacro-correccion {
+  display: grid;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.mt-simulacro-resumen {
+  margin-top: 18px;
+  text-align: center;
+}
+
+.mt-simulacro-puntuacion {
+  display: block;
+  margin: 15px 0;
+  font-size: 36px;
+  color: var(--ms-accent);
+}
+
+.mt-simulacro .mt-simulacro-cancelar {
+  margin-top: 15px;
+}
+
+.mt-simulacro-error {
+  background: #fff0f0;
+  color: #a52b3b !important;
+  padding: 13px;
+  border-radius: 10px;
+  margin-top: 13px;
+}
+
+[data-theme="dark"] .mt-simulacro,
+.dark .mt-simulacro {
+  --ms-bg: #1e293b;
+  --ms-panel: #29364c;
+  --ms-text: #f2f5ff;
+  --ms-muted: #b8c4d8;
+  --ms-border: #43516b;
+  --ms-accent: #526ee9;
+}
+
+@media (max-width: 500px) {
+  .mt-simulacro-cabecera {
+    align-items: flex-start;
+  }
+
+  .mt-simulacro-inicio,
+  .mt-simulacro-ejercicio {
+    padding: 13px;
+  }
+}
+
+
+/* MYTEACHER_SIMULACRO_REVIEW_V1 */
+.mt-simulacro-revision {
+  margin: 22px 0;
+  text-align: left;
+}
+
+.mt-simulacro-revision h5 {
+  margin: 0;
+  color: var(--ms-text);
+  font-size: 16px;
+}
+
+.mt-simulacro-revision-lista {
+  display: grid;
+  gap: 12px;
+  margin: 17px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mt-simulacro-revision-item {
+  padding: 16px;
+  border: 1px solid var(--ms-border);
+  border-radius: 12px;
+  background: var(--ms-panel);
+  overflow-wrap: anywhere;
+}
+
+.mt-simulacro-revision-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mt-simulacro-revision-cabecera strong {
+  color: var(--ms-text);
+  font-size: 13px;
+}
+
+.mt-simulacro-revision-cabecera span {
+  padding: 7px 10px;
+  border-radius: 24px;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.mt-simulacro-revision-correcta {
+  background: #dcf5e6;
+  color: #17683d;
+}
+
+.mt-simulacro-revision-repaso {
+  background: #fff0d5;
+  color: #87520d;
+}
+
+.mt-simulacro-revision-item p {
+  text-align: left;
+  margin: 9px 0;
+  color: var(--ms-text);
+}
+
+.mt-simulacro-revision-item small {
+  color: var(--ms-muted);
+}
+
+@media (max-width: 500px) {
+  .mt-simulacro-revision-item {
+    padding: 12px;
+  }
+}

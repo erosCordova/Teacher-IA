@@ -1,0 +1,254 @@
+.mt-plan {
+  --mp-bg: #fff;
+  --mp-soft: #f2f6ff;
+  --mp-text: #1e2b45;
+  --mp-muted: #62728a;
+  --mp-line: #dce6f5;
+  --mp-accent: #456be8;
+
+  width: 100%;
+  min-width: 0;
+  margin-top: 24px;
+  padding: clamp(16px, 3vw, 26px);
+  border: 1px solid var(--mp-line);
+  border-radius: 20px;
+  background: var(--mp-bg);
+  color: var(--mp-text);
+}
+
+.mt-plan *,
+.mt-plan *::before,
+.mt-plan *::after {
+  box-sizing: border-box;
+}
+
+.mt-plan-header {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.mt-plan h2,
+.mt-plan h3,
+.mt-plan h4 {
+  margin: 0;
+  color: var(--mp-text);
+}
+
+.mt-plan h2 {
+  margin-top: 8px;
+  font-size: clamp(20px, 2vw, 26px);
+}
+
+.mt-plan h3 {
+  margin-bottom: 20px;
+  font-size: 17px;
+}
+
+.mt-plan h4 {
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.mt-plan p {
+  line-height: 1.6;
+  color: var(--mp-muted);
+}
+
+.mt-plan-eyebrow {
+  color: var(--mp-accent);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: .1em;
+}
+
+.mt-plan-tag {
+  padding: 8px 12px;
+  border-radius: 30px;
+  background: #e8f5ee;
+  color: #187345;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.mt-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.mt-plan-panel {
+  min-width: 0;
+  padding: 20px;
+  border-radius: 15px;
+  background: var(--mp-soft);
+}
+
+.mt-plan label {
+  display: block;
+  margin: 14px 0 7px;
+  color: var(--mp-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mt-plan select,
+.mt-plan textarea {
+  display: block;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--mp-line);
+  border-radius: 10px;
+  background: var(--mp-bg);
+  color: var(--mp-text);
+  font: inherit;
+}
+
+.mt-plan textarea {
+  resize: vertical;
+  min-height: 82px;
+}
+
+.mt-plan button {
+  border: none;
+  border-radius: 10px;
+  padding: 11px 16px;
+  background: var(--mp-accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.mt-plan button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.mt-plan button:focus-visible,
+.mt-plan select:focus-visible,
+.mt-plan textarea:focus-visible {
+  outline: 3px solid #61adff;
+  outline-offset: 2px;
+}
+
+.mt-plan-save {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.mt-plan-save small {
+  color: var(--mp-muted);
+}
+
+.mt-plan-recomendacion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--mp-bg);
+  border: 1px solid var(--mp-line);
+  border-radius: 12px;
+}
+
+.mt-plan-recomendacion > span:first-child {
+  color: var(--mp-muted);
+  font-size: 12px;
+}
+
+.mt-plan-recomendacion strong {
+  font-size: 23px;
+  color: var(--mp-text);
+}
+
+.mt-plan-estado {
+  align-self: flex-start;
+  color: var(--mp-accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mt-plan-datos {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--mp-text);
+}
+
+.mt-plan .mt-plan-ayuda {
+  background: #e4f4f1;
+  color: #246856;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 13px;
+}
+
+.mt-plan-practicar {
+  margin-top: 16px;
+}
+
+.mt-plan-pasos {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--mp-line);
+}
+
+.mt-plan-pasos ol {
+  margin: 0;
+  padding-left: 21px;
+  color: var(--mp-muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.mt-plan-nota {
+  font-size: 12px;
+}
+
+.mt-plan-success,
+.mt-plan-error {
+  padding: 13px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.mt-plan .mt-plan-success {
+  color: #136842;
+  background: #e2f5e9;
+}
+
+.mt-plan .mt-plan-error {
+  color: #a82828;
+  background: #fff0f0;
+}
+
+[data-theme="dark"] .mt-plan,
+.dark .mt-plan {
+  --mp-bg: #1e293b;
+  --mp-soft: #29364c;
+  --mp-text: #f1f5ff;
+  --mp-muted: #b5c1d5;
+  --mp-line: #42516b;
+  --mp-accent: #8aa6ff;
+}
+
+@media (max-width: 700px) {
+  .mt-plan-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mt-plan-panel {
+    padding: 15px;
+  }
+
+  .mt-plan-header {
+    flex-direction: column;
+  }
+}

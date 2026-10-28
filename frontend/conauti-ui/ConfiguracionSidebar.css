@@ -1,0 +1,381 @@
+/* CONAUTI: ajustes separados del chat principal */
+
+#conauti-config-root {
+  display: contents;
+}
+
+/* Nunca mostrar los paneles grandes en el chat.
+   La voz continúa funcionando aunque estén ocultos. */
+
+html body #root details.conauti-gpt-voice-tools,
+html body #root details.conauti-gpt-learning-tools {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Mostrar el contenido original solo en Configuración. */
+
+html body.conauti-ajustes-voz
+#root details.conauti-gpt-voice-tools[open],
+html body.conauti-ajustes-aprendizaje
+#root details.conauti-gpt-learning-tools[open] {
+  display: block !important;
+  visibility: visible !important;
+
+  position: fixed !important;
+  top: 52% !important;
+  bottom: auto !important;
+  left: 50% !important;
+  right: auto !important;
+
+  transform: translate(-50%, -50%) !important;
+
+  width: min(620px, calc(100vw - 28px)) !important;
+  max-height: 73dvh !important;
+  overflow-y: auto !important;
+
+  margin: 0 !important;
+  padding: 12px !important;
+
+  background: #fff !important;
+  border: 1px solid #e7e7e7 !important;
+  border-radius: 18px !important;
+  box-shadow: 0 18px 60px rgba(0,0,0,.2) !important;
+  z-index: 7100 !important;
+}
+
+/* Entrada de Configuración en el sidebar */
+
+#root .conauti-sidebar-configuracion {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+
+  width: calc(100% - 20px) !important;
+  min-height: 44px !important;
+  margin: 14px 10px !important;
+  padding: 11px 13px !important;
+
+  background: transparent !important;
+  color: #303030 !important;
+
+  border: 0 !important;
+  border-radius: 11px !important;
+  box-shadow: none !important;
+
+  text-align: left !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+}
+
+#root .conauti-sidebar-configuracion:hover {
+  background: #ededed !important;
+  transform: none !important;
+}
+
+/* Ventana de Configuración */
+
+.conauti-ajustes-capa {
+  position: fixed;
+  inset: 0;
+  z-index: 7000;
+  pointer-events: none;
+}
+
+.conauti-ajustes-fondo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  background: rgba(16,24,36,.38);
+  border: 0;
+  padding: 0;
+  cursor: default;
+  pointer-events: auto;
+}
+
+.conauti-ajustes-ventana {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: min(500px, calc(100vw - 28px));
+  max-height: 85dvh;
+  overflow-y: auto;
+
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e7e7e7;
+  border-radius: 22px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  pointer-events: auto;
+}
+
+.conauti-ajustes-header {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.conauti-ajustes-header h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.conauti-ajustes-header button,
+.conauti-ajustes-navegacion button {
+  background: #f2f2f2 !important;
+  color: #252525 !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+}
+
+.conauti-ajustes-header button {
+  width: 38px;
+  height: 38px;
+  font-size: 23px;
+  padding: 0;
+}
+
+.conauti-ajustes-ventana > p {
+  color: #777;
+  font-size: 13px;
+  margin: 12px 0 22px;
+}
+
+.conauti-ajustes-opcion {
+  display: flex !important;
+  align-items: center;
+  gap: 13px;
+
+  width: 100% !important;
+  min-height: 76px;
+  margin: 9px 0;
+  padding: 14px !important;
+
+  background: #fafafa !important;
+  color: #242424 !important;
+  border: 1px solid #ececec !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+
+  text-align: left !important;
+  cursor: pointer !important;
+}
+
+.conauti-ajustes-opcion:hover {
+  background: #f1f1f1 !important;
+  transform: none !important;
+}
+
+.conauti-ajustes-opcion > span:nth-child(2) {
+  flex: 1;
+  display: grid;
+  gap: 5px;
+}
+
+.conauti-ajustes-opcion strong {
+  font-size: 14px;
+}
+
+.conauti-ajustes-opcion small {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #777;
+}
+
+.conauti-ajustes-navegacion {
+  position: fixed;
+  top: 5vh;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: min(620px, calc(100vw - 28px));
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  pointer-events: auto;
+  z-index: 7200;
+}
+
+.conauti-ajustes-navegacion button {
+  min-height: 39px;
+  padding: 8px 13px !important;
+}
+
+/* Estado de conversación, pequeño y discreto */
+
+.conauti-voz-indicador,
+.conauti-voz-aviso {
+  position: fixed;
+  bottom: 172px;
+  right: 22px;
+  z-index: 6500;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 13px;
+  background: #fff;
+  color: #303030;
+
+  border: 1px solid #e8e8e8;
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.12);
+  font-size: 12px;
+}
+
+.conauti-voz-punto {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #3478f6;
+}
+
+.conauti-voz-indicador button,
+.conauti-voz-aviso button {
+  padding: 6px 10px !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: #f0f0f0 !important;
+  color: #333 !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+#root form.conauti-gpt-composer
+.conauti-composer-icon.conauti-mic-activo {
+  background: #e5efff !important;
+  color: #3478f6 !important;
+}
+
+/* Nunca mostrar etiquetas del proveedor. */
+
+#root .conauti-composer-model {
+  display: none !important;
+}
+
+@media (max-width: 650px) {
+  .conauti-ajustes-ventana {
+    padding: 18px;
+  }
+
+  .conauti-ajustes-navegacion {
+    top: 3vh;
+  }
+
+  html body.conauti-ajustes-voz
+  #root details.conauti-gpt-voice-tools[open],
+  html body.conauti-ajustes-aprendizaje
+  #root details.conauti-gpt-learning-tools[open] {
+    max-height: 76dvh !important;
+  }
+
+  .conauti-voz-indicador,
+  .conauti-voz-aviso {
+    left: 12px;
+    right: 12px;
+    bottom: 153px;
+    justify-content: center;
+  }
+}
+
+/* CONAUTI MICROFONO AZUL START */
+
+/* Micrófono activo: fondo azul, icono blanco
+   e iluminación animada */
+
+html body #root
+form.conauti-gpt-composer
+button.conauti-composer-icon.conauti-mic-activo {
+  background: #3478f6 !important;
+  color: #ffffff !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+
+  box-shadow:
+    0 0 0 4px rgba(52,120,246,.16),
+    0 0 18px rgba(52,120,246,.42) !important;
+
+  animation:
+    conauti-pulso-microfono 1.7s ease-in-out infinite
+    !important;
+
+  transition:
+    background .2s ease,
+    color .2s ease,
+    box-shadow .2s ease !important;
+}
+
+/* Mantener la iluminación al pasar el cursor */
+
+html body #root
+form.conauti-gpt-composer
+button.conauti-composer-icon.conauti-mic-activo:hover {
+  background: #2369e7 !important;
+  color: white !important;
+  transform: none !important;
+}
+
+/* Animación del micrófono durante la conversación */
+
+@keyframes conauti-pulso-microfono {
+  0%, 100% {
+    box-shadow:
+      0 0 0 3px rgba(52,120,246,.13),
+      0 0 10px rgba(52,120,246,.28);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 8px rgba(52,120,246,.22),
+      0 0 24px rgba(52,120,246,.55);
+  }
+}
+
+/* Indicador de actividad */
+
+.conauti-voz-punto {
+  background: #3478f6 !important;
+  box-shadow: 0 0 0 3px rgba(52,120,246,.15);
+  animation:
+    conauti-pulso-punto 1.3s ease-in-out infinite;
+}
+
+@keyframes conauti-pulso-punto {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: .55;
+    transform: scale(.8);
+  }
+}
+
+/* Respetar preferencias de movimiento reducido */
+
+@media (prefers-reduced-motion: reduce) {
+  html body #root
+  form.conauti-gpt-composer
+  button.conauti-composer-icon.conauti-mic-activo,
+  .conauti-voz-punto {
+    animation: none !important;
+  }
+}
+
+/* CONAUTI MICROFONO AZUL END */

@@ -1,0 +1,242 @@
+.mt-memoria {
+  --mm-fondo: #fff;
+  --mm-suave: #f3f7ff;
+  --mm-texto: #21304b;
+  --mm-secundario: #66758e;
+  --mm-borde: #dce5f3;
+  --mm-peligro: #ad3743;
+
+  margin-top: 24px;
+  padding: clamp(16px, 3vw, 24px);
+  border: 1px solid var(--mm-borde);
+  border-radius: 17px;
+  color: var(--mm-texto);
+  background: var(--mm-fondo);
+}
+
+.mt-memoria *,
+.mt-memoria *::before,
+.mt-memoria *::after {
+  box-sizing: border-box;
+}
+
+.mt-memoria-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.mt-memoria h3,
+.mt-memoria h4 {
+  margin: 0;
+  color: var(--mm-texto);
+}
+
+.mt-memoria h3 {
+  margin-top: 8px;
+  font-size: 19px;
+}
+
+.mt-memoria p {
+  color: var(--mm-secundario);
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+.mt-memoria-etiqueta {
+  color: #526ce4;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .09em;
+}
+
+.mt-memoria-cantidad {
+  padding: 8px 12px;
+  border-radius: 99px;
+  background: var(--mm-suave);
+  color: var(--mm-texto);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mt-memoria-lista {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.mt-memoria-tema {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 16px;
+  border: 1px solid var(--mm-borde);
+  border-radius: 12px;
+  background: var(--mm-suave);
+}
+
+.mt-memoria-contenido {
+  min-width: 0;
+  flex: 1 1 260px;
+}
+
+.mt-memoria-contenido > strong {
+  display: block;
+  text-transform: capitalize;
+}
+
+.mt-memoria-contenido p {
+  margin: 9px 0;
+}
+
+.mt-memoria-contenido b {
+  color: var(--mm-texto);
+}
+
+.mt-memoria-contenido small {
+  color: var(--mm-secundario);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.mt-memoria-acciones,
+.mt-memoria-botones {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.mt-memoria button {
+  border: 1px solid var(--mm-borde);
+  border-radius: 10px;
+  padding: 10px 13px;
+  background: var(--mm-fondo);
+  color: var(--mm-texto);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mt-memoria button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.mt-memoria button:focus-visible,
+.mt-memoria input:focus-visible {
+  outline: 3px solid #5faaff;
+  outline-offset: 2px;
+}
+
+.mt-memoria button.mt-memoria-eliminar {
+  border-color: var(--mm-peligro);
+  color: var(--mm-peligro);
+}
+
+.mt-memoria-privacidad {
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid #ebc6ca;
+  border-radius: 13px;
+}
+
+.mt-memoria-privacidad h4 {
+  font-size: 15px;
+}
+
+.mt-memoria-confirmacion {
+  display: grid;
+  gap: 11px;
+  margin-top: 15px;
+}
+
+.mt-memoria-confirmacion label {
+  color: var(--mm-texto);
+  font-size: 13px;
+}
+
+.mt-memoria-confirmacion input {
+  width: 100%;
+  max-width: 260px;
+  padding: 10px;
+  border-radius: 9px;
+  border: 1px solid var(--mm-borde);
+  background: var(--mm-fondo);
+  color: var(--mm-texto);
+}
+
+.mt-memoria-vacio,
+.mt-memoria-exito,
+.mt-memoria-error {
+  border-radius: 11px;
+  padding: 14px;
+}
+
+.mt-memoria .mt-memoria-vacio {
+  background: var(--mm-suave);
+}
+
+.mt-memoria .mt-memoria-exito {
+  background: #e3f5e9;
+  color: #16673e;
+}
+
+.mt-memoria .mt-memoria-error {
+  background: #fff0f0;
+  color: #a52c35;
+}
+
+[data-theme="dark"] .mt-memoria,
+.dark .mt-memoria {
+  --mm-fondo: #1e293b;
+  --mm-suave: #29364c;
+  --mm-texto: #f1f5ff;
+  --mm-secundario: #b5c0d5;
+  --mm-borde: #40506b;
+  --mm-peligro: #ffa1ab;
+}
+
+@media (max-width: 600px) {
+  .mt-memoria-tema {
+    flex-direction: column;
+  }
+
+  .mt-memoria-acciones {
+    width: 100%;
+  }
+}
+
+
+/* MYTEACHER_HISTORY_EXPORT_V1 */
+.mt-memoria-exportacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 22px;
+  padding: 18px;
+  border-radius: 13px;
+  background: var(--mm-suave);
+  border: 1px solid var(--mm-borde);
+}
+
+.mt-memoria-exportacion > div {
+  flex: 1 1 230px;
+}
+
+.mt-memoria-exportacion h4 {
+  margin: 0;
+  color: var(--mm-texto);
+  font-size: 15px;
+}
+
+.mt-memoria-exportacion button {
+  border-color: #5575e9;
+  color: #5575e9;
+}

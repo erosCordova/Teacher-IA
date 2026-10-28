@@ -1,0 +1,301 @@
+.myteacher-voices-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+}
+
+.myteacher-voices-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(20, 29, 45, .45);
+  border: none;
+}
+
+.myteacher-voices-dialog {
+  position: relative;
+  width: min(600px, calc(100vw - 24px));
+  max-height: 90dvh;
+  overflow-y: auto;
+  padding: 25px;
+  background: #fff;
+  color: #242424;
+  border: 1px solid #e7e7e7;
+  border-radius: 22px;
+  box-shadow: 0 25px 80px rgba(0,0,0,.22);
+}
+
+.myteacher-voices-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.myteacher-voices-heading h2 {
+  font-size: 23px;
+  margin: 0 0 6px;
+}
+
+.myteacher-voices-heading p {
+  color: #777;
+  font-size: 13px;
+  margin: 0;
+}
+
+.myteacher-voices-close {
+  width: 37px;
+  height: 37px;
+  border: 0;
+  border-radius: 11px;
+  background: #f0f0f0;
+  color: #222;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.myteacher-voices-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 23px;
+}
+
+.myteacher-voices-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 14px;
+  border: 1px solid #e9e9e9;
+  border-radius: 15px;
+  background: #fafafa;
+}
+
+.myteacher-voices-icon {
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #e8f0ff;
+  color: #3478f6;
+}
+
+.myteacher-voices-info {
+  flex: 1;
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.myteacher-voices-info strong {
+  font-size: 14px;
+}
+
+.myteacher-voices-info small {
+  color: #777;
+  font-size: 12px;
+}
+
+.myteacher-voices-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.myteacher-voices-actions button {
+  padding: 9px 12px;
+  border: 1px solid #dedede;
+  background: white;
+  color: #333;
+  font-size: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.myteacher-voices-actions .is-selected {
+  background: #e5eeff;
+  color: #245bc5;
+  border-color: #bfd2ff;
+}
+
+.myteacher-voices-error {
+  padding: 12px;
+  background: #fff1ed;
+  color: #a13d2a;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.myteacher-voices-note {
+  margin: 20px 0;
+  color: #777;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.myteacher-voices-done {
+  display: block;
+  margin-left: auto;
+  padding: 11px 23px;
+  background: #3478f6;
+  color: white;
+  border: 0;
+  border-radius: 11px;
+  cursor: pointer;
+}
+
+button.conauti-composer-icon.conauti-mic-activo {
+  background: #3478f6 !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 5px rgba(52, 120, 246, .17) !important;
+  animation: myteacher-mic-pulse 1.7s infinite;
+}
+
+@keyframes myteacher-mic-pulse {
+  50% {
+    box-shadow: 0 0 0 9px rgba(52, 120, 246, .24);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.conauti-composer-icon.conauti-mic-activo {
+    animation: none;
+  }
+}
+
+@media (max-width: 650px) {
+  .myteacher-voices-dialog {
+    padding: 17px;
+  }
+
+  .myteacher-voices-card {
+    flex-wrap: wrap;
+  }
+
+  .myteacher-voices-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+
+/* MYTEACHER_VOICE_SETTINGS_STYLES_V1 */
+
+.myteacher-voices-adjustments {
+  display: grid;
+  gap: 18px;
+  margin-top: 22px;
+  padding: 19px;
+  background: #f7f9fc;
+  border: 1px solid #e8ecf3;
+  border-radius: 16px;
+}
+
+.myteacher-voices-adjustments-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.myteacher-voices-adjustments-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+  color: #262c38;
+}
+
+.myteacher-voices-adjustments-header button {
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: #fff;
+  border: 1px solid #e0e6ef;
+  color: #456ba5;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.myteacher-voices-control {
+  display: grid;
+  gap: 9px;
+}
+
+.myteacher-voices-control-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: #414b5c;
+}
+
+.myteacher-voices-control-heading strong {
+  font-variant-numeric: tabular-nums;
+  color: #3478f6;
+}
+
+.myteacher-voices-control input[type="range"] {
+  display: block;
+  width: 100%;
+  accent-color: #3478f6;
+  cursor: pointer;
+}
+
+.myteacher-voices-range-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #828b9a;
+  font-size: 11px;
+}
+
+.myteacher-voices-hint {
+  margin: 0;
+  color: #727d8c;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+/* MYTEACHER_GUARDADO_VERIFICADO_V1 */
+
+.myteacher-voices-save-account {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.myteacher-voices-save-account > button {
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: #3478f6;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.myteacher-voices-save-account > button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.myteacher-voices-save-message,
+.myteacher-voices-save-success {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.myteacher-voices-save-message {
+  color: #a15a17;
+}
+
+.myteacher-voices-save-success {
+  color: #16835b;
+}
