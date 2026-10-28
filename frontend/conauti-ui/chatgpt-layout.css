@@ -1,18 +1,25 @@
 /* My Teacher IA — arquitectura conversacional única.
    No superponer dashboards ni vistas experimentales sobre el chat. */
+/* Identidad cromática recuperada de SalesIA Enterprise:
+   modern-light.css (referencia visual aprobada) y salesia-cyan-theme.css.
+   Se conservan la arquitectura conversacional y las clases existentes. */
 :root,
 html[data-myteacher-theme="dark"] {
-  --mtc-bg:#212121;--mtc-side:#171717;--mtc-surface:#2f2f2f;
-  --mtc-surface-hover:#3a3a3a;--mtc-field:#303030;
-  --mtc-text:#f4f4f4;--mtc-muted:#adadad;--mtc-border:#393939;
-  --mtc-accent:#8d9eff;--mtc-action:#f4f4f4;--mtc-action-text:#202020;
+  --mtc-bg:#0d2735;--mtc-side:#071927;--mtc-surface:#15394a;
+  --mtc-surface-hover:#1c4858;--mtc-field:#133445;
+  --mtc-text:#f2f8fb;--mtc-muted:#b1cbd6;--mtc-border:#2c5260;
+  --mtc-accent:#52dac4;--mtc-action:#13b68a;--mtc-action-text:#062c27;
+  --mtc-blue:#2563eb;--mtc-cyan:#0ea5b7;--mtc-green:#13b68a;
+  --mtc-soft-cyan:#164457;
   color-scheme:dark;
 }
 html[data-myteacher-theme="light"] {
-  --mtc-bg:#fff;--mtc-side:#f9f9f9;--mtc-surface:#f5f5f5;
-  --mtc-surface-hover:#eaeaea;--mtc-field:#f4f4f4;
-  --mtc-text:#202123;--mtc-muted:#666;--mtc-border:#e7e7e7;
-  --mtc-accent:#355ee9;--mtc-action:#202020;--mtc-action-text:#fff;
+  --mtc-bg:#f7f9fb;--mtc-side:#071927;--mtc-surface:#ffffff;
+  --mtc-surface-hover:#e9faf4;--mtc-field:#ffffff;
+  --mtc-text:#101831;--mtc-muted:#64748b;--mtc-border:#e6ebf0;
+  --mtc-accent:#0a9e76;--mtc-action:#13b68a;--mtc-action-text:#062c27;
+  --mtc-blue:#2563eb;--mtc-cyan:#0ea5b7;--mtc-green:#13b68a;
+  --mtc-soft-cyan:#e8f8fb;
   color-scheme:light;
 }
 html[data-myteacher-theme] {background:var(--mtc-bg);}
@@ -217,6 +224,144 @@ html[data-myteacher-theme="dark"] .cv-modal input,
 html[data-myteacher-theme="dark"] .cv-modal select {color:#f3f3f3!important;background:#303030!important;border-color:#4d4d4d!important;}
 html[data-myteacher-theme="dark"] .cv-modal .cv-voice {background:#303030!important;color:#f3f3f3!important;border-color:#444!important;}
 html[data-myteacher-theme="dark"] .cv-modal small {color:#b7b7b7!important;}
+
+/* SalesIA: sidebar azul marino, acceso seleccionado turquesa y
+   contenido blanco/cian; el tema oscuro preserva los mismos acentos. */
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar {
+  --mtc-text:#f8fbff;
+  --mtc-muted:#afc2cf;
+  --mtc-border:rgba(190,221,231,.14);
+  --mtc-surface:rgba(255,255,255,.055);
+  --mtc-surface-hover:rgba(31,185,165,.13);
+  --mtc-accent:#52dac4;
+  background:
+    radial-gradient(circle at 12% 0%,rgba(14,165,183,.17),transparent 38%),
+    linear-gradient(180deg,#071927 0%,#092639 100%) !important;
+  color:#f8fbff!important;
+  border-right-color:rgba(14,165,183,.16)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-mark {
+  background:linear-gradient(135deg,#16c39a,#0aa2a7)!important;
+  box-shadow:0 5px 15px rgba(14,165,183,.17);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-new-chat {
+  border-color:rgba(82,218,196,.3)!important;
+  background:linear-gradient(110deg,rgba(19,182,138,.19),rgba(14,165,183,.12))!important;
+  color:#e8fcf7!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-new-chat:hover {
+  background:linear-gradient(110deg,rgba(19,182,138,.31),rgba(14,165,183,.22))!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-nav button.active,
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer button.active {
+  color:#062c27!important;
+  background:#13b68a!important;
+  border-radius:9px;
+  font-weight:650;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-nav button.active span,
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer button.active span {
+  color:#062c27!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-history .historial-fila.elegida {
+  background:rgba(19,182,138,.19)!important;
+  box-shadow:inset 3px 0 #52dac4;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-history .historial-fila:hover,
+html[data-myteacher-theme] #root .mtc-app .mtc-side-nav button:hover:not(.active),
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer button:hover:not(.active) {
+  background:rgba(82,218,196,.1)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-avatar,
+html[data-myteacher-theme] #root .mtc-app .mtc-user-circle {
+  background:linear-gradient(145deg,#2563eb,#0ea5b7)!important;
+  color:#fff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-welcome-symbol,
+html[data-myteacher-theme] #root .mtc-app .mtc-title strong {
+  color:var(--mtc-text);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-welcome-symbol {
+  color:#13b68a!important;
+  text-shadow:0 2px 16px rgba(19,182,138,.21);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-ai-mark {
+  background:linear-gradient(135deg,#16c39a,#0aa2a7)!important;
+  box-shadow:0 3px 12px rgba(14,165,183,.17);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-suggestions button {
+  background:var(--mtc-surface)!important;
+  border-color:var(--mtc-border)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-suggestions button:hover {
+  border-color:#13b68a!important;
+  background:var(--mtc-soft-cyan)!important;
+}
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer {
+  border-color:var(--mtc-border)!important;
+  box-shadow:0 4px 22px rgba(15,23,42,.06)!important;
+}
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer:focus-within {
+  border-color:var(--mtc-cyan)!important;
+  box-shadow:0 0 0 3px rgba(14,165,183,.10)!important;
+}
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer button.mtc-send {
+  background:#13b68a!important;
+  color:#062c27!important;
+}
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer button.mtc-send:not(:disabled):hover {
+  background:#0a9e76!important;
+  color:#fff!important;
+}
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer button.mtc-plus:hover,
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer button.mtc-voice-button:hover {
+  background:var(--mtc-soft-cyan)!important;
+  color:var(--mtc-accent)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-settings-row button:hover,
+html[data-myteacher-theme] #root .mtc-app .mtc-secondary-button:hover {
+  border-color:var(--mtc-cyan)!important;
+  background:var(--mtc-soft-cyan)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-topbar {
+  border-bottom:1px solid #e8edf2!important;
+  background:#fff!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-message-user .mtc-message-body {
+  background:#e9faf4!important;
+  border:1px solid #d8eee8;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .mtc-message-user .mtc-message-body {
+  background:#164457!important;
+  border:1px solid #34616d;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-tools-menu {
+  border-color:var(--mtc-border)!important;
+  box-shadow:0 12px 35px rgba(6,25,39,.17);
+}
+html[data-myteacher-theme="dark"] .cv-modal,
+html[data-myteacher-theme="dark"] .conauti-kokoro-modal,
+html[data-myteacher-theme="dark"] .myteacher-voices-dialog {
+  background:#102f3e!important;
+  color:#f2f8fb!important;
+  border-color:#2c5260!important;
+}
+html[data-myteacher-theme="dark"] .cv-modal input,
+html[data-myteacher-theme="dark"] .cv-modal select {
+  color:#f2f8fb!important;
+  background:#164457!important;
+  border-color:#3a6574!important;
+}
+html[data-myteacher-theme="dark"] .cv-modal .cv-voice {
+  color:#f2f8fb!important;
+  background:#164457!important;
+  border-color:#3a6574!important;
+}
+html[data-myteacher-theme="dark"] .cv-modal small {color:#b1cbd6!important;}
+html[data-myteacher-theme] #root .mtc-app .mtc-danger button {
+  background:#dc2626!important;color:#fff!important;
+}
+
 @media(max-width:850px) {
   #root .mtc-app {display:block!important;}
   #root .mtc-app .mtc-sidebar {position:fixed!important;z-index:2000;left:0;top:0;bottom:0;
