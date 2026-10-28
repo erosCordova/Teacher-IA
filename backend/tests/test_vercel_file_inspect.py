@@ -79,3 +79,33 @@ def test_vercel_authentication_required():
     endpoint.end_headers = lambda: None
     endpoint.do_POST()
     assert captured["status"] == 401
+
+
+
+def test_distribucion_paginas_analisis_general():
+    # La petición genérica debe usar varias partes del PDF, no solo su portada.
+    pages = [(number, f"Contenido académico del capítulo {number}. " * 6)
+             for number in range(1, 41)]
+    selected = module._select_pages(pages, "analizame este documento")
+    assert "[Página 1]" in selected
+    assert "[Página 40]" in selected
+    assert len(selected) <= 2950
+
+
+def test_busqueda_paginas_por_pregunta():
+    pages = [(number, "Objetivos generales sobre el curso y su metodología.")
+             for number in range(1, 31)]
+    pages[19] = (20, "La regularización y el sobreajuste son temas de este capítulo.")
+    selected = module._select_pages(pages, "¿Qué dice sobre regularización?")
+    assert "[Página 20]" in selected
+    assert "regularización" in selected
+
+
+def test_metadatos_de_cobertura_sin_pdf():
+    result = module.extract_document_context(
+        "actividad.txt",
+        b"Fracciones y ecuaciones con ejemplos.",
+        "Explica las ecuaciones",
+    )
+    assert result["pages_total"] is None
+    assert "ecuaciones" in result["excerpt"]
