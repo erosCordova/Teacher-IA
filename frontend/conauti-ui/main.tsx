@@ -864,15 +864,15 @@ function App() {
                 <input ref={imageInput} type="file" className="mtc-attachment-input"
                   accept="image/jpeg,image/png" aria-label="Seleccionar imagen"
                   onChange={seleccionarImagen} />
-                {(attachedFile || (contextDocument?.conversationId === active ? contextDocument.file : null)) && (
+                {attachedFile && (
                   <div className="mtc-file-chip" role="status">
                     <span aria-hidden="true">📄</span>
-                    <span className="mtc-file-name" title={(attachedFile || contextDocument?.file)?.name}>
-                      {(attachedFile || contextDocument?.file)?.name}
+                    <span className="mtc-file-name" title={attachedFile.name}>
+                      {attachedFile.name}
                     </span>
-                    <small>{attachedFile ? 'Por enviar' : 'En contexto'}</small>
-                    <button type="button" onClick={() => {setAttachedFile(null);setContextDocument(null)}}
-                      aria-label="Quitar documento del contexto" title="Quitar documento">×</button>
+                    <small>Por enviar</small>
+                    <button type="button" onClick={() => setAttachedFile(null)}
+                      aria-label="Quitar archivo antes de enviarlo" title="Quitar adjunto">×</button>
                   </div>
                 )}
                 <div className="mtc-composer-line">
@@ -899,6 +899,17 @@ function App() {
                         <button type="button" role="menuitem" onClick={abrirPantalla}>
                           <span aria-hidden="true">▣</span><span><strong>Compartir pantalla</strong><small>Analizar una captura autorizada</small></span>
                         </button>
+                        {contextDocument?.conversationId === active && (
+                          <>
+                            <div className="mtc-tools-divider" role="separator" />
+                            <button type="button" role="menuitem"
+                              onClick={() => {setContextDocument(null);setToolsOpen(false);setNotice('El documento dejará de utilizarse en las nuevas consultas.')}}>
+                              <span aria-hidden="true">×</span>
+                              <span><strong>Dejar de usar el documento</strong>
+                                <small title={contextDocument.file.name}>Quitar el PDF del contexto activo</small></span>
+                            </button>
+                          </>
+                        )}
                         <div className="mtc-tools-divider" role="separator" />
                         <button type="button" role="menuitem" onClick={() => {setToolsOpen(false);setGuideOpen(true)}}>
                           <span aria-hidden="true">✦</span><span><strong>Pistas y explicaciones</strong></span>
