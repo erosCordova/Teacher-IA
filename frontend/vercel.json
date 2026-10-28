@@ -3,5 +3,30 @@
   "framework": "vite",
   "installCommand": "npm ci",
   "buildCommand": "npm run build:conauti",
-  "outputDirectory": "dist-conauti"
+  "outputDirectory": "dist-conauti",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://my-teacher-ia-api.onrender.com/api/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store, max-age=0"
+        },
+        {
+          "key": "CDN-Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Vercel-CDN-Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    }
+  ]
 }
