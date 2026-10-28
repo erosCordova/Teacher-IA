@@ -32,6 +32,17 @@ type Message = {
 
 type Page = 'chat' | 'progress' | 'settings' | 'privacy'
 
+type GoogleAccountAPI = {
+  accounts: { id: {
+    initialize: (data: { client_id: string; callback: (answer: { credential: string }) => void }) => void
+    renderButton: (element: HTMLElement, options: { theme: string; size: string; width: number; text: string }) => void
+  } }
+}
+
+function googleIdentity(): GoogleAccountAPI | undefined {
+  return (window as Window & { google?: GoogleAccountAPI }).google
+}
+
 const BASE = '/api/conauti'
 
 async function api<T>(
@@ -103,6 +114,10 @@ function App() {
   const [register, setRegister] = useState(false)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [legacyLoginOpen, setLegacyLoginOpen] = useState(false)
+  const [googleConfig, setGoogleConfig] = useState<{ enabled: boolean; client_id: string | null } | null>(null)
+  const [googleConfigurationError, setGoogleConfigurationError] = useState('')
+  const googleButton = useRef<HTMLDivElement>(null)
   const [page, setPage] = useState<Page>('chat')
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try { return localStorage.getItem('myteacher.ui.theme') === 'light' ? 'light' : 'dark' }
@@ -277,31 +292,99 @@ function App() {
     setHistoryVersion(value => value + 1)
   }
 
+  function completeSignIn(tokenValue: string) {
+    sessionStorage.setItem('conauti_token', tokenValue)
+    setPassword('')
+    setChecking(true)
+    setToken(tokenValue)
+  }
+
+  async function handleGoogleIdentity(credential: string, mode: 'login' | 'register') {
+    if (busy) return
+    setBusy(true)
+    setNotice('')
+    try {
+      const result = await api<{ access_token: string }>(
+        '/auth/google', null, 'POST', { credential, mode }
+      )
+      completeSignIn(result.access_token)
+    } catch (error) {
+      setNotice(errorText(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  useEffect(() => {
+    if (token) return
+    let active = true
+    api<{ enabled: boolean; client_id: string | null }>('/auth/google/config')
+      .then(configuration => {
+        if (!active) return
+        setGoogleConfig(configuration)
+        setGoogleConfigurationError(
+          configuration.enabled ? '' : 'El acceso con Google necesita configuración OAuth del administrador.'
+        )
+      })
+      .catch(() => {
+        if (active) setGoogleConfigurationError('Google todavía no está disponible en este servidor.')
+      })
+    return () => { active = false }
+  }, [token])
+
+  useEffect(() => {
+    if (token || checking || !googleConfig?.enabled || !googleConfig.client_id) return
+    let cancelled = false
+    const holder = googleButton.current
+    if (!holder) return
+    function renderGoogle() {
+      const google = googleIdentity()
+      if (cancelled || !google || !holder || !googleConfig?.client_id) return
+      holder.replaceChildren()
+      google.accounts.id.initialize({
+        client_id: googleConfig.client_id,
+        callback: result => {
+          if (result.credential) void handleGoogleIdentity(
+            result.credential, register ? 'register' : 'login'
+          )
+        },
+      })
+      google.accounts.id.renderButton(holder, {
+        theme: theme === 'dark' ? 'filled_black' : 'outline',
+        size: 'large',
+        width: 290,
+        text: register ? 'signup_with' : 'signin_with',
+      })
+    }
+    const scriptId = 'myteacher-google-identity'
+    let script = document.getElementById(scriptId) as HTMLScriptElement | null
+    if (!script) {
+      script = document.createElement('script')
+      script.id = scriptId
+      script.async = true
+      script.defer = true
+      script.src = 'https://accounts.google.com/gsi/client'
+      document.head.appendChild(script)
+    }
+    if (googleIdentity()) renderGoogle()
+    else script.addEventListener('load', renderGoogle)
+    return () => {
+      cancelled = true
+      script?.removeEventListener('load', renderGoogle)
+    }
+  }, [token, checking, googleConfig, register, theme])
+
   async function authenticate(e: FormEvent) {
     e.preventDefault()
     if (busy) return
     setBusy(true)
     setNotice('')
-
     try {
-      if (register) {
-        await api(
-          '/auth/register', null, 'POST',
-          { username, password }
-        )
-      }
-
+      // Únicamente para cuentas antiguas; no se permite crear cuentas locales.
       const result = await api<{ access_token: string }>(
-        '/auth/login', null, 'POST',
-        { username, password }
+        '/auth/login', null, 'POST', { username, password }
       )
-
-      sessionStorage.setItem(
-        'conauti_token', result.access_token
-      )
-      setPassword('')
-      setChecking(true)
-      setToken(result.access_token)
+      completeSignIn(result.access_token)
     } catch (error) {
       setNotice(errorText(error))
     } finally {
@@ -654,56 +737,61 @@ function App() {
           <p>Tu espacio para practicar, preguntar y avanzar.</p>
 
           <div className="tabs">
-            <button
-              className={!register ? 'selected' : ''}
-              onClick={() => setRegister(false)}
-            >
+            <button type="button" className={!register ? 'selected' : ''}
+              onClick={() => {setRegister(false);setLegacyLoginOpen(false);setNotice('')}}>
               Ingresar
             </button>
-            <button
-              className={register ? 'selected' : ''}
-              onClick={() => setRegister(true)}
-            >
+            <button type="button" className={register ? 'selected' : ''}
+              onClick={() => {setRegister(true);setLegacyLoginOpen(false);setNotice('')}}>
               Registrarse
             </button>
           </div>
 
-          <form onSubmit={authenticate}>
-            <label htmlFor="username">Usuario</label>
-            <input
-              id="username"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              minLength={3}
-              maxLength={32}
-              pattern="[a-zA-Z0-9_]+"
-              autoComplete="username"
-              placeholder="Nombre de usuario"
-              required
-            />
+          <div className="mtc-google-signup" aria-label="Acceso con Google">
+            <h2>{register ? 'Crea tu cuenta con tu correo' : 'Inicia sesión con tu correo'}</h2>
+            <p>
+              {register
+                ? 'Google comprobará que el correo te pertenece. No se admiten cuentas duplicadas.'
+                : 'Accede con la cuenta de Google que registraste anteriormente.'}
+            </p>
+            {googleConfig?.enabled ? (
+              <div ref={googleButton} className="mtc-google-button" />
+            ) : (
+              <p role="status" className="mtc-google-unavailable">
+                {googleConfigurationError || 'Verificando disponibilidad de Google...'}
+              </p>
+            )}
+            <small>Solo se aceptan correos verificados por Google. No necesitas crear otra contraseña.</small>
+          </div>
 
-            <label htmlFor="password">Contraseña</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              minLength={12}
-              maxLength={128}
-              autoComplete={
-                register ? 'new-password' : 'current-password'
-              }
-              placeholder="Mínimo 12 caracteres"
-              required
-            />
+          {!register && (
+            <div className="mtc-legacy-access">
+              <button type="button" className="mtc-legacy-toggle"
+                aria-expanded={legacyLoginOpen} onClick={() => setLegacyLoginOpen(value => !value)}>
+                {legacyLoginOpen ? 'Ocultar acceso anterior' : 'Tengo una cuenta anterior con usuario'}
+              </button>
+              {legacyLoginOpen && (
+                <form onSubmit={authenticate}>
+                  <label htmlFor="username">Usuario anterior</label>
+                  <input id="username" value={username}
+                    onChange={event => setUsername(event.target.value)}
+                    minLength={3} maxLength={32}
+                    autoComplete="username" required
+                    placeholder="Nombre de usuario anterior" />
+                  <label htmlFor="password">Contraseña anterior</label>
+                  <input id="password" type="password" value={password}
+                    onChange={event => setPassword(event.target.value)}
+                    minLength={12} maxLength={128}
+                    autoComplete="current-password" required
+                    placeholder="Contraseña" />
+                  <button className="primary full" disabled={busy}>
+                    {busy ? 'Ingresando...' : 'Entrar a mi cuenta anterior'}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
 
-            <button className="primary full" disabled={busy}>
-              {busy ? 'Procesando...' :
-                register ? 'Crear cuenta' : 'Iniciar sesión'}
-            </button>
-          </form>
-
-          <small>No necesitas DNI para registrarte.</small>
           {notice && <p role="status" className="notice">{notice}</p>}
         </section>
       </main>
