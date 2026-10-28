@@ -87,7 +87,7 @@ export default function ComposerAcciones() {
         root.querySelectorAll<HTMLTextAreaElement>(
           'form textarea',
         ),
-      )
+      ).filter(item => !item.closest('.e6-compose'))
 
       const editor =
         editores.find(
