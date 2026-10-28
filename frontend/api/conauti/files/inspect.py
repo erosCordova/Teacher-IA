@@ -143,6 +143,107 @@ def extract_document_text(filename: str, data: bytes) -> str:
 
 
 
+# El contenido seleccionado es solo contexto para Gemini, no texto visible del chat.
+# Los PDF se inspeccionan por páginas, evitando depender de la portada.
+_STOP_WORDS = {
+    "analiza", "analizame", "analízame", "este", "esta", "documento",
+    "archivo", "explica", "explícame", "quiero", "necesito", "sobre",
+    "cual", "cuáles", "para", "como", "cómo", "puedes", "dame", "desde",
+    "qué", "que", "una", "uno", "los", "las", "del", "por", "con", "sus",
+    "todo", "todos", "resumen", "general", "favor",
+}
+
+def _keywords(question: str) -> list[str]:
+    words = re.findall(r"[a-záéíóúñü0-9]{3,}", question.lower())
+    return list(dict.fromkeys(word for word in words if word not in _STOP_WORDS))[:12]
+
+
+def _select_pages(pages: list[tuple[int, str]], question: str, budget: int = 2950) -> str:
+    """Escoge páginas distribuidas o relevantes para la pregunta."""
+    if not pages:
+        return ""
+    terms = _keywords(question)
+    # Preguntas generales: una muestra distribuida de todo el documento.
+    if not terms:
+        count = min(len(pages), 8)
+        indexes = (
+            sorted(set(round(i * (len(pages) - 1) / (count - 1)) for i in range(count)))
+            if count > 1 else [0]
+        )
+    else:
+        ranked = sorted(
+            range(len(pages)),
+            key=lambda index: (
+                sum(min(pages[index][1].lower().count(term), 5) for term in terms),
+                -(index),
+            ),
+            reverse=True,
+        )
+        indexes = sorted(set([0] + ranked[:7]))
+    selected = []
+    remaining = budget
+    for pos in indexes:
+        page_num, text = pages[pos]
+        header = f"[Página {page_num}]\n"
+        # Reparte los caracteres entre las páginas seleccionadas.
+        per_page = max(200, (remaining - len(header)) // max(1, len(indexes) - len(selected)))
+        fragment = " ".join(text.split())[:per_page]
+        if not fragment:
+            continue
+        chunk = header + fragment
+        if len(chunk) > remaining:
+            break
+        selected.append(chunk)
+        remaining -= len(chunk) + 2
+        if remaining <= 100:
+            break
+    return "\n\n".join(selected)
+
+
+def extract_document_context(filename: str, data: bytes, question: str = "") -> dict:
+    """Prepara una muestra contextual con metadatos de cobertura reales."""
+    suffix = PurePath(filename.lower()).suffix
+    if suffix != ".pdf":
+        excerpt = extract_document_text(filename, data)
+        return {
+            "excerpt": excerpt,
+            "pages_total": None,
+            "pages_selected": None,
+            "scope": "extracto inicial",
+            "truncated": len(excerpt) >= MAX_EXCERPT_CHARS,
+        }
+
+    if not data.startswith(b"%PDF-"):
+        raise ValueError("El PDF no es válido.")
+    from pypdf import PdfReader
+    reader = PdfReader(io.BytesIO(data), strict=False)
+    if reader.is_encrypted:
+        raise ValueError("No se pueden leer PDF protegidos con contraseña.")
+    total = len(reader.pages)
+    # Acotación de trabajo: documentos extensos no pueden tratarse íntegramente
+    # como contexto de un único mensaje de 4000 caracteres.
+    maximum_pages = 160
+    scan_indexes = (
+        list(range(total)) if total <= maximum_pages
+        else sorted(set(round(i * (total - 1) / (maximum_pages - 1))
+                        for i in range(maximum_pages)))
+    )
+    pages = []
+    for index in scan_indexes:
+        text = (reader.pages[index].extract_text() or "").strip()
+        if text:
+            pages.append((index + 1, text[:3500]))
+    excerpt = _select_pages(pages, question)
+    cited = [int(value) for value in re.findall(r"\[Página (\d+)\]", excerpt)]
+    return {
+        "excerpt": excerpt,
+        "pages_total": total,
+        "pages_selected": cited,
+        "scope": "muestra representativa" if not _keywords(question) else "páginas relevantes para la pregunta",
+        "truncated": len(cited) < total,
+    }
+
+
 class handler(BaseHTTPRequestHandler):
     """Vercel Python Function: GET comprueba ruta; POST extrae archivo."""
 
@@ -204,8 +305,10 @@ class handler(BaseHTTPRequestHandler):
         content = self.rfile.read(length)
         if len(content) != length:
             return self._json(400, {"detail": "No se recibió el archivo completo."})
+        question = (query.get("question") or [""])[0][:240]
         try:
-            excerpt = extract_document_text(filename, content)
+            result = extract_document_context(filename, content, question)
+            excerpt = result["excerpt"]
         except (ValueError, RuntimeError, OSError, zipfile.BadZipFile) as error:
             return self._json(422, {"detail": str(error)})
         except Exception:
@@ -220,7 +323,6 @@ class handler(BaseHTTPRequestHandler):
             })
         return self._json(200, {
             "filename": filename,
-            "excerpt": excerpt,
-            "truncated": len(excerpt) >= MAX_EXCERPT_CHARS,
+            **result,
             "stored": False,
         })
