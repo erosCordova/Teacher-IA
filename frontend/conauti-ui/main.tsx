@@ -82,10 +82,10 @@ function errorText(error: unknown) {
 // que debamos mostrar al estudiante como si lo hubiese escrito.
 function documentMessage(body: string): { filename: string; question: string; coverage: string } | null {
   const match = body.match(
-    /^Estoy compartiendo el archivo «([^\\n]{1,180})»\\.\\nMi pregunta: ([^\\n]*)/
+    /^Estoy compartiendo el archivo «([^\n]{1,180})»\.\nMi pregunta: ([^\n]*)/
   )
   if (!match || !body.includes('--- INICIO DEL CONTENIDO ---')) return null
-  const coverage = body.match(/\\nCobertura: ([^\\n]*)/)
+  const coverage = body.match(/\nCobertura: ([^\n]*)/)
   return {
     filename: match[1],
     question: match[2].trim() || 'Analiza este documento',
