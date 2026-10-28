@@ -802,6 +802,11 @@ function App() {
           )}
 
           {notice && <p role="status" className="notice">{notice}</p>}
+          <nav className="mtc-public-links" aria-label="Información de My Teacher IA">
+            <a href="/acerca-de/">Sobre My Teacher IA</a>
+            <a href="/privacidad/">Política de privacidad</a>
+            <a href="/terminos/">Condiciones de uso</a>
+          </nav>
         </section>
       </main>
     )
@@ -1076,6 +1081,13 @@ function App() {
               <div className="mtc-settings-row">
                 <div><strong>Datos personales</strong><small>Exportar información o eliminar la cuenta.</small></div>
                 <button type="button" onClick={() => openPage('privacy')}>Administrar</button>
+              </div>
+              <div className="mtc-settings-row">
+                <div><strong>Información legal</strong><small>Consulta las políticas públicas del servicio.</small></div>
+                <div className="mtc-legal-settings-links">
+                  <a href="/privacidad/">Privacidad</a>
+                  <a href="/terminos/">Condiciones</a>
+                </div>
               </div>
               <div className="mtc-settings-row">
                 <div><strong>Sesión</strong><small>Finaliza la sesión en este dispositivo.</small></div>
