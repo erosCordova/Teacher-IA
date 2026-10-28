@@ -141,6 +141,14 @@ function App() {
       document.removeEventListener('keydown', escape)
     }
   }, [toolsOpen])
+  // Regresar al chat no crea otra conversación ni descarta el contexto activo.
+  const returnToChat = () => {
+    setPage('chat')
+    setMobileOpen(false)
+    setToolsOpen(false)
+    setVoiceOpen(false)
+    setScreenOpen(false)
+  }
   const openPage = (next: Page) => {
     setPage(next)
     setToolsOpen(false)
@@ -711,10 +719,11 @@ function App() {
 
       <aside className={'mtc-sidebar' + (mobileOpen ? ' mtc-sidebar-visible' : '')}>
         <header className="mtc-side-head">
-          <div className="mtc-brand">
+          <button type="button" className="mtc-brand" onClick={returnToChat}
+            title="Volver a la conversación actual" aria-label="Ir a mi conversación actual">
             <span className="mtc-mark" aria-hidden="true">✦</span>
             <strong>My Teacher IA</strong>
-          </div>
+          </button>
           <button type="button" className="mtc-icon-button mtc-close-mobile"
             aria-label="Cerrar menú" onClick={() => setMobileOpen(false)}>×</button>
         </header>
@@ -723,12 +732,10 @@ function App() {
           <span aria-hidden="true">＋</span> Nuevo chat
         </button>
 
-        <div className="mtc-side-nav" aria-label="Navegación">
-          <button type="button" className={page === 'chat' ? 'active' : ''}
-            onClick={newChat}>⌂ <span>Chat</span></button>
+        <nav className="mtc-side-nav" aria-label="Secciones">
           <button type="button" className={page === 'progress' ? 'active' : ''}
             onClick={() => openPage('progress')}>▤ <span>Mi aprendizaje</span></button>
-        </div>
+        </nav>
 
         <div className="mtc-history">
           <HistorialAvanzado
@@ -749,10 +756,10 @@ function App() {
             onClick={() => openPage('settings')}>
             ⚙ <span>Configuración</span>
           </button>
-          <button type="button" className="mtc-account" onClick={() => openPage('settings')}>
+          <div className="mtc-account" aria-label={'Cuenta conectada: ' + user.username}>
             <span className="mtc-avatar" aria-hidden="true">{user.username.slice(0,1).toUpperCase()}</span>
             <span>{user.username}</span>
-          </button>
+          </div>
         </div>
       </aside>
 
@@ -761,12 +768,16 @@ function App() {
           <div className="mtc-topbar-left">
             <button type="button" className="mtc-icon-button mtc-mobile-menu"
               aria-label="Abrir menú" onClick={() => setMobileOpen(true)}>☰</button>
-            <div className="mtc-title">
-              <strong>{page === 'chat' ? 'My Teacher IA' :
-                page === 'progress' ? 'Mi aprendizaje' :
-                page === 'privacy' ? 'Privacidad' : 'Configuración'}</strong>
-              <small>{page === 'chat' ? 'Tu tutor educativo' : 'Tu espacio personal'}</small>
-            </div>
+            {page === 'chat' ? (
+              <div className="mtc-title">
+                <strong>Tu tutor educativo</strong>
+                <small>Pregunta, practica y aprende</small>
+              </div>
+            ) : (
+              <button type="button" className="mtc-back-to-chat" onClick={returnToChat}>
+                <span aria-hidden="true">←</span> Volver al chat
+              </button>
+            )}
           </div>
           <div className="mtc-topbar-right">
             <button type="button" className="mtc-icon-button" onClick={toggleTheme}
@@ -774,9 +785,6 @@ function App() {
               aria-label={theme === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'}>
               {theme === 'dark' ? '☀' : '☾'}
             </button>
-            <span className="mtc-user-circle" title={user.username}>
-              {user.username.slice(0,1).toUpperCase()}
-            </span>
           </div>
         </header>
 
@@ -914,12 +922,6 @@ function App() {
                         <button type="button" role="menuitem" onClick={() => {setToolsOpen(false);setGuideOpen(true)}}>
                           <span aria-hidden="true">✦</span><span><strong>Pistas y explicaciones</strong></span>
                         </button>
-                        <button type="button" role="menuitem" onClick={() => openPage('progress')}>
-                          <span aria-hidden="true">▤</span><span><strong>Prácticas y evaluaciones</strong></span>
-                        </button>
-                        <button type="button" role="menuitem" onClick={() => {setToolsOpen(false);openVoiceLibrary()}}>
-                          <span aria-hidden="true">♫</span><span><strong>Biblioteca de voces</strong></span>
-                        </button>
                       </div>
                     )}
                   </div>
@@ -971,14 +973,6 @@ function App() {
               <h1>Configuración</h1>
               <p>Personaliza tu experiencia de aprendizaje.</p>
               <div className="mtc-settings-row">
-                <div><strong>Apariencia</strong><small>Alterna entre tema claro y oscuro.</small></div>
-                <button type="button" onClick={toggleTheme}>{theme === 'dark' ? 'Tema oscuro' : 'Tema claro'}</button>
-              </div>
-              <div className="mtc-settings-row">
-                <div><strong>Voces de Kokoro</strong><small>Escucha y elige Dora, Alex o Santa.</small></div>
-                <button type="button" onClick={openVoiceLibrary}>Elegir voz</button>
-              </div>
-              <div className="mtc-settings-row">
                 <div><strong>Ajustes de voz</strong><small>Cambia velocidad, volumen y voz.</small></div>
                 <button type="button" onClick={openKokoroSettings}>Configurar</button>
               </div>
@@ -987,7 +981,7 @@ function App() {
                 <button type="button" onClick={() => openPage('privacy')}>Administrar</button>
               </div>
               <div className="mtc-settings-row">
-                <div><strong>Sesión</strong><small>Cuenta: {user.username}</small></div>
+                <div><strong>Sesión</strong><small>Finaliza la sesión en este dispositivo.</small></div>
                 <button type="button" onClick={() => void logout()}>Cerrar sesión</button>
               </div>
             </section>
