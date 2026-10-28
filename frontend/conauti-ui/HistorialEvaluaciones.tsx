@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import { useEffect, useMemo, useState } from "react";
 import "./HistorialEvaluaciones.css";
 import OrientacionError from "./OrientacionError";
@@ -64,7 +65,7 @@ export default function HistorialEvaluaciones({
           );
         }
 
-        const response = await fetch(
+        const response = await apiFetch(
           "/api/conauti/memory/assessment/history?limit=100",
           {
             signal: controlador.signal,

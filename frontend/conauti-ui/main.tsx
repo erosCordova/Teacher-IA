@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import PantallaCompartida from "./PantallaCompartida";
 import { validarImagen } from "./ImagenEducativa";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
@@ -55,7 +56,7 @@ async function api<T>(
   let response: Response
 
   try {
-    response = await fetch(BASE + path, {
+    response = await apiFetch(BASE + path, {
       method,
       cache: 'no-store',
       headers: {
@@ -631,7 +632,7 @@ function App() {
       const fileToSend = attachedFile || (contextDocument?.conversationId === active ? contextDocument.file : null)
       if (fileToSend) {
         setNotice('Analizando el archivo y buscando los apartados relevantes...')
-        const response = await fetch(
+        const response = await apiFetch(
           BASE + '/files/inspect?filename=' + encodeURIComponent(fileToSend.name)
           + '&question=' + encodeURIComponent(draft.trim().slice(0, 240)),
           {
@@ -779,7 +780,7 @@ function App() {
     setBusy(true)
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         BASE + '/privacy/export',
         {
           cache: 'no-store',

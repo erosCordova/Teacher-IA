@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import { useEffect, useState } from "react";
 import "./MemoriaAcademica.css";
 
@@ -39,7 +40,7 @@ async function solicitar<T>(
     );
   }
 
-  const response = await fetch(BASE + ruta, {
+  const response = await apiFetch(BASE + ruta, {
     ...options,
     headers: {
       Authorization: `Bearer ${token}`,

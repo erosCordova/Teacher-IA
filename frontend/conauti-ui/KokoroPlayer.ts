@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import {
   reproducirBlobKokoro,
 } from './KokoroAudio'
@@ -228,7 +229,7 @@ export function hablarConKokoro(
 
         if (!motorLocal) {
           try {
-            const respuesta = await fetch(
+            const respuesta = await apiFetch(
               '/api/conauti/kokoro/speech',
               {
                 method: 'POST',

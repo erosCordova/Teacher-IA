@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -36,7 +37,7 @@ async function obtener<T>(
     );
   }
 
-  const respuesta = await fetch(ruta, {
+  const respuesta = await apiFetch(ruta, {
     signal,
     headers: {
       Authorization: `Bearer ${token}`,

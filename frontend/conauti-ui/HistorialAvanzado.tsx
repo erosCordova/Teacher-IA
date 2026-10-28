@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import { useEffect, useState } from 'react'
 
 type Conversacion = {
@@ -55,7 +56,7 @@ export default function HistorialAvanzado({
           offset: String(page * TAMANO),
         })
 
-        const response = await fetch(
+        const response = await apiFetch(
           `/api/conauti/history/conversations?${params}`,
           {
             cache: 'no-store',

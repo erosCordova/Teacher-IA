@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import { useMemo, useRef, useState } from "react";
 import "./SimulacroAcademico.css";
 
@@ -58,7 +59,7 @@ async function solicitar<T>(
     );
   }
 
-  const respuesta = await fetch(BASE + ruta, {
+  const respuesta = await apiFetch(BASE + ruta, {
     ...opciones,
     headers: {
       Authorization: `Bearer ${token}`,

@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import { useEffect, useState } from 'react'
 
 type Estado = {
@@ -37,7 +38,7 @@ export default function GuiaPedagogica({
 
     let cancelado = false
 
-    fetch(
+    apiFetch(
       `/api/conauti/pedagogy/conversations/${conversationId}/state`,
       {
         headers: {

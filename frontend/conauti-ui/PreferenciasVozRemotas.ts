@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 
 import {
   obtenerVozKokoro,
@@ -89,7 +90,7 @@ export async function recuperarPreferenciasRemotas(
   const token = accessToken()
   if (!token) return null
 
-  const response = await fetch(URL, {
+  const response = await apiFetch(URL, {
     method: 'GET',
     credentials: 'same-origin',
     signal,
@@ -121,7 +122,7 @@ async function guardarPreferenciasRemotas(): Promise<void> {
   if (!token) return
 
   try {
-    const response = await fetch(URL, {
+    const response = await apiFetch(URL, {
       method: 'PUT',
       credentials: 'same-origin',
       headers: {
@@ -181,7 +182,7 @@ export async function guardarPreferenciasVozAhora():
   }
 
   try {
-    const response = await fetch(URL, {
+    const response = await apiFetch(URL, {
       method: 'PUT',
       credentials: 'same-origin',
       headers,
@@ -210,7 +211,7 @@ export async function guardarPreferenciasVozAhora():
     // No confiar únicamente en el HTTP 200.
     // Leer nuevamente lo almacenado.
 
-    const verification = await fetch(URL, {
+    const verification = await apiFetch(URL, {
       method: 'GET',
       credentials: 'same-origin',
       headers: {

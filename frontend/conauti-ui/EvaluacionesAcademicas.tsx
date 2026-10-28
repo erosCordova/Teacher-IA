@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import SimulacroAcademico from "./SimulacroAcademico";
 import { useEffect, useState } from "react";
 import "./EvaluacionesAcademicas.css";
@@ -50,7 +51,7 @@ async function api<T>(
     );
   }
 
-  const respuesta = await fetch(API + ruta, {
+  const respuesta = await apiFetch(API + ruta, {
     ...opciones,
     headers: {
       "Content-Type": "application/json",

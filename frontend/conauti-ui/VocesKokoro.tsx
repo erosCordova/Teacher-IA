@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import {
   recuperarPreferenciasRemotas,
   programarGuardadoRemoto,
@@ -188,7 +189,7 @@ export default function VocesKokoro() {
       let blob: Blob | null = null
 
       try {
-        const response = await fetch(
+        const response = await apiFetch(
           '/api/conauti/kokoro/speech',
           {
             method: 'POST',

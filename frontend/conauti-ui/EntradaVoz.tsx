@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import { useEffect, useRef, useState } from 'react'
 
 type Estado = 'listo' | 'permiso' | 'grabando' | 'transcribiendo'
@@ -115,7 +116,7 @@ export default function EntradaVoz({
     setMensaje('Reconociendo las palabras pronunciadas...')
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         '/api/conauti/voice/transcribe',
         {
           method: 'POST',

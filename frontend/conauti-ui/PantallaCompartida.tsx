@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { validarImagen, dimensionesImagen, LIMITE_ENVIO } from "./ImagenEducativa";
@@ -246,7 +247,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
         "Pregunta anterior: " + lastQuestionRef.current.slice(0, 90) +
         ". Orientación anterior: " + lastAnswerRef.current.slice(0, 330)
       ).slice(0, 500) : "";
-      const response = await fetch("/api/conauti/screen/analyze?" + params.toString(), {
+      const response = await apiFetch("/api/conauti/screen/analyze?" + params.toString(), {
         method: "POST", cache: "no-store",
         headers: { Authorization: "Bearer " + token,
           "Content-Type": "image/jpeg", "X-Visual-Context": encodeURIComponent(contexto) },
@@ -283,7 +284,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
     transcriptRequestRef.current = request;
     try {
       if (blob.size < 900) throw new Error("Habla un poco más antes de detener la grabación.");
-      const response = await fetch("/api/conauti/voice/transcribe", {
+      const response = await apiFetch("/api/conauti/voice/transcribe", {
         method: "POST", cache: "no-store", headers: {
           Authorization: "Bearer " + token, "Content-Type": blob.type || "audio/webm",
         },

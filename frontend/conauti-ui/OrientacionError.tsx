@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import { useState } from "react";
 import "./OrientacionError.css";
 
@@ -42,7 +43,7 @@ export default function OrientacionError({
         );
       }
 
-      const response = await fetch(
+      const response = await apiFetch(
         "/api/conauti/memory/assessment/review/" +
           encodeURIComponent(intento.id),
         {

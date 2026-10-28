@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import { hablarConKokoro, cancelarVozKokoro } from './KokoroPlayer'
 import { habilitarAudioKokoro } from './KokoroAudio'
 import { useEffect, useRef, useState } from 'react'
@@ -324,7 +325,7 @@ export default function ConversacionVoz({
       setPhase('transcribiendo')
       setNotice('Reconociendo lo que dijiste...')
 
-      const stt = await fetch(
+      const stt = await apiFetch(
         '/api/conauti/voice/transcribe',
         {
           method: 'POST',
@@ -367,7 +368,7 @@ export default function ConversacionVoz({
       let conversation = activeConversation.current
 
       if (!conversation) {
-        const created = await fetch(
+        const created = await apiFetch(
           '/api/conauti/conversations',
           {
             method: 'POST',
@@ -405,7 +406,7 @@ export default function ConversacionVoz({
         'CONAUTI está preparando su respuesta...',
       )
 
-      const reply = await fetch(
+      const reply = await apiFetch(
         `/api/conauti/ai/conversations/${conversation}/respond`,
         {
           method: 'POST',

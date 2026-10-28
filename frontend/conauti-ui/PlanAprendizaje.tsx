@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import { useEffect, useMemo, useState } from "react";
 import "./PlanAprendizaje.css";
 import MemoriaAcademica from "./MemoriaAcademica";
@@ -77,7 +78,7 @@ async function consultar<T>(
     );
   }
 
-  const respuesta = await fetch(BASE + ruta, {
+  const respuesta = await apiFetch(BASE + ruta, {
     ...options,
     headers: {
       "Content-Type": "application/json",
