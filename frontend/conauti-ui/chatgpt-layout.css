@@ -362,6 +362,75 @@ html[data-myteacher-theme] #root .mtc-app .mtc-danger button {
   background:#dc2626!important;color:#fff!important;
 }
 
+/* Navegación sin controles repetidos: marca = volver al chat, Nuevo chat = nueva conversación.
+   El perfil es informativo; configuración conserva su propio acceso. */
+html[data-myteacher-theme] #root .mtc-app button.mtc-brand {
+  padding:4px 6px!important;
+  margin:-4px -6px;
+  border:0!important;
+  border-radius:10px!important;
+  background:transparent!important;
+  color:var(--mtc-text)!important;
+  min-width:0;
+  max-width:100%;
+  cursor:pointer;
+  text-align:left;
+}
+html[data-myteacher-theme] #root .mtc-app button.mtc-brand:hover {
+  background:var(--mtc-surface-hover)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer .mtc-account {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  padding:12px 11px 3px;
+  color:var(--mtc-text);
+  font-size:13px;
+  background:transparent;
+  border-top:1px solid var(--mtc-border);
+}
+html[data-myteacher-theme] #root .mtc-app button.mtc-back-to-chat {
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  padding:8px 11px;
+  border:1px solid transparent!important;
+  border-radius:10px!important;
+  background:transparent!important;
+  color:var(--mtc-text)!important;
+  font-size:13px;
+  font-weight:550;
+}
+html[data-myteacher-theme] #root .mtc-app button.mtc-back-to-chat:hover {
+  background:var(--mtc-surface-hover)!important;
+}
+#root .mtc-app .mtc-sidebar .mtc-history {
+  overflow-x:hidden;
+}
+#root .mtc-app .mtc-history .historial-avanzado,
+#root .mtc-app .mtc-history .historial-lista {
+  max-width:100%;
+  min-width:0;
+}
+#root .mtc-app .mtc-history .historial-fila {
+  max-width:100%;
+  min-width:0;
+  overflow:hidden;
+}
+#root .mtc-app .mtc-history .historial-titulo {
+  flex:1 1 0;
+  width:0;
+  min-width:0;
+  overflow:hidden;
+}
+#root .mtc-app .mtc-history .historial-titulo span {
+  display:block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
 /* MY TEACHER IA - SIDEBAR CLARO SIN CAMBIOS EN EL MODO OSCURO */
 html[data-myteacher-theme="light"] #root .mtc-app .mtc-sidebar {
   --mtc-text:#183247;
