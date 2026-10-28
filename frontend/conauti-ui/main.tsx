@@ -118,6 +118,8 @@ function App() {
   const [googleConfig, setGoogleConfig] = useState<{ enabled: boolean; client_id: string | null } | null>(null)
   const [googleConfigurationError, setGoogleConfigurationError] = useState('')
   const googleButton = useRef<HTMLDivElement>(null)
+  const googleInitialized = useRef(false)
+  const googleMode = useRef<'login' | 'register'>('login')
   const [page, setPage] = useState<Page>('chat')
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try { return localStorage.getItem('myteacher.ui.theme') === 'light' ? 'light' : 'dark' }
@@ -333,6 +335,7 @@ function App() {
   }, [token])
 
   useEffect(() => {
+    googleMode.current = register ? 'register' : 'login'
     if (token || checking || !googleConfig?.enabled || !googleConfig.client_id) return
     let cancelled = false
     const holder = googleButton.current
@@ -341,14 +344,17 @@ function App() {
       const google = googleIdentity()
       if (cancelled || !google || !holder || !googleConfig?.client_id) return
       holder.replaceChildren()
-      google.accounts.id.initialize({
-        client_id: googleConfig.client_id,
-        callback: result => {
-          if (result.credential) void handleGoogleIdentity(
-            result.credential, register ? 'register' : 'login'
-          )
-        },
-      })
+      if (!googleInitialized.current) {
+        google.accounts.id.initialize({
+          client_id: googleConfig.client_id,
+          callback: result => {
+            if (result.credential) void handleGoogleIdentity(
+              result.credential, googleMode.current
+            )
+          },
+        })
+        googleInitialized.current = true
+      }
       google.accounts.id.renderButton(holder, {
         theme: theme === 'dark' ? 'filled_black' : 'outline',
         size: 'large',
@@ -364,6 +370,9 @@ function App() {
       script.async = true
       script.defer = true
       script.src = 'https://accounts.google.com/gsi/client'
+      script.onerror = () => setGoogleConfigurationError(
+        'No se pudo cargar el acceso de Google. Comprueba tu conexión y vuelve a intentarlo.'
+      )
       document.head.appendChild(script)
     }
     if (googleIdentity()) renderGoogle()
@@ -754,7 +763,7 @@ function App() {
                 ? 'Google comprobará que el correo te pertenece. No se admiten cuentas duplicadas.'
                 : 'Accede con la cuenta de Google que registraste anteriormente.'}
             </p>
-            {googleConfig?.enabled ? (
+            {googleConfig?.enabled && !googleConfigurationError ? (
               <div ref={googleButton} className="mtc-google-button" />
             ) : (
               <p role="status" className="mtc-google-unavailable">
