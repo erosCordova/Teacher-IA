@@ -10,7 +10,11 @@ from app import conauti_email_auth as mail
 
 
 def test_email_config_disabled_without_smtp(monkeypatch):
-    for key in ("SMTP_HOST", "SMTP_USERNAME", "SMTP_PASSWORD", "SMTP_FROM", "EMAIL_OTP_PEPPER"):
+    for key in (
+        "SMTP_HOST", "SMTP_USERNAME", "SMTP_PASSWORD", "SMTP_FROM",
+        "EMAIL_OTP_PEPPER", "EMAIL_OTP_SMTP_ENABLED", "MAILJET_API_KEY",
+        "MAILJET_SECRET_KEY", "MAILJET_SENDER_EMAIL",
+    ):
         monkeypatch.delenv(key, raising=False)
     assert mail.email_config()["enabled"] is False
     with pytest.raises(HTTPException) as err:
@@ -43,6 +47,7 @@ def test_mail_message_contains_code_but_not_in_endpoint_result(monkeypatch):
         "SMTP_USERNAME": "test",
         "SMTP_PASSWORD": "hidden",
         "SMTP_FROM": "no-reply@example.com",
+        "EMAIL_OTP_SMTP_ENABLED": "true",
     }.items():
         monkeypatch.setenv(key, value)
 
@@ -84,3 +89,44 @@ def test_code_handler_declares_attempt_limiter():
     assert "attempts INT NOT NULL DEFAULT 0" in mail.GLOBAL_SCHEMA
     assert "last_sent_at" in mail.GLOBAL_SCHEMA
     assert "hourly_count" in mail.GLOBAL_SCHEMA
+
+
+
+def test_mailjet_api_works_without_smtp(monkeypatch):
+    monkeypatch.setenv("MAILJET_API_KEY", "public-key")
+    monkeypatch.setenv("MAILJET_SECRET_KEY", "private-key")
+    monkeypatch.setenv("MAILJET_SENDER_EMAIL", "sender@example.org")
+    monkeypatch.setenv("EMAIL_OTP_PEPPER", "a" * 64)
+    monkeypatch.delenv("EMAIL_OTP_SMTP_ENABLED", raising=False)
+
+    captured = {}
+    class FakeResponse:
+        def raise_for_status(self): pass
+        def json(self):
+            return {"Messages": [{"Status": "success"}]}
+
+    def post(url, **kwargs):
+        captured.update({"url": url, **kwargs})
+        return FakeResponse()
+
+    monkeypatch.setattr(mail.httpx, "post", post)
+    assert mail.email_config()["enabled"] is True
+    mail.send_code("student@gmail.com", "12345678")
+    assert captured["url"] == "https://api.mailjet.com/v3.1/send"
+    assert captured["json"]["Messages"][0]["To"][0]["Email"] == "student@gmail.com"
+    assert "12345678" in captured["json"]["Messages"][0]["TextPart"]
+    assert captured["auth"] == ("public-key", "private-key")
+
+
+def test_mailjet_rejects_failure(monkeypatch):
+    monkeypatch.setenv("MAILJET_API_KEY", "public-key")
+    monkeypatch.setenv("MAILJET_SECRET_KEY", "private-key")
+    monkeypatch.setenv("MAILJET_SENDER_EMAIL", "sender@example.org")
+    class FakeResponse:
+        def raise_for_status(self): pass
+        def json(self):
+            return {"Messages": [{"Status": "error"}]}
+    monkeypatch.setattr(mail.httpx, "post", lambda url, **kwargs: FakeResponse())
+    with pytest.raises(HTTPException) as exc:
+        mail.send_code("student@gmail.com", "12345678")
+    assert exc.value.status_code == 503
