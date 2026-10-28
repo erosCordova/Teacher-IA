@@ -37,7 +37,7 @@ def test_vercel_docx_and_pdf():
 
 
 def test_vercel_binary_file_requires_supported_reader():
-    assert module.extract_document_text("aplicacion.exe", b"\\x00\\x10\\x05") == ""
+    assert module.extract_document_text("aplicacion.exe", bytes([0, 16, 5])) == ""
 
 
 def test_vercel_handler_upload_with_authenticated_session():
@@ -52,7 +52,7 @@ def test_vercel_handler_upload_with_authenticated_session():
     endpoint.path = "/api/conauti/files/inspect?filename=actividad.txt"
     endpoint.headers = {
         "Authorization": "Bearer usuario-valido",
-        "Content-Length": "18",
+        "Content-Length": "19",
     }
     endpoint.rfile = io.BytesIO(b"Explicar un ejemplo")
     endpoint.wfile = io.BytesIO()
