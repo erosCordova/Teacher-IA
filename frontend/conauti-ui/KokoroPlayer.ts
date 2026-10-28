@@ -1,3 +1,7 @@
+import {
+  reproducirBlobKokoro,
+} from './KokoroAudio'
+
 export const KOKORO_VOICE_KEY = 'myteacher.voice.v1'
 
 export type KokoroVoice =
@@ -193,64 +197,17 @@ export function hablarConKokoro(
 
   const reproducir = async (blob: Blob) => {
     if (!vigente()) return
-    if (!blob.size) throw new Error('La voz devolvió audio vacío.')
 
-    const objectUrl = URL.createObjectURL(blob)
-    urlActual = objectUrl
-    const reproductor = new Audio(objectUrl)
-    reproductor.volume = volumen
-    audioActual = reproductor
+    // AudioContext se desbloquea desde el boton "Iniciar"
+    // antes de acceder al microfono y consultar a Gemini.
+    await reproducirBlobKokoro(blob, volumen, abort.signal)
 
-    try {
-      await new Promise<void>((resolve, reject) => {
-        let terminado = false
-        const limpiar = () => {
-          abort.signal.removeEventListener('abort', cancelar)
-          reproductor.onended = null
-          reproductor.onerror = null
-        }
-        const cancelar = () => {
-          if (terminado) return
-          terminado = true
-          limpiar()
-          reject(new Error('Audio cancelado'))
-        }
-        const completar = () => {
-          if (terminado) return
-          terminado = true
-          limpiar()
-          resolve()
-        }
-        const fallar = () => {
-          if (terminado) return
-          terminado = true
-          limpiar()
-          reject(new Error('No se pudo reproducir audio.'))
-        }
-
-        abort.signal.addEventListener('abort', cancelar, { once: true })
-        reproductor.onended = completar
-        reproductor.onerror = fallar
-
-        void reproductor.play().then(() => {
-          if (!vigente() || iniciado) return
-          iniciado = true
-          mensaje.onstart?.call(
-            mensaje,
-            new Event('start') as SpeechSynthesisEvent,
-          )
-        }).catch(fallar)
-      })
-    } finally {
-      if (audioActual === reproductor) {
-        reproductor.pause()
-        reproductor.removeAttribute('src')
-        audioActual = null
-      }
-      if (urlActual === objectUrl) {
-        URL.revokeObjectURL(objectUrl)
-        urlActual = null
-      }
+    if (vigente() && !iniciado) {
+      iniciado = true
+      mensaje.onstart?.call(
+        mensaje,
+        new Event('start') as SpeechSynthesisEvent,
+      )
     }
   }
 
@@ -308,11 +265,33 @@ export function hablarConKokoro(
           const { sintetizarKokoroEnNavegador } =
             await import('./KokoroBrowser')
           if (!vigente()) return
-          blob = await sintetizarKokoroEnNavegador(
-            fragmento,
-            voz,
-            velocidad,
-          )
+
+          // Una primera descarga larga no debe dejar al estudiante
+          // esperando en silencio indefinidamente. El modelo sigue
+          // cargandose y queda listo para el siguiente turno.
+          let temporizador: ReturnType<typeof setTimeout> | null = null
+          try {
+            blob = await Promise.race([
+              sintetizarKokoroEnNavegador(
+                fragmento,
+                voz,
+                velocidad,
+              ),
+              new Promise<never>((_, reject) => {
+                temporizador = setTimeout(() => {
+                  reject(
+                    new Error(
+                      'Kokoro aun se esta descargando.',
+                    ),
+                  )
+                }, 12000)
+              }),
+            ])
+          } finally {
+            if (temporizador !== null) {
+              clearTimeout(temporizador)
+            }
+          }
         }
 
         if (!vigente()) return

@@ -1,4 +1,5 @@
 import { hablarConKokoro, cancelarVozKokoro } from './KokoroPlayer'
+import { habilitarAudioKokoro } from './KokoroAudio'
 import { useEffect, useRef, useState } from 'react'
 
 type Phase =
@@ -587,6 +588,9 @@ export default function ConversacionVoz({
     }
 
     if (running.current) return
+
+    // Desbloquear WebAudio durante el clic inicial del estudiante.
+    habilitarAudioKokoro()
 
     running.current = true
 

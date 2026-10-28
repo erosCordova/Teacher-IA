@@ -14,6 +14,11 @@ import {
   obtenerVozKokoro,
   type KokoroVoice,
 } from './KokoroPlayer'
+import {
+  habilitarAudioKokoro,
+  reproducirBlobKokoro,
+  actualizarVolumenAudioKokoro,
+} from './KokoroAudio'
 import './VocesKokoro.css'
 
 const opciones: {
@@ -159,72 +164,90 @@ export default function VocesKokoro() {
 
   async function escuchar(voz: KokoroVoice) {
     detener()
+    habilitarAudioKokoro()
+
+    if (volumen <= 0) {
+      setError('El volumen esta en 0 %. Sube el volumen para escuchar.')
+      return
+    }
 
     const abort = new AbortController()
     controller.current = abort
+    const texto =
+      'Hola, soy tu asistente educativo. ' +
+      'Aprenderemos juntos, paso a paso.'
 
     setError('')
     setCargando(true)
     setActiva(voz)
 
     try {
-      const response = await fetch(
-        '/api/conauti/kokoro/speech',
-        {
-          method: 'POST',
-          credentials: 'same-origin',
-          signal: abort.signal,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            text:
-              'Hola, soy tu asistente educativo. ' +
-              'Aprenderemos juntos, paso a paso.',
-            voice: voz,
-            speed: velocidad,
-          }),
-        },
-      )
+      let blob: Blob | null = null
 
-      if (!response.ok) {
-        throw new Error(
-          `El servidor respondió HTTP ${response.status}`,
+      try {
+        const response = await fetch(
+          '/api/conauti/kokoro/speech',
+          {
+            method: 'POST',
+            credentials: 'same-origin',
+            signal: abort.signal,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              text: texto,
+              voice: voz,
+              speed: velocidad,
+            }),
+          },
+        )
+
+        if (!response.ok) {
+          throw new Error('Kokoro remoto no disponible.')
+        }
+
+        blob = await response.blob()
+        if (!blob.size || !blob.type.startsWith('audio/')) {
+          throw new Error('La respuesta remota no contiene audio.')
+        }
+      } catch {
+        if (abort.signal.aborted) return
+
+        // La instalacion en Render no tiene Kokoro local.
+        // La muestra utiliza el mismo modelo que la conversacion.
+        setError(
+          'Preparando Kokoro en tu navegador. ' +
+          'La primera descarga puede tardar; ' +
+          'no cierres esta ventana.',
+        )
+
+        const { sintetizarKokoroEnNavegador } =
+          await import('./KokoroBrowser')
+
+        if (abort.signal.aborted) return
+        blob = await sintetizarKokoroEnNavegador(
+          texto,
+          voz,
+          velocidad,
         )
       }
 
-      const blob = await response.blob()
+      if (abort.signal.aborted || !blob) return
 
-      if (abort.signal.aborted) return
+      setCargando(false)
+      setError('')
+      await reproducirBlobKokoro(
+        blob,
+        volumen,
+        abort.signal,
+      )
 
-      const objectUrl = URL.createObjectURL(blob)
-      url.current = objectUrl
-
-      const reproductor = new Audio(objectUrl)
-      reproductor.volume = volumen
-      audio.current = reproductor
-
-      reproductor.onended = detener
-
-      reproductor.onerror = () => {
-        detener()
-        setError('No se pudo reproducir la muestra.')
-      }
-
-      await reproductor.play()
-
-      if (!abort.signal.aborted) {
-        setCargando(false)
-      }
-    } catch (e) {
+      if (!abort.signal.aborted) detener()
+    } catch (error) {
       if (abort.signal.aborted) return
 
       detener()
-
       setError(
-        e instanceof Error
-          ? e.message
-          : 'Error al escuchar la voz.',
+        'No se pudo generar o reproducir Kokoro. ' +
+        (error instanceof Error ? error.message : ''),
       )
     }
   }
@@ -294,6 +317,7 @@ export default function VocesKokoro() {
     if (audio.current) {
       audio.current.volume = normalizado
     }
+    actualizarVolumenAudioKokoro(normalizado)
 
     try {
       localStorage.setItem(
