@@ -1,558 +1,531 @@
-import { useEffect, useRef, useState } from "react";
-import "./PantallaCompartida.css";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { validarImagen, dimensionesImagen, LIMITE_ENVIO } from "./ImagenEducativa";
+import "./PantallaCompartida.css";
 
-type Resultado = {
-  analysis: string;
-  provider: string;
-  image_stored: boolean;
-  automatic_capture: boolean;
-};
+type Resultado = { analysis: string; provider: string; image_stored: boolean };
+type Mensaje = { id: number; role: "alumno" | "tutor"; text: string };
+type Entrada = { archivoInicial?: File | null; onClose: () => void };
+type DocumentPiP = { requestWindow: (options: { width: number; height: number }) => Promise<Window> };
 
-export default function PantallaCompartida({ archivoInicial = null }: { archivoInicial?: File | null }) {
+const MAX_AUDIO_SECONDS = 30;
+const MAX_QUESTION = 240;
+
+function mensajeError(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function elegirAudio(): string | undefined {
+  if (typeof MediaRecorder === "undefined") return;
+  return ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find(
+    type => MediaRecorder.isTypeSupported(type),
+  );
+}
+
+export default function PantallaCompartida({ archivoInicial = null, onClose }: Entrada) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const audioStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const transcriptRequestRef = useRef<AbortController | null>(null);
+  const imageRequestRef = useRef<AbortController | null>(null);
+  const messageListRef = useRef<HTMLDivElement>(null);
+  const mountedRef = useRef(true);
+  const speechEnabledRef = useRef(false);
+  const dialogIdRef = useRef(0);
+  const lastAnswerRef = useRef("");
+  const lastQuestionRef = useRef("");
+  const popoutRef = useRef<Window | null>(null);
+  const [popout, setPopout] = useState<Window | null>(null);
+  const [minimizado, setMinimizado] = useState(false);
   const [compartiendo, setCompartiendo] = useState(false);
   const [analizando, setAnalizando] = useState(false);
-  const [respuesta, setRespuesta] = useState("");
-  const [pregunta, setPregunta] = useState("");
-  // MYTEACHER_IMAGE_UPLOAD_V1
+  const [estadoVoz, setEstadoVoz] = useState<"listo" | "permiso" | "grabando" | "transcribiendo">("listo");
+  const [leerRespuestas, setLeerRespuestas] = useState(false);
   const [archivo, setArchivo] = useState<File | null>(archivoInicial);
   const [vistaArchivo, setVistaArchivo] = useState("");
+  const [pregunta, setPregunta] = useState("");
+  const [historial, setHistorial] = useState<Mensaje[]>([]);
   const [error, setError] = useState("");
+  const [estado, setEstado] = useState("Selecciona una vista para empezar.");
 
   useEffect(() => {
-    if (!archivo) {
-      setVistaArchivo("");
-      return;
-    }
+    if (archivoInicial) setArchivo(archivoInicial);
+  }, [archivoInicial]);
 
+  useEffect(() => {
+    if (!archivo) { setVistaArchivo(""); return; }
     const url = URL.createObjectURL(archivo);
     setVistaArchivo(url);
-
     return () => URL.revokeObjectURL(url);
   }, [archivo]);
 
-  function seleccionarArchivo(nuevo?: File) {
-    if (!nuevo || analizando) return;
+  useEffect(() => {
+    messageListRef.current?.scrollTo({ top: messageListRef.current.scrollHeight, behavior: "smooth" });
+  }, [historial, minimizado]);
 
-    try {
-      validarImagen(nuevo);
+  // La vista de vídeo cambia de nodo al abrir/cerrar Picture-in-Picture.
+  // Se conecta de nuevo al mismo MediaStream, sin solicitar otro permiso.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !compartiendo || !streamRef.current) return;
+    video.srcObject = streamRef.current;
+    void video.play().catch(() => {});
+  }, [compartiendo, minimizado, popout]);
 
-      if (streamRef.current) detener();
-
-      setArchivo(nuevo);
-      setRespuesta("");
-      setError("");
-    } catch (fallo: unknown) {
-      setError(
-        fallo instanceof Error
-          ? fallo.message
-          : "No se pudo seleccionar la imagen.",
-      );
+  const detenerVoz = useCallback(() => {
+    if (audioTimerRef.current !== null) clearTimeout(audioTimerRef.current);
+    audioTimerRef.current = null;
+    const recorder = recorderRef.current;
+    recorderRef.current = null;
+    if (recorder && recorder.state !== "inactive") {
+      recorder.ondataavailable = null;
+      recorder.onstop = null;
+      recorder.stop();
     }
-  }
+    audioStreamRef.current?.getTracks().forEach(track => track.stop());
+    audioStreamRef.current = null;
+    audioChunksRef.current = [];
+    transcriptRequestRef.current?.abort();
+    transcriptRequestRef.current = null;
+    if (mountedRef.current) setEstadoVoz("listo");
+  }, []);
 
-  function detener() {
-    const stream = streamRef.current;
-
-    if (stream) {
-      stream.getTracks().forEach((track) => {
-        track.stop();
-      });
-    }
-
+  const detener = useCallback(() => {
+    streamRef.current?.getTracks().forEach(track => track.stop());
     streamRef.current = null;
-
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+    if (mountedRef.current) {
+      setCompartiendo(false);
+      setEstado("Vista compartida detenida.");
     }
+  }, []);
 
-    setCompartiendo(false);
-  }
+  const cerrar = useCallback(() => {
+    detenerVoz();
+    detener();
+    imageRequestRef.current?.abort();
+    window.speechSynthesis?.cancel();
+    if (popoutRef.current && !popoutRef.current.closed) popoutRef.current.close();
+    popoutRef.current = null;
+    onClose();
+  }, [detener, detenerVoz, onClose]);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
-      streamRef.current?.getTracks().forEach(
-        (track) => track.stop(),
-      );
-
-      streamRef.current = null;
+      mountedRef.current = false;
+      streamRef.current?.getTracks().forEach(track => track.stop());
+      audioStreamRef.current?.getTracks().forEach(track => track.stop());
+      if (audioTimerRef.current) clearTimeout(audioTimerRef.current);
+      recorderRef.current?.state !== "inactive" && recorderRef.current?.stop();
+      imageRequestRef.current?.abort();
+      transcriptRequestRef.current?.abort();
+      window.speechSynthesis?.cancel();
+      if (popoutRef.current && !popoutRef.current.closed) popoutRef.current.close();
     };
   }, []);
 
   async function comenzar() {
     setError("");
-    setRespuesta("");
-
-    if (
-      !navigator.mediaDevices ||
-      typeof navigator.mediaDevices.getDisplayMedia
-        !== "function"
-    ) {
-      setError(
-        "Tu navegador no permite compartir pantalla.",
-      );
+    if (!navigator.mediaDevices?.getDisplayMedia) {
+      setError("Este navegador no admite compartir la vista. Prueba Chrome o Edge actualizado.");
       return;
     }
-
+    // getDisplayMedia se solicita directamente como consecuencia del clic.
     try {
-      const stream =
-        await navigator.mediaDevices.getDisplayMedia({
-          video: {
-            frameRate: 2,
-          },
-          audio: false,
-        });
-
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { frameRate: 2 }, audio: false,
+      });
+      detener();
       streamRef.current = stream;
       setArchivo(null);
-
       const track = stream.getVideoTracks()[0];
-
-      if (!track) {
-        detener();
-        throw new Error(
-          "No se recibió una fuente de video.",
-        );
-      }
-
-      track.addEventListener(
-        "ended",
-        () => {
+      if (!track) throw new Error("No se recibió ninguna vista compartida.");
+      track.addEventListener("ended", () => {
+        if (streamRef.current === stream) {
           streamRef.current = null;
           setCompartiendo(false);
-        },
-        { once: true },
-      );
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-
-        await videoRef.current.play();
-      }
-
+          setEstado("Has dejado de compartir. Puedes volver a elegir una vista.");
+        }
+      }, { once: true });
       setCompartiendo(true);
-    } catch (fallo: unknown) {
-      detener();
-
-      if (
-        fallo instanceof DOMException &&
-        fallo.name === "NotAllowedError"
-      ) {
-        setError(
-          "Se canceló o rechazó el permiso de pantalla.",
-        );
-      } else {
-        setError(
-          fallo instanceof Error
-            ? fallo.message
-            : "No se pudo compartir la pantalla.",
-        );
-      }
+      setEstado("Vista conectada. Escribe o dicta una pregunta.");
+    } catch (fallo) {
+      if (fallo instanceof DOMException && (fallo.name === "NotAllowedError" || fallo.name === "AbortError")) {
+        setEstado("No se compartió ninguna vista.");
+      } else setError(mensajeError(fallo, "No se pudo compartir la vista de pantalla."));
     }
   }
 
-  async function analizar() {
-    if (
-      (!compartiendo && !archivo) ||
-      analizando
-    ) {
+  function seleccionarArchivo(nuevo?: File) {
+    if (!nuevo || analizando) return;
+    try {
+      validarImagen(nuevo);
+      detener();
+      setArchivo(nuevo);
+      setError("");
+      setEstado("Imagen lista para consultas.");
+    } catch (fallo) { setError(mensajeError(fallo, "No se pudo cargar la imagen.")); }
+  }
+
+  async function capturar(): Promise<Blob> {
+    let fuente: CanvasImageSource;
+    let ancho = 0, alto = 0;
+    let bitmap: ImageBitmap | null = null;
+    if (archivo) {
+      validarImagen(archivo);
+      bitmap = await createImageBitmap(archivo);
+      fuente = bitmap;
+      ancho = bitmap.width;
+      alto = bitmap.height;
+    } else {
+      const video = videoRef.current;
+      if (!streamRef.current?.active || !video?.videoWidth || !video.videoHeight) {
+        throw new Error("La vista aún no está preparada. Comprueba que sigue compartida.");
+      }
+      fuente = video; ancho = video.videoWidth; alto = video.videoHeight;
+    }
+    try {
+      if (ancho * alto > 40_000_000) throw new Error("La resolución de la imagen es demasiado grande.");
+      const medidas = dimensionesImagen(ancho, alto);
+      const canvas = document.createElement("canvas");
+      canvas.width = medidas.ancho; canvas.height = medidas.alto;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("No se pudo obtener la captura.");
+      context.fillStyle = "#fff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(fuente, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", 0.72));
+      if (!blob) throw new Error("No se pudo generar una captura.");
+      if (blob.size > LIMITE_ENVIO) throw new Error("La captura supera el tamaño permitido.");
+      return blob;
+    } finally { bitmap?.close(); }
+  }
+
+  function hablar(texto: string) {
+    if (!speechEnabledRef.current || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(texto.slice(0, 1400));
+    utterance.lang = "es-PE";
+    utterance.rate = 1;
+    const voces = window.speechSynthesis.getVoices();
+    utterance.voice = voces.find(v => v.lang.toLowerCase() === "es-pe")
+      || voces.find(v => v.lang.toLowerCase().startsWith("es")) || null;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  async function consultar(texto?: string) {
+    const consulta = (texto ?? pregunta).trim().slice(0, MAX_QUESTION);
+    if (analizando || (!compartiendo && !archivo)) {
+      setError("Comparte una vista o selecciona una imagen antes de preguntar.");
       return;
     }
-
+    if (!consulta) {
+      setError("Escribe una pregunta o utiliza el micrófono.");
+      return;
+    }
+    const token = sessionStorage.getItem("conauti_token");
+    if (!token) { setError("Inicia sesión para consultar la vista."); return; }
     setAnalizando(true);
     setError("");
-    setRespuesta("");
-
+    setPregunta("");
+    setEstado("Analizando la vista actual...");
+    const id = ++dialogIdRef.current;
+    setHistorial(previous => [...previous, { id, role: "alumno", text: consulta }].slice(-16));
+    const request = new AbortController();
+    imageRequestRef.current = request;
     try {
-      const token = sessionStorage.getItem(
-        "conauti_token",
-      );
-
-      if (!token) {
-        throw new Error(
-          "Inicia sesión para analizar la pantalla.",
-        );
+      const image = await capturar();
+      if (request.signal.aborted) return;
+      const params = new URLSearchParams({ question: consulta });
+      if (lastAnswerRef.current) {
+        params.set("context", (
+          "Pregunta anterior: " + lastQuestionRef.current.slice(0, 90) +
+          ". Orientación anterior: " + lastAnswerRef.current.slice(0, 330)
+        ).slice(0, 500));
       }
-
-      let fuente: CanvasImageSource;
-      let ancho: number;
-      let alto: number;
-      let bitmap: ImageBitmap | null = null;
-
-      if (archivo) {
-        validarImagen(archivo);
-
-        if (typeof createImageBitmap !== "function") {
-          throw new Error(
-            "Tu navegador no permite procesar esta imagen.",
-          );
-        }
-
-        bitmap = await createImageBitmap(archivo);
-
-        if (
-          !bitmap.width ||
-          !bitmap.height ||
-          bitmap.width * bitmap.height > 40_000_000
-        ) {
-          bitmap.close();
-          throw new Error(
-            "La resolución de la imagen es demasiado grande.",
-          );
-        }
-
-        fuente = bitmap;
-        ancho = bitmap.width;
-        alto = bitmap.height;
-      } else {
-        const video = videoRef.current;
-
-        if (
-          !video ||
-          !streamRef.current ||
-          !video.videoWidth ||
-          !video.videoHeight
-        ) {
-          throw new Error(
-            "La pantalla todavía no está preparada.",
-          );
-        }
-
-        fuente = video;
-        ancho = video.videoWidth;
-        alto = video.videoHeight;
-      }
-
-      let canvas: HTMLCanvasElement;
-
-      try {
-        const medidas = dimensionesImagen(ancho, alto);
-
-        canvas = document.createElement("canvas");
-        canvas.width = medidas.ancho;
-        canvas.height = medidas.alto;
-
-        const context = canvas.getContext("2d");
-
-        if (!context) {
-          throw new Error(
-            "No se pudo preparar la imagen.",
-          );
-        }
-
-        context.fillStyle = "#ffffff";
-        context.fillRect(
-          0, 0, canvas.width, canvas.height,
-        );
-
-        context.drawImage(
-          fuente,
-          0, 0,
-          canvas.width, canvas.height,
-        );
-      } finally {
-        bitmap?.close();
-      }
-
-      const image = await new Promise<Blob | null>(
-        (resolve) => {
-          canvas.toBlob(
-            resolve,
-            "image/jpeg",
-            0.72,
-          );
-        },
-      );
-
-      if (!image) {
-        throw new Error(
-          "No se pudo crear la imagen.",
-        );
-      }
-
-      if (image.size > LIMITE_ENVIO) {
-        throw new Error(
-          "La captura es demasiado grande.",
-        );
-      }
-
-      const parametros = new URLSearchParams();
-
-      if (pregunta.trim()) {
-        parametros.set("question", pregunta.trim());
-      }
-
-      const url =
-        "/api/conauti/screen/analyze" +
-        (parametros.toString()
-          ? "?" + parametros.toString()
-          : "");
-
-      const response = await fetch(
-        url,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "image/jpeg",
-          },
-          body: image,
-        },
-      );
-
-      if (!response.ok) {
-        let detail = "";
-
-        try {
-          const body = await response.json();
-
-          if (typeof body.detail === "string") {
-            detail = body.detail;
-          }
-        } catch {
-          // Utilizar un mensaje de error general.
-        }
-
-        throw new Error(
-          detail ||
-          `No se pudo analizar la pantalla (${response.status}).`,
-        );
-      }
-
-      const result =
-        (await response.json()) as Resultado;
-
-      if (!result.analysis?.trim()) {
-        throw new Error(
-          "Gemini no devolvió una explicación.",
-        );
-      }
-
-      setRespuesta(result.analysis);
-    } catch (fallo: unknown) {
-      setError(
-        fallo instanceof Error
-          ? fallo.message
-          : "Ocurrió un error analizando la pantalla.",
-      );
+      const response = await fetch("/api/conauti/screen/analyze?" + params.toString(), {
+        method: "POST", cache: "no-store",
+        headers: { Authorization: "Bearer " + token, "Content-Type": "image/jpeg" },
+        body: image, signal: request.signal,
+      });
+      const result: Resultado & { detail?: string } = await response.json().catch(() => ({
+        analysis: "", provider: "", image_stored: false, detail: "Respuesta inválida del servidor.",
+      }));
+      if (!response.ok) throw new Error(result.detail || "No fue posible analizar la pantalla.");
+      if (!result.analysis?.trim()) throw new Error("La IA no devolvió una orientación.");
+      if (!mountedRef.current || request.signal.aborted) return;
+      lastQuestionRef.current = consulta;
+      lastAnswerRef.current = result.analysis;
+      setHistorial(previous => [...previous, { id: ++dialogIdRef.current, role: "tutor", text: result.analysis }].slice(-16));
+      setEstado("Respuesta lista. Puedes seguir preguntando.");
+      hablar(result.analysis);
+    } catch (fallo) {
+      if (request.signal.aborted) return;
+      setError(mensajeError(fallo, "Ocurrió un error durante el análisis."));
+      setEstado("Prueba otra vez con una pregunta.");
     } finally {
-      setAnalizando(false);
+      if (imageRequestRef.current === request) imageRequestRef.current = null;
+      if (mountedRef.current) setAnalizando(false);
     }
   }
 
-  return (
-    <section
-      className="mt-pantalla"
-      aria-labelledby="mt-pantalla-title"
-    >
-      <div className="mt-pantalla-header">
-        <div>
-          <span className="mt-pantalla-etiqueta">
-            ASISTENCIA VISUAL
-          </span>
+  async function transcribir(blob: Blob) {
+    if (!mountedRef.current) return;
+    setEstadoVoz("transcribiendo");
+    setEstado("Reconociendo lo que dijiste...");
+    const token = sessionStorage.getItem("conauti_token");
+    if (!token) { setError("Tu sesión ha expirado."); setEstadoVoz("listo"); return; }
+    const request = new AbortController();
+    transcriptRequestRef.current = request;
+    try {
+      if (blob.size < 900) throw new Error("Habla un poco más antes de detener la grabación.");
+      const response = await fetch("/api/conauti/voice/transcribe", {
+        method: "POST", cache: "no-store", headers: {
+          Authorization: "Bearer " + token, "Content-Type": blob.type || "audio/webm",
+        },
+        body: blob, signal: request.signal,
+      });
+      const result: { text?: string; detail?: string } = await response.json();
+      if (!response.ok) throw new Error(result.detail || "No se pudo transcribir la pregunta.");
+      const texto = String(result.text || "").trim();
+      if (!texto) throw new Error("No se reconocieron palabras. Inténtalo otra vez.");
+      setPregunta(texto.slice(0, MAX_QUESTION));
+      setEstadoVoz("listo");
+      await consultar(texto);
+    } catch (fallo) {
+      if (!request.signal.aborted) setError(mensajeError(fallo, "Error de reconocimiento de voz."));
+    } finally {
+      if (transcriptRequestRef.current === request) transcriptRequestRef.current = null;
+      if (mountedRef.current) setEstadoVoz("listo");
+    }
+  }
 
-          <h3 id="mt-pantalla-title">
-            {archivo ? "Analizar imagen" : "Compartir pantalla o subir imagen"}
-          </h3>
+  function terminarGrabacion() {
+    if (audioTimerRef.current !== null) clearTimeout(audioTimerRef.current);
+    audioTimerRef.current = null;
+    const recorder = recorderRef.current;
+    if (recorder?.state === "recording") recorder.stop();
+  }
 
-          <p>
-            Sube una imagen de tu ejercicio o comparte tu pantalla
-            para recibir orientación con inteligencia artificial.
-          </p>
-        </div>
+  async function alternarMicrofono() {
+    if (estadoVoz === "grabando") { terminarGrabacion(); return; }
+    if (estadoVoz !== "listo" || analizando) return;
+    if (!compartiendo && !archivo) {
+      setError("Primero comparte una vista o selecciona una imagen.");
+      return;
+    }
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setError("Tu navegador no permite grabar audio. Puedes escribir tu pregunta.");
+      return;
+    }
+    window.speechSynthesis?.cancel();
+    setEstadoVoz("permiso");
+    setError("");
+    try {
+      const media = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true },
+      });
+      audioStreamRef.current = media;
+      audioChunksRef.current = [];
+      const format = elegirAudio();
+      const recorder = new MediaRecorder(media, format ? { mimeType: format } : undefined);
+      recorderRef.current = recorder;
+      recorder.ondataavailable = event => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType || "audio/webm" });
+        audioChunksRef.current = [];
+        audioStreamRef.current?.getTracks().forEach(track => track.stop());
+        audioStreamRef.current = null;
+        recorderRef.current = null;
+        if (mountedRef.current) void transcribir(blob);
+      };
+      recorder.start();
+      setEstadoVoz("grabando");
+      setEstado("Escuchando tu pregunta. Pulsa el micrófono para enviar.");
+      audioTimerRef.current = setTimeout(terminarGrabacion, MAX_AUDIO_SECONDS * 1000);
+    } catch (fallo) {
+      audioStreamRef.current?.getTracks().forEach(track => track.stop());
+      audioStreamRef.current = null;
+      setEstadoVoz("listo");
+      setError(mensajeError(fallo, "No se pudo activar el micrófono."));
+    }
+  }
 
-        <span className="mt-pantalla-indicador">
-          {compartiendo
-            ? "Pantalla compartida"
-            : "Compartir desactivado"}
-        </span>
-      </div>
-
-      <p className="mt-pantalla-privacidad">
-        Tú decides cuándo compartir y cuándo analizar.
-        Solo se envía a Gemini la imagen seleccionada o una captura
-        cuando pulsas «Analizar». No se envía audio ni se
-        guarda la imagen en nuestra base de datos.
-        Evita mostrar contraseñas o datos personales.
-      </p>
-
-      <div className="mt-pantalla-pregunta">
-        <label htmlFor="mt-pregunta-visual">
-          ¿Qué te gustaría entender de la imagen o pantalla?
-        </label>
-
-        <textarea
-          id="mt-pregunta-visual"
-          rows={3}
-          maxLength={240}
-          value={pregunta}
-          placeholder="Ejemplo: ¿cómo puedo empezar este ejercicio?"
-          onChange={(event) =>
-            setPregunta(event.target.value)
-          }
-        />
-
-        <small>
-          {pregunta.length}/240 caracteres.
-          Puedes dejarla vacía para recibir una orientación general.
-        </small>
-      </div>
-
-      <div
-        className="mt-pantalla-subida"
-        tabIndex={0}
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={(event) => {
-          event.preventDefault();
-          seleccionarArchivo(
-            event.dataTransfer.files[0],
-          );
-        }}
-        onPaste={(event) => {
-          const imagen = Array.from(
-            event.clipboardData.files,
-          ).find((item) =>
-            item.type === "image/jpeg" ||
-            item.type === "image/png"
-          );
-
-          if (imagen) {
-            event.preventDefault();
-            seleccionarArchivo(imagen);
-          }
-        }}
-      >
-        <label htmlFor="mt-imagen-educativa">
-          Subir o pegar una imagen de mi ejercicio
-        </label>
-
-        <input
-          id="mt-imagen-educativa"
-          type="file"
-          accept="image/jpeg,image/png"
-          disabled={analizando}
-          onChange={(event) => {
-            seleccionarArchivo(
-              event.target.files?.[0],
-            );
-            event.target.value = "";
-          }}
-        />
-
-        <small>
-          JPG o PNG, hasta 10 MB. También puedes
-          arrastrar una imagen o pegarla aquí.
-        </small>
-
-        {archivo && vistaArchivo && (
-          <div className="mt-pantalla-imagen-seleccionada">
-            <img
-              src={vistaArchivo}
-              alt="Vista previa de la imagen seleccionada"
-            />
-
-            <div className="mt-pantalla-archivo-acciones">
-              <span>
-                {archivo.name || "Imagen pegada"}
-              </span>
-
-              <button
-                type="button"
-                disabled={analizando}
-                onClick={() => {
-                  setArchivo(null);
-                  setRespuesta("");
-                }}
-              >
-                Quitar imagen
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-pantalla-acciones">
-        {!compartiendo ? (
-          <button
-            type="button"
-            className="mt-pantalla-primario"
-            onClick={() => void comenzar()}
-          >
-            Compartir pantalla
-          </button>
-        ) : (
-          <>
-            <button
-              type="button"
-              className="mt-pantalla-primario"
-              disabled={analizando}
-              onClick={() => void analizar()}
-            >
-              {analizando
-                ? "Analizando con Gemini..."
-                : "Analizar pantalla"}
-            </button>
-
-            <button
-              type="button"
-              className="mt-pantalla-detener"
-              onClick={detener}
-            >
-              Detener
-            </button>
-          </>
-        )}
-      </div>
-
-      {archivo && !compartiendo && (
-        <button
-          type="button"
-          className="mt-pantalla-primario mt-pantalla-analizar-archivo"
-          disabled={analizando}
-          onClick={() => void analizar()}
-        >
-          {analizando
-            ? "Analizando imagen..."
-            : "Analizar imagen con Gemini"}
-        </button>
-      )}
-
-      <video
-        ref={videoRef}
-        className={
-          "mt-pantalla-preview " +
-          (compartiendo ? "visible" : "")
+  async function abrirVentanaFlotante() {
+    const pip = (window as Window & { documentPictureInPicture?: DocumentPiP }).documentPictureInPicture;
+    if (!pip) {
+      setError("Tu navegador no ofrece una ventana flotante sobre otras aplicaciones. Puedes utilizar la vista minimizada dentro del navegador.");
+      return;
+    }
+    if (popoutRef.current && !popoutRef.current.closed) { popoutRef.current.focus(); return; }
+    try {
+      // Debe invocarse durante el gesto directo del botón.
+      const floating = await pip.requestWindow({ width: 450, height: 650 });
+      floating.document.title = "My Teacher IA · Vista compartida";
+      floating.document.documentElement.dataset.myteacherTheme =
+        document.documentElement.dataset.myteacherTheme || "light";
+      floating.document.body.style.margin = "0";
+      floating.document.body.className = "mt-pantalla-pip-body";
+      document.querySelectorAll('link[rel="stylesheet"], style').forEach(element => {
+        floating.document.head.appendChild(element.cloneNode(true));
+      });
+      popoutRef.current = floating;
+      setPopout(floating);
+      setMinimizado(false);
+      floating.addEventListener("pagehide", () => {
+        if (popoutRef.current === floating) {
+          popoutRef.current = null;
+          if (mountedRef.current) { setPopout(null); setMinimizado(true); }
         }
-        autoPlay
-        muted
-        playsInline
-        aria-label="Vista previa de la pantalla compartida"
-      />
+      }, { once: true });
+    } catch (fallo) {
+      setError(mensajeError(fallo, "No se pudo abrir la ventana flotante."));
+    }
+  }
 
-      {respuesta && (
-        <div
-          className="mt-pantalla-respuesta"
-          role="status"
-        >
-          <strong>
-            Orientación de My Teacher IA
-          </strong>
+  const disponible = compartiendo || Boolean(archivo);
+  const activo = estadoVoz !== "listo" || analizando;
+  const ventanaFlotanteCompatible =
+    typeof window !== "undefined" &&
+    Boolean((window as Window & { documentPictureInPicture?: DocumentPiP }).documentPictureInPicture);
 
-          <p>{respuesta}</p>
+  const contenido = (
+    <section className={"mt-pantalla " + (minimizado ? "mt-pantalla-min" : "mt-pantalla-full")}
+      role="region" aria-label="Asistente de vista compartida de My Teacher IA">
+      <header className="mt-pantalla-top">
+        <div className="mt-pantalla-brand">
+          <span className="mt-pantalla-symbol" aria-hidden="true">✦</span>
+          <div><strong>My Teacher IA</strong><small>Asistente de vista compartida</small></div>
+        </div>
+        <div className="mt-pantalla-window-actions">
+          {ventanaFlotanteCompatible && !popout && (
+            <button type="button" title="Mantener sobre otras ventanas" aria-label="Abrir ventana flotante"
+              onClick={() => void abrirVentanaFlotante()}>▣</button>
+          )}
+          <button type="button" onClick={() => setMinimizado(v => !v)}
+            aria-label={minimizado ? "Ampliar asistente" : "Minimizar asistente"}
+            title={minimizado ? "Ampliar" : "Minimizar"}>{minimizado ? "□" : "─"}</button>
+          <button type="button" onClick={cerrar} aria-label="Cerrar asistente" title="Cerrar">×</button>
+        </div>
+      </header>
+
+      <div className="mt-pantalla-status" role="status">
+        <span className={"mt-pantalla-dot " + (disponible ? "conectado" : "")} />
+        <span>{compartiendo ? "Vista activa" : archivo ? "Imagen seleccionada" : "Vista no compartida"}</span>
+        <small>{estadoVoz === "grabando" ? " · Escuchando..." : analizando ? " · Analizando..." : ""}</small>
+      </div>
+
+      <video ref={videoRef} className={"mt-pantalla-video " + (compartiendo ? "visible" : "")}
+        autoPlay muted playsInline aria-label="Vista previa en directo de la pantalla autorizada" />
+      {!compartiendo && vistaArchivo && (
+        <img className="mt-pantalla-file-preview" src={vistaArchivo} alt="Imagen seleccionada para analizar" />
+      )}
+      {!disponible && (
+        <div className="mt-pantalla-start">
+          <span aria-hidden="true">▣</span>
+          <strong>Comparte lo que estás estudiando</strong>
+          <p>Elige una ventana, una pestaña o tu pantalla. La IA analizará una captura nueva con cada pregunta.</p>
+          <button type="button" className="mt-pantalla-primary" onClick={() => void comenzar()}>
+            Compartir vista de pantalla
+          </button>
+          <label className="mt-pantalla-upload">
+            O subir imagen <input type="file" accept="image/jpeg,image/png"
+              onChange={e => { seleccionarArchivo(e.target.files?.[0]); e.target.value = ""; }} />
+          </label>
         </div>
       )}
 
-      {error && (
-        <div
-          className="mt-pantalla-error"
-          role="alert"
-        >
-          {error}
+      {!minimizado && (
+        <>
+          <div className="mt-pantalla-toolbar">
+            {disponible && (
+              <button type="button" onClick={() => void comenzar()} title="Cambiar la vista compartida">
+                ▣ Cambiar vista
+              </button>
+            )}
+            {compartiendo && (
+              <button type="button" onClick={detener} className="mt-pantalla-stop">
+                ■ Dejar de compartir
+              </button>
+            )}
+            {archivo && (
+              <button type="button" onClick={() => {setArchivo(null);setEstado("Selecciona una vista para continuar.");}}>
+                × Quitar imagen
+              </button>
+            )}
+            <label className="mt-pantalla-upload mt-pantalla-upload-small">
+              ▧ Imagen <input type="file" accept="image/jpeg,image/png"
+                onChange={e => { seleccionarArchivo(e.target.files?.[0]); e.target.value = ""; }} />
+            </label>
+          </div>
+          <div className="mt-pantalla-conversation" ref={messageListRef} role="log" aria-label="Conversación acerca de la vista">
+            {historial.length ? historial.map(message => (
+              <div key={message.id} className={"mt-pantalla-message " + message.role}>
+                <strong>{message.role === "alumno" ? "Tú" : "My Teacher IA"}</strong>
+                <p>{message.text}</p>
+              </div>
+            )) : (
+              <div className="mt-pantalla-hint">
+                <strong>Ahora puedes hablarme sobre lo que ves.</strong>
+                <p>Prueba: «¿Me explicas lo que aparece en esta pantalla?»</p>
+              </div>
+            )}
+          </div>
+          <p className="mt-pantalla-privacy">
+            La pantalla no se transmite continuamente: se envía una imagen a Gemini
+            cuando haces una pregunta. No se almacena la captura. Oculta datos personales.
+          </p>
+        </>
+      )}
+
+      {minimizado && historial.length > 0 && (
+        <div className="mt-pantalla-latest" role="status">
+          <strong>Última orientación</strong>
+          <p>{[...historial].reverse().find(message => message.role === "tutor")?.text || estado}</p>
         </div>
       )}
+
+      <form className="mt-pantalla-composer" onSubmit={event => {event.preventDefault();void consultar();}}>
+        <input type="text" value={pregunta} maxLength={MAX_QUESTION}
+          disabled={analizando || estadoVoz === "transcribiendo"}
+          onChange={event => setPregunta(event.target.value)}
+          aria-label="Pregunta sobre la vista compartida"
+          placeholder="Pregunta sobre lo que estoy viendo..." />
+        <button type="button" className={"mt-pantalla-mic " + (estadoVoz === "grabando" ? "grabando" : "")}
+          title={estadoVoz === "grabando" ? "Detener y preguntar" : "Hablar con la IA"}
+          aria-label={estadoVoz === "grabando" ? "Detener grabación y enviar" : "Hablar sobre la vista"}
+          disabled={analizando || estadoVoz === "transcribiendo" || estadoVoz === "permiso"}
+          onClick={() => void alternarMicrofono()}>
+          {estadoVoz === "grabando" ? "■" : "🎙"}
+        </button>
+        <button type="submit" className="mt-pantalla-send" disabled={!disponible || !pregunta.trim() || activo}
+          title="Enviar pregunta" aria-label="Enviar pregunta sobre la vista">➤</button>
+      </form>
+
+      <div className="mt-pantalla-bottom">
+        <button type="button" className={"mt-pantalla-speech " + (leerRespuestas ? "active" : "")}
+          onClick={() => {
+            const next = !speechEnabledRef.current;
+            speechEnabledRef.current = next;
+            setLeerRespuestas(next);
+            if (!next) window.speechSynthesis?.cancel();
+          }}
+          aria-pressed={leerRespuestas} title="Leer respuestas en voz alta">
+          {leerRespuestas ? "🔊 Respuestas por voz: sí" : "🔇 Respuestas por voz: no"}
+        </button>
+        <span>{estadoVoz === "grabando" ? "Escuchando..." : estadoVoz === "transcribiendo" ? "Transcribiendo..." : analizando ? "Analizando..." : estado}</span>
+      </div>
+      {error && <div className="mt-pantalla-error" role="alert">{error}</div>}
     </section>
   );
+
+  return popout && !popout.closed
+    ? createPortal(contenido, popout.document.body)
+    : contenido;
 }
