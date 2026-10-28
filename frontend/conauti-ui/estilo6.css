@@ -184,3 +184,35 @@ html[data-myteacher-theme="dark"] #root .estilo6-app .topbar {background:var(--e
 @media(prefers-reduced-motion:reduce) {
   .estilo6-app .e6-action,.estilo6-app .e6-subject {transition:none;}
 }
+
+/* Evitar que las reglas heredadas del editor del chat cambien el estilo 6. */
+#root .estilo6-app .main.e6-home-active > .topbar { display:none !important; }
+#root .estilo6-app .e6-home form.e6-compose {
+  position:relative !important;bottom:auto !important;z-index:2 !important;
+  width:100% !important;max-width:850px !important;min-height:72px !important;
+  margin:9px 0 0 !important;padding:9px 10px 9px 12px !important;
+  border-radius:27px !important;border:1px solid #dbe2f6 !important;
+  display:flex !important;align-items:center !important;gap:10px !important;
+  background:var(--e6-input) !important;
+  box-shadow:0 7px 31px #10193333 !important;
+}
+#root .estilo6-app .e6-home form.e6-compose textarea {
+  width:auto !important;min-width:0 !important;flex:1 1 auto !important;
+  height:42px !important;min-height:42px !important;max-height:110px !important;
+  background:transparent !important;border:0 !important;padding:8px 0 !important;
+  color:#29384f !important;box-shadow:none !important;outline:0 !important;
+  resize:none !important;
+}
+#root .estilo6-app .e6-home form.e6-compose button {
+  position:static !important;flex-shrink:0 !important;
+}
+#root .estilo6-app .e6-home form.e6-compose button.e6-send {
+  border-radius:50% !important;width:45px !important;height:45px !important;
+  color:#fff !important;background:#3278f3 !important;font-size:31px !important;
+  box-shadow:0 2px 8px #3378fa55 !important;
+}
+#root .estilo6-app .e6-home form.e6-compose button.e6-send:disabled {
+  background:#9aade3 !important;
+}
+html[data-myteacher-theme="dark"] #root .estilo6-app .main { color:var(--e6-text) !important; }
+html[data-myteacher-theme="light"] #root .estilo6-app .main { color:var(--e6-text) !important; }
