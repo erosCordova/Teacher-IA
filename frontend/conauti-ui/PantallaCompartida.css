@@ -141,6 +141,7 @@
   font-size: 13px;
 }
 
+html[data-myteacher-theme="dark"] .mt-pantalla,
 [data-theme="dark"] .mt-pantalla,
 .dark .mt-pantalla {
   --mp-fondo: #1e293b;
