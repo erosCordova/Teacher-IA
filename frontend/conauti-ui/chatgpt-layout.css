@@ -431,6 +431,34 @@ html[data-myteacher-theme] #root .mtc-app button.mtc-back-to-chat:hover {
   text-overflow:ellipsis;
 }
 
+/* Cerrar sesión: acceso permanente junto a la cuenta, visible en móvil
+   y escritorio, con los mismos colores en cada tema. */
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer button.mtc-logout-button {
+  display:flex!important;
+  align-items:center;
+  gap:11px;
+  width:100%;
+  margin-top:5px;
+  padding:11px 12px!important;
+  color:var(--mtc-text)!important;
+  background:transparent!important;
+  border:1px solid var(--mtc-border)!important;
+  border-radius:10px!important;
+  font-size:13px;
+  font-weight:600;
+  text-align:left;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer button.mtc-logout-button:hover {
+  background:var(--mtc-surface-hover)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer button.mtc-logout-button:focus-visible {
+  outline:2px solid var(--mtc-accent)!important;
+  outline-offset:2px;
+}
+#root .mtc-app .mtc-side-footer button.mtc-logout-button svg {
+  flex:0 0 18px;
+}
+
 /* MY TEACHER IA - SIDEBAR CLARO SIN CAMBIOS EN EL MODO OSCURO */
 html[data-myteacher-theme="light"] #root .mtc-app .mtc-sidebar {
   --mtc-text:#183247;
