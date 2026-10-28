@@ -8,6 +8,7 @@ import hmac
 import os
 import re
 import secrets
+import httpx
 import smtplib
 import ssl
 from datetime import datetime, timedelta, timezone
@@ -61,10 +62,23 @@ class EmailConfirm(EmailStart):
 
 
 def smtp_ready() -> bool:
+    # Render Free bloquea SMTP. Solo habilitar el transporte tras confirmar
+    # que el entorno permite conectarse a 587 (por ejemplo, desarrollo local).
+    return os.getenv("EMAIL_OTP_SMTP_ENABLED", "").lower() == "true" and all(
+        os.getenv(key, "").strip() for key in (
+            "SMTP_HOST", "SMTP_USERNAME", "SMTP_PASSWORD", "SMTP_FROM",
+        )
+    )
+
+
+def mailjet_ready() -> bool:
     return all(os.getenv(key, "").strip() for key in (
-        "SMTP_HOST", "SMTP_USERNAME", "SMTP_PASSWORD", "SMTP_FROM",
-        "EMAIL_OTP_PEPPER",
+        "MAILJET_API_KEY", "MAILJET_SECRET_KEY", "MAILJET_SENDER_EMAIL",
     ))
+
+
+def delivery_ready() -> bool:
+    return mailjet_ready() or smtp_ready()
 
 
 def normalize_email(value: str) -> str:
@@ -75,7 +89,7 @@ def normalize_email(value: str) -> str:
 
 
 def require_email_config() -> None:
-    if not smtp_ready():
+    if not email_config()["enabled"]:
         raise HTTPException(503, "El acceso por correo aún no está configurado.")
 
 
@@ -107,6 +121,40 @@ def identity_for(conn, email: str):
 
 
 def send_code(email: str, code: str) -> None:
+    if mailjet_ready():
+        # API HTTPS: funciona en Render Free sin usar puertos SMTP bloqueados.
+        data = {"Messages": [{
+            "From": {
+                "Email": os.environ["MAILJET_SENDER_EMAIL"],
+                "Name": "My Teacher IA",
+            },
+            "To": [{"Email": email}],
+            "Subject": "Tu código de acceso a My Teacher IA",
+            "TextPart": (
+                f"Tu código de My Teacher IA es: {code}\n\n"
+                "Caduca en 10 minutos. Si no solicitaste este acceso, "
+                "ignora el mensaje. Nunca compartas este código."
+            ),
+        }]}
+        try:
+            response = httpx.post(
+                "https://api.mailjet.com/v3.1/send",
+                auth=(os.environ["MAILJET_API_KEY"], os.environ["MAILJET_SECRET_KEY"]),
+                json=data, timeout=12,
+            )
+            response.raise_for_status()
+            result = response.json()
+            if not isinstance(result, dict) or not result.get("Messages") or any(
+                item.get("Status") != "success" for item in result["Messages"]
+            ):
+                raise ValueError("El proveedor no aceptó el correo.")
+            return
+        except (httpx.HTTPError, ValueError, TypeError, AttributeError) as exc:
+            raise HTTPException(503, "No fue posible enviar el código. Inténtalo más tarde.") from exc
+
+    if not smtp_ready():
+        raise HTTPException(503, "El envío de correos no está configurado.")
+
     msg = EmailMessage()
     msg["Subject"] = "Tu código de acceso a My Teacher IA"
     msg["From"] = os.environ["SMTP_FROM"]
@@ -133,7 +181,7 @@ def send_code(email: str, code: str) -> None:
 
 @router.get("/config")
 def email_config():
-    return {"enabled": smtp_ready() and len(os.getenv("EMAIL_OTP_PEPPER", "")) >= 32}
+    return {"enabled": delivery_ready() and len(os.getenv("EMAIL_OTP_PEPPER", "")) >= 32}
 
 
 @router.post("/start")
