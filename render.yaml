@@ -36,3 +36,11 @@ services:
         sync: false
       - key: MICROSOFT_OAUTH_REDIRECT_URI
         sync: false
+      - key: MAILJET_API_KEY
+        sync: false
+      - key: MAILJET_SECRET_KEY
+        sync: false
+      - key: MAILJET_SENDER_EMAIL
+        sync: false
+      - key: EMAIL_OTP_SMTP_ENABLED
+        value: "false"
