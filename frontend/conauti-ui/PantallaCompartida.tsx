@@ -241,15 +241,14 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
       const image = await capturar();
       if (request.signal.aborted) return;
       const params = new URLSearchParams({ question: consulta });
-      if (lastAnswerRef.current) {
-        params.set("context", (
-          "Pregunta anterior: " + lastQuestionRef.current.slice(0, 90) +
-          ". Orientación anterior: " + lastAnswerRef.current.slice(0, 330)
-        ).slice(0, 500));
-      }
+      const contexto = lastAnswerRef.current ? (
+        "Pregunta anterior: " + lastQuestionRef.current.slice(0, 90) +
+        ". Orientación anterior: " + lastAnswerRef.current.slice(0, 330)
+      ).slice(0, 500) : "";
       const response = await fetch("/api/conauti/screen/analyze?" + params.toString(), {
         method: "POST", cache: "no-store",
-        headers: { Authorization: "Bearer " + token, "Content-Type": "image/jpeg" },
+        headers: { Authorization: "Bearer " + token,
+          "Content-Type": "image/jpeg", "X-Visual-Context": contexto },
         body: image, signal: request.signal,
       });
       const result: Resultado & { detail?: string } = await response.json().catch(() => ({
