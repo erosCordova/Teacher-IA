@@ -76,6 +76,6 @@ def test_visual_question_requires_valid_image(client):
     result = client.post(
         "/api/conauti/screen/analyze?question=Ayuda",
         headers={"Content-Type": "image/jpeg"},
-        content=b"contenido no válido",
+        content="contenido no válido".encode("utf-8"),
     )
     assert result.status_code == 400
