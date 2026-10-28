@@ -1,0 +1,334 @@
+/*
+ * My Teacher IA — acceso y registro.
+ * Aislamiento completo de los estilos heredados del chat.
+ * No modifica la navegación, las conversaciones ni el OAuth de Google.
+ */
+html[data-myteacher-theme="light"] #root .mtc-auth-shell {
+  --auth-bg:#f7fafb;--auth-surface:#ffffff;--auth-soft:#eef8f5;
+  --auth-text:#122b3a;--auth-muted:#607b88;--auth-line:#dbe9e9;
+  --auth-control:#f1f6f7;--auth-active:#ffffff;--auth-accent:#078e73;
+  --auth-shadow:0 18px 50px rgba(16,52,70,.07);
+}
+html[data-myteacher-theme="dark"] #root .mtc-auth-shell {
+  --auth-bg:#0b2532;--auth-surface:#123442;--auth-soft:#143d43;
+  --auth-text:#f1faf9;--auth-muted:#b4cbd2;--auth-line:#315460;
+  --auth-control:#1b4250;--auth-active:#245367;--auth-accent:#73e5c9;
+  --auth-shadow:0 20px 60px rgba(0,0,0,.12);
+}
+html[data-myteacher-theme] #root .mtc-auth-shell {
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1.06fr) minmax(420px,.94fr)!important;
+  place-items:stretch!important;
+  width:100%!important;
+  min-height:100dvh!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden;
+  background:var(--auth-bg)!important;
+  color:var(--auth-text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  line-height:1.5;
+}
+#root .mtc-auth-shell *,#root .mtc-auth-shell *::before,#root .mtc-auth-shell *::after {box-sizing:border-box;}
+#root .mtc-auth-shell button {font:inherit;cursor:pointer;}
+#root .mtc-auth-shell button:disabled {opacity:.65;cursor:not-allowed;}
+#root .mtc-auth-shell a:focus-visible,#root .mtc-auth-shell button:focus-visible,
+#root .mtc-auth-shell input:focus-visible {outline:3px solid #38d3ab!important;outline-offset:3px!important;}
+#root .mtc-auth-shell .mtc-auth-showcase {
+  position:relative;
+  z-index:0;
+  isolation:isolate;
+  display:flex;
+  flex-direction:column;
+  min-height:100dvh;
+  padding:clamp(26px,3vw,44px) clamp(26px,4.3vw,72px) 25px;
+  overflow:hidden;
+  color:#f3fffd!important;
+  background:
+    radial-gradient(circle at 92% 8%,rgba(17,191,169,.26),transparent 36%),
+    radial-gradient(circle at 3% 82%,rgba(16,126,165,.34),transparent 36%),
+    linear-gradient(142deg,#071a2b 0%,#082939 47%,#075b60 100%)!important;
+}
+#root .mtc-auth-shell .mtc-auth-decoration {
+  position:absolute;z-index:-1;pointer-events:none;
+  border:1px solid rgba(151,240,218,.10);border-radius:50%;
+}
+#root .mtc-auth-shell .mtc-auth-decoration-one {
+  width:610px;height:610px;right:-360px;top:5%;
+  box-shadow:0 0 0 75px rgba(135,236,212,.027),0 0 0 165px rgba(135,236,212,.018);
+}
+#root .mtc-auth-shell .mtc-auth-decoration-two {
+  width:420px;height:420px;left:-320px;bottom:-210px;
+  box-shadow:0 0 0 55px rgba(135,236,212,.027),0 0 0 115px rgba(135,236,212,.019);
+}
+#root .mtc-auth-shell .mtc-auth-brand {
+  position:relative;display:flex;align-items:center;gap:12px;
+  border:0!important;background:transparent!important;
+  color:#f3fffd!important;box-shadow:none!important;
+  padding:0!important;
+}
+#root .mtc-auth-shell .mtc-auth-brand-icon {
+  display:grid;place-items:center;flex:0 0 43px;
+  width:43px;height:43px;
+  border:1px solid rgba(255,255,255,.2);
+  background:linear-gradient(135deg,#12c59b,#0aa9ad);
+  border-radius:14px;color:#fff;font-size:25px;
+  box-shadow:0 12px 30px rgba(0,0,0,.18);
+}
+#root .mtc-auth-shell .mtc-auth-brand strong {display:block;font-size:16px;font-weight:750;letter-spacing:-.03em;}
+#root .mtc-auth-shell .mtc-auth-brand small {display:block;color:#a9dbd5;font-size:11px;line-height:1.2;margin-top:1px;}
+#root .mtc-auth-shell .mtc-auth-brand-tag {
+  margin-left:auto;padding:7px 10px;border:1px solid rgba(160,240,226,.25);
+  border-radius:999px;color:#c1f4e8;background:rgba(174,253,228,.055);
+  font-size:9px;font-weight:750;letter-spacing:.095em;white-space:nowrap;
+}
+#root .mtc-auth-shell .mtc-auth-hero {width:100%;max-width:660px;margin:auto 0;padding:46px 0 30px;}
+#root .mtc-auth-shell .mtc-auth-eyebrow {
+  display:inline-flex;align-items:center;gap:9px;
+  padding:7px 13px;margin-bottom:19px;
+  border-radius:999px;border:1px solid rgba(125,236,206,.2);
+  background:rgba(45,210,178,.085);color:#8bf1d5;
+  font-size:10px;font-weight:750;letter-spacing:.13em;
+}
+#root .mtc-auth-shell .mtc-auth-eyebrow span {font-size:16px;line-height:1;}
+html[data-myteacher-theme] #root .mtc-auth-shell .mtc-auth-hero h1 {
+  max-width:690px;margin:0 0 18px!important;
+  color:#f5fffd!important;
+  font-size:clamp(38px,4.15vw,64px)!important;
+  line-height:1.08!important;letter-spacing:-.055em!important;
+  font-weight:770;
+}
+#root .mtc-auth-shell .mtc-auth-hero h1 em {
+  font-style:normal;color:#7de5c5;
+  background:linear-gradient(90deg,#70edc5,#b0f0e7);
+  background-clip:text;-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+#root .mtc-auth-shell .mtc-auth-hero > p {
+  max-width:480px;margin:0 0 31px;
+  color:#bfdae0;font-size:15px;line-height:1.75;
+}
+#root .mtc-auth-shell .mtc-auth-preview {
+  position:relative;max-width:530px;
+  padding:16px 18px 13px;border-radius:21px;
+  border:1px solid rgba(152,232,223,.22);
+  background:linear-gradient(135deg,rgba(255,255,255,.15),rgba(255,255,255,.075));
+  box-shadow:0 22px 60px rgba(0,13,28,.22);
+  backdrop-filter:blur(20px);
+}
+#root .mtc-auth-shell .mtc-auth-preview-top {display:flex;justify-content:space-between;align-items:center;padding:1px 0 15px;color:#a9d6d3;font-size:12px;}
+#root .mtc-auth-shell .mtc-auth-online {display:flex;align-items:center;gap:8px;font-size:10px;font-weight:750;letter-spacing:.1em;}
+#root .mtc-auth-shell .mtc-auth-online > span {
+  width:7px;height:7px;background:#43e3ae;border-radius:50%;box-shadow:0 0 0 4px rgba(67,227,174,.12);
+}
+#root .mtc-auth-shell .mtc-auth-preview-user {
+  width:fit-content;max-width:92%;margin:0 0 15px auto;
+  padding:13px 16px;background:#dffbf2;color:#0b4352;
+  border-radius:17px 17px 5px 17px;font-size:13px;font-weight:600;line-height:1.5;
+}
+#root .mtc-auth-shell .mtc-auth-preview-tutor {display:flex;gap:10px;align-items:flex-start;max-width:96%;}
+#root .mtc-auth-shell .mtc-auth-preview-spark {
+  flex:0 0 30px;display:grid;place-items:center;width:30px;height:30px;
+  border-radius:11px;background:#11b79b;font-size:19px;color:white;
+}
+#root .mtc-auth-shell .mtc-auth-preview-tutor p {
+  flex:1;margin:0;padding:12px 14px;border:1px solid rgba(255,255,255,.13);
+  border-radius:5px 15px 15px 15px;background:rgba(255,255,255,.08);
+  color:#e6f9f7;font-size:13px;line-height:1.65;
+}
+#root .mtc-auth-shell .mtc-auth-preview-footer {
+  display:flex;align-items:center;gap:7px;
+  margin:16px 0 0 40px;color:#9fe3d5;font-size:11px;
+}
+#root .mtc-auth-shell .mtc-auth-features {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:28px;max-width:580px;
+}
+#root .mtc-auth-shell .mtc-auth-features > div {
+  display:grid;grid-template-columns:24px minmax(0,1fr);
+  column-gap:7px;row-gap:2px;align-items:center;
+}
+#root .mtc-auth-shell .mtc-auth-features > div > span {grid-row:span 2;color:#76dfc5;font-size:19px;}
+#root .mtc-auth-shell .mtc-auth-features strong {color:#e8f8f4;font-size:11px;font-weight:730;}
+#root .mtc-auth-shell .mtc-auth-features small {color:#a5cbd0;font-size:10px;}
+#root .mtc-auth-shell .mtc-auth-showcase-footer {
+  margin:0;color:#91b7bf;font-size:11px;letter-spacing:.01em;
+}
+#root .mtc-auth-shell .mtc-auth-showcase-footer span {color:#65ddc7;margin:0 5px;}
+
+#root .mtc-auth-shell .mtc-auth-access {
+  display:flex;flex-direction:column;min-height:100dvh;min-width:0;
+  padding:28px clamp(25px,4vw,64px) 26px;
+  background:
+    radial-gradient(circle at 95% 0%,rgba(15,190,155,.055),transparent 39%),
+    var(--auth-bg)!important;
+  color:var(--auth-text)!important;
+}
+#root .mtc-auth-shell .mtc-auth-topbar {display:flex;justify-content:space-between;gap:10px;align-items:center;min-height:38px;}
+#root .mtc-auth-shell .mtc-auth-topbar > span {font-size:10px;color:var(--auth-muted);font-weight:750;letter-spacing:.1em;}
+#root .mtc-auth-shell .mtc-auth-topbar > span > span {color:var(--auth-accent);padding:0 3px;}
+#root .mtc-auth-shell .mtc-auth-theme {
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid var(--auth-line)!important;border-radius:999px!important;
+  padding:8px 13px;background:var(--auth-surface)!important;
+  color:var(--auth-text)!important;font-size:11px;font-weight:650;
+}
+#root .mtc-auth-shell .mtc-auth-theme:hover {background:var(--auth-soft)!important;}
+#root .mtc-auth-shell .mtc-auth-theme span {font-size:16px;line-height:1;}
+#root .mtc-auth-shell .mtc-auth-form-panel {
+  width:100%;max-width:440px;margin:auto;min-height:0;padding:44px 0 30px;
+}
+#root .mtc-auth-shell .mtc-auth-mobile-brand {display:none;}
+#root .mtc-auth-shell .mtc-auth-form-kicker {
+  color:var(--auth-accent);font-size:10px;font-weight:760;letter-spacing:.13em;
+}
+html[data-myteacher-theme] #root .mtc-auth-shell .mtc-auth-form-panel h2 {
+  margin:12px 0 14px!important;
+  font-size:clamp(29px,2.8vw,40px)!important;line-height:1.18!important;
+  letter-spacing:-.045em!important;font-weight:750;
+  color:var(--auth-text)!important;
+}
+#root .mtc-auth-shell .mtc-auth-subtitle {
+  color:var(--auth-muted)!important;font-size:14px;line-height:1.7;margin:0 0 25px;
+}
+#root .mtc-auth-shell .mtc-auth-tabs {
+  display:flex;gap:5px;padding:5px;margin:0 0 22px;
+  border:1px solid var(--auth-line);border-radius:14px;
+  background:var(--auth-control);
+}
+#root .mtc-auth-shell .mtc-auth-tabs button {
+  flex:1;min-width:0;padding:12px 7px;
+  border:0!important;border-radius:10px!important;
+  color:var(--auth-muted)!important;background:transparent!important;
+  font-size:13px;font-weight:650;text-align:center;
+  transition:background .15s ease,box-shadow .15s ease;
+}
+#root .mtc-auth-shell .mtc-auth-tabs button.selected {
+  color:var(--auth-text)!important;background:var(--auth-active)!important;
+  box-shadow:0 3px 11px rgba(0,0,0,.075);
+}
+#root .mtc-auth-shell .mtc-auth-google-panel {
+  padding:23px 20px 18px;
+  background:var(--auth-surface);
+  border:1px solid var(--auth-line);
+  border-radius:19px;
+  box-shadow:var(--auth-shadow);
+}
+#root .mtc-auth-shell .mtc-auth-google-header {
+  display:flex;align-items:center;gap:11px;margin:0 0 20px;
+}
+#root .mtc-auth-shell .mtc-auth-google-monogram {
+  width:38px;height:38px;flex:0 0 38px;
+  display:grid;place-items:center;
+  border-radius:12px;border:1px solid var(--auth-line);
+  background:var(--auth-soft);color:var(--auth-text);
+  font-size:20px;font-weight:750;
+}
+#root .mtc-auth-shell .mtc-auth-google-header strong {display:block;font-size:13px;color:var(--auth-text);font-weight:700;}
+#root .mtc-auth-shell .mtc-auth-google-header small {display:block;color:var(--auth-muted);font-size:11px;margin-top:2px;}
+#root .mtc-auth-shell .mtc-google-button {
+  width:100%;min-height:45px;
+  display:flex;align-items:center;justify-content:center;
+  margin:auto;
+}
+#root .mtc-auth-shell .mtc-google-unavailable {
+  color:var(--auth-text)!important;background:var(--auth-soft)!important;
+  padding:12px 14px;margin:0;border:1px solid var(--auth-line);
+  border-radius:11px;font-size:12px;line-height:1.6;text-align:center;
+}
+#root .mtc-auth-shell .mtc-auth-security {
+  display:flex;align-items:flex-start;justify-content:center;gap:7px;
+  margin:17px 0 0;color:var(--auth-muted)!important;
+  font-size:11px;text-align:center;line-height:1.5;
+}
+#root .mtc-auth-shell .mtc-auth-security span {color:var(--auth-accent);font-size:15px;line-height:1;}
+#root .mtc-auth-shell .mtc-auth-legacy {margin-top:16px;}
+#root .mtc-auth-shell .mtc-auth-legacy-toggle {
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  width:100%;border:0!important;background:transparent!important;
+  color:var(--auth-muted)!important;text-align:left!important;
+  padding:12px 7px;font-size:12px;font-weight:650;
+}
+#root .mtc-auth-shell .mtc-auth-legacy-toggle:hover {color:var(--auth-accent)!important;}
+#root .mtc-auth-shell .mtc-auth-legacy-toggle > span:last-child {
+  color:var(--auth-accent);font-size:20px;line-height:1;
+}
+#root .mtc-auth-shell .mtc-auth-legacy-form {display:grid;gap:8px;padding:16px;margin-top:5px;border-radius:15px;border:1px solid var(--auth-line);background:var(--auth-surface);}
+#root .mtc-auth-shell .mtc-auth-legacy-form label {margin:7px 0 0;font-size:12px;color:var(--auth-text);font-weight:650;}
+#root .mtc-auth-shell .mtc-auth-legacy-form input {
+  display:block;width:100%;
+  padding:12px;border-radius:10px;border:1px solid var(--auth-line);
+  background:var(--auth-bg);color:var(--auth-text);
+}
+#root .mtc-auth-shell .mtc-auth-legacy-submit {
+  padding:12px;border-radius:10px;border:0!important;
+  background:#0fba95!important;color:#06322e!important;
+  font-size:13px;font-weight:780;margin-top:10px;text-align:center!important;
+}
+#root .mtc-auth-shell .mtc-auth-legacy-submit:hover {background:#47dfb4!important;}
+#root .mtc-auth-shell .mtc-auth-notice {
+  margin:18px 0 0;padding:13px 15px;
+  color:var(--auth-text)!important;border:1px solid var(--auth-line);
+  border-left:3px solid var(--auth-accent);border-radius:10px;
+  background:var(--auth-soft);font-size:12px;line-height:1.6;
+  display:block;
+}
+#root .mtc-auth-shell .mtc-auth-encouragement {
+  display:flex;justify-content:center;align-items:center;gap:8px;
+  margin-top:25px;color:var(--auth-muted);font-size:11px;text-align:center;
+}
+#root .mtc-auth-shell .mtc-auth-encouragement > span {color:var(--auth-accent);font-size:17px;}
+#root .mtc-auth-shell .mtc-auth-links {
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
+  gap:12px 19px;margin-top:auto;padding:17px 0 0;
+  border-top:1px solid var(--auth-line);
+  background:transparent!important;
+}
+#root .mtc-auth-shell .mtc-auth-links a {
+  color:var(--auth-muted)!important;text-decoration:none;
+  font-size:11px;font-weight:580;
+}
+#root .mtc-auth-shell .mtc-auth-links a:hover {
+  color:var(--auth-accent)!important;text-decoration:underline;
+}
+@media (max-width:1150px) {
+  html[data-myteacher-theme] #root .mtc-auth-shell {grid-template-columns:minmax(0,.89fr) minmax(410px,1.11fr)!important;}
+  #root .mtc-auth-shell .mtc-auth-showcase {padding-left:clamp(25px,4vw,52px);padding-right:clamp(25px,4vw,52px);}
+  html[data-myteacher-theme] #root .mtc-auth-shell .mtc-auth-hero h1 {font-size:clamp(35px,4vw,52px)!important;}
+  #root .mtc-auth-shell .mtc-auth-features {grid-template-columns:repeat(2,minmax(0,1fr));}
+  #root .mtc-auth-shell .mtc-auth-features > div:last-child {grid-column:span 2;}
+}
+@media (max-width:850px) {
+  html[data-myteacher-theme] #root .mtc-auth-shell {
+    display:flex!important;flex-direction:column!important;min-height:100dvh!important;overflow:visible;
+  }
+  #root .mtc-auth-shell .mtc-auth-showcase {
+    min-height:0;padding:22px clamp(20px,5vw,50px) 28px;
+    border-radius:0 0 28px 28px;
+  }
+  #root .mtc-auth-shell .mtc-auth-brand-tag {display:none;}
+  #root .mtc-auth-shell .mtc-auth-hero {margin:24px 0 0;padding:0;}
+  #root .mtc-auth-shell .mtc-auth-eyebrow {margin-bottom:12px;}
+  html[data-myteacher-theme] #root .mtc-auth-shell .mtc-auth-hero h1 {font-size:clamp(28px,5vw,38px)!important;max-width:530px;}
+  #root .mtc-auth-shell .mtc-auth-hero > p {margin:0;font-size:13px;}
+  #root .mtc-auth-shell .mtc-auth-preview,#root .mtc-auth-shell .mtc-auth-features,#root .mtc-auth-shell .mtc-auth-showcase-footer {display:none;}
+  #root .mtc-auth-shell .mtc-auth-access {min-height:0;flex:1;padding:18px clamp(20px,5vw,50px) 22px;}
+  #root .mtc-auth-shell .mtc-auth-form-panel {max-width:510px;padding:28px 0 35px;}
+}
+@media (max-width:520px) {
+  #root .mtc-auth-shell .mtc-auth-brand-icon {width:37px;height:37px;flex-basis:37px;border-radius:12px;font-size:22px;}
+  #root .mtc-auth-shell .mtc-auth-brand strong {font-size:15px;}
+  #root .mtc-auth-shell .mtc-auth-topbar > span {font-size:9px;}
+  #root .mtc-auth-shell .mtc-auth-theme {font-size:11px;padding:7px 9px;}
+  #root .mtc-auth-shell .mtc-auth-hero > p {font-size:12px;}
+  #root .mtc-auth-shell .mtc-auth-access {padding:17px 18px 22px;}
+  #root .mtc-auth-shell .mtc-auth-form-panel {padding:22px 0 30px;}
+  html[data-myteacher-theme] #root .mtc-auth-shell .mtc-auth-form-panel h2 {font-size:29px!important;}
+  #root .mtc-auth-shell .mtc-auth-google-panel {padding:18px 13px 16px;}
+  #root .mtc-auth-shell .mtc-auth-google-header {gap:9px;}
+  #root .mtc-auth-shell .mtc-auth-google-header small {font-size:10px;}
+  #root .mtc-auth-shell .mtc-auth-google-monogram {width:35px;height:35px;flex-basis:35px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  #root .mtc-auth-shell * {transition:none!important;animation:none!important;}
+}
