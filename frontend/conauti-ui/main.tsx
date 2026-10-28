@@ -732,10 +732,10 @@ function App() {
           <span aria-hidden="true">＋</span> Nuevo chat
         </button>
 
-        <nav className="mtc-side-nav" aria-label="Secciones">
+        <div className="mtc-side-nav" role="navigation" aria-label="Secciones">
           <button type="button" className={page === 'progress' ? 'active' : ''}
             onClick={() => openPage('progress')}>▤ <span>Mi aprendizaje</span></button>
-        </nav>
+        </div>
 
         <div className="mtc-history">
           <HistorialAvanzado
