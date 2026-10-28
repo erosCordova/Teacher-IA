@@ -139,6 +139,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: { frameRate: 2 }, audio: false,
       });
+      if (!mountedRef.current) { stream.getTracks().forEach(track => track.stop()); return; }
       detener();
       streamRef.current = stream;
       setArchivo(null);
@@ -328,6 +329,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
       const media = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true },
       });
+      if (!mountedRef.current) { media.getTracks().forEach(track => track.stop()); return; }
       audioStreamRef.current = media;
       audioChunksRef.current = [];
       const format = elegirAudio();
@@ -443,6 +445,10 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
       {!minimizado && (
         <>
           <div className="mt-pantalla-toolbar">
+            {ventanaFlotanteCompatible && !popout && (
+              <button type="button" onClick={() => void abrirVentanaFlotante()}
+                title="Mostrar el asistente sobre otras aplicaciones">▣ Ventana flotante</button>
+            )}
             {disponible && (
               <button type="button" onClick={() => void comenzar()} title="Cambiar la vista compartida">
                 ▣ Cambiar vista
@@ -478,7 +484,8 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
           </div>
           <p className="mt-pantalla-privacy">
             La pantalla no se transmite continuamente: se envía una imagen a Gemini
-            cuando haces una pregunta. No se almacena la captura. Oculta datos personales.
+            cuando haces una pregunta. El audio del micrófono se envía a transcripción
+            solo cuando grabas. No se guardan capturas. Oculta datos personales.
           </p>
         </>
       )}
