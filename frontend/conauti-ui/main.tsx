@@ -7,8 +7,10 @@ import HistorialAvanzado from './HistorialAvanzado'
 import GuiaPedagogica from './GuiaPedagogica'
 import EntradaVoz from './EntradaVoz'
 import ConversacionVoz from './ConversacionVoz'
+import Estilo6Home from './Estilo6Home'
 import './composerGlobal'
 import './style.css'
+import './estilo6.css'
 import './ConfiguracionGlobal'
 
 type User = {
@@ -29,7 +31,7 @@ type Message = {
   created_at: string
 }
 
-type Page = 'chat' | 'progress' | 'settings' | 'privacy'
+type Page = 'chat' | 'progress' | 'evaluations' | 'settings' | 'privacy' | 'subjects' | 'notes' | 'explore'
 
 const BASE = '/api/conauti'
 
@@ -103,6 +105,22 @@ function App() {
   const editor = useRef<HTMLTextAreaElement>(null)
   const retryId = useRef<string | null>(null)
   const requestNumber = useRef(0)
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try { return localStorage.getItem('myteacher.estilo6.theme') === 'light' ? 'light' : 'dark' }
+    catch { return 'dark' }
+  })
+  const [showVoice, setShowVoice] = useState(false)
+  const [showScreen, setShowScreen] = useState(false)
+  const [studyNotes, setStudyNotes] = useState(() => {
+    try { return localStorage.getItem('myteacher.study.notes') || '' }
+    catch { return '' }
+  })
+  useEffect(() => {
+    document.documentElement.setAttribute('data-myteacher-theme', theme)
+    try { localStorage.setItem('myteacher.estilo6.theme', theme) }
+    catch { /* Sesión actual solamente */ }
+  }, [theme])
+
 
   useEffect(() => {
     let valid = true
@@ -202,6 +220,8 @@ function App() {
 
   async function openChat(id: string) {
     if (!token) return
+    setShowVoice(false)
+    setShowScreen(false)
     const number = ++requestNumber.current
     setActive(id)
     setMessages([])
@@ -235,6 +255,8 @@ function App() {
   }
 
   function newChat() {
+    setShowVoice(false)
+    setShowScreen(false)
     requestNumber.current++
     setActive(null)
     setMessages([])
@@ -512,34 +534,47 @@ function App() {
     )
   }
 
+  const isHome = page === 'chat' && !active && messages.length === 0 &&
+    !loadingMessages && !showVoice
+  const iniciarMateria = (pregunta: string) => {
+    setPage('chat')
+    setShowVoice(false)
+    setDraft(pregunta)
+    setTimeout(() => document.querySelector<HTMLTextAreaElement>('#e6-pregunta')?.focus(), 0)
+  }
+  const cambiarTema = () => setTheme(previous => previous === 'dark' ? 'light' : 'dark')
   return (
-    <div className="app">
+    <div className="app estilo6-app">
       <aside className="sidebar">
         <div className="brand">
-          <div className="logo compact">C</div>
+          <div className="logo compact">✦</div>
           <div>
-            <strong>CONAUTI</strong>
-            <small>Aprende a tu manera</small>
+            <strong>My Teacher IA</strong>
+            <small>Tu compañero de aprendizaje</small>
           </div>
         </div>
 
-        <button className="primary full" onClick={newChat}>
-          + Nueva conversación
+        <button className="primary full e6-new" onClick={newChat}>
+          ＋ Nuevo chat
         </button>
 
-        <nav aria-label="Menú principal">
+        <nav className="e6-sidebar-links" aria-label="Menú principal">
           {([
-            ['chat', '✦ Conversaciones'],
-            ['progress', '◈ Mi progreso'],
-            ['settings', '⚙ Configuración'],
-            ['privacy', '♧ Privacidad']
-          ] as const).map(([id, label]) => (
-            <button
-              key={id}
+            ['chat','⌂','Inicio'],
+            ['subjects','◇','Mis materias'],
+            ['evaluations','▤','Evaluaciones'],
+            ['progress','▥','Progreso'],
+            ['notes','▣','Notas'],
+            ['explore','◎','Explorar'],
+          ] as const).map(([id, icon, label]) => (
+            <button key={id} type="button"
               className={page === id ? 'active' : ''}
-              onClick={() => setPage(id)}
               aria-current={page === id ? 'page' : undefined}
-            >
+              onClick={() => {
+                if (id === 'chat') newChat()
+                else {setShowVoice(false);setShowScreen(false);setPage(id)}
+              }}>
+              <span className="e6-nav-icon" aria-hidden="true">{icon}</span>
               {label}
             </button>
           ))}
@@ -556,11 +591,12 @@ function App() {
 
         <div className="account">
           <span>👤 {user.username}</span>
-          <button onClick={() => void logout()}>Salir</button>
+          <button type="button" onClick={() => setPage('privacy')} title="Mis datos personales">Privacidad</button>
+          <button type="button" onClick={() => void logout()}>Salir</button>
         </div>
       </aside>
 
-      <main className="main">
+      <main className={isHome ? 'main e6-home-active' : 'main'}>
         <header className="topbar">
           <div>
             <span className="eyebrow">ASISTENTE EDUCATIVO</span>
@@ -569,11 +605,18 @@ function App() {
                 ? history.find(c => c.id === active)?.title
                   || '¡Vamos a aprender!'
                 : page === 'progress' ? 'Mi progreso'
+                : page === 'evaluations' ? 'Evaluaciones'
+                : page === 'subjects' ? 'Mis materias'
+                : page === 'notes' ? 'Mis notas'
+                : page === 'explore' ? 'Explorar temas'
                 : page === 'settings' ? 'Configuración'
                 : 'Privacidad'
             }</h1>
           </div>
-          <span className="phase">Fase 04</span>
+          <button type="button" className="e6-common-switch"
+            aria-label={theme === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'}
+            title={theme === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'}
+            onClick={cambiarTema}>{theme === 'dark' ? '☀' : '☾'}</button>
         </header>
 
         {notice && (
