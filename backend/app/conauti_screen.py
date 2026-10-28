@@ -3,6 +3,7 @@
 
 import base64
 import re
+from urllib.parse import unquote
 
 import httpx
 from fastapi import (
@@ -56,9 +57,15 @@ async def analyze_screen(
         default="",
         max_length=240,
     ),
-    context: str = Header(default="", max_length=500, alias="X-Visual-Context"),
+    context: str = Header(default="", max_length=2000, alias="X-Visual-Context"),
     user=Depends(current_user),
 ):
+    # Cabecera ASCII codificada: evita caracteres Unicode prohibidos en HTTP.
+    # No exponemos el contexto previo en la URL ni en los registros de acceso.
+    context = unquote(context)
+    if len(context) > 500:
+        raise HTTPException(422, "El contexto previo supera el límite permitido.")
+
     # La dependencia autentica al estudiante.
     # No se guarda la imagen en PostgreSQL ni en disco.
 
