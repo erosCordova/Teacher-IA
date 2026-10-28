@@ -11,6 +11,7 @@ from fastapi import (
     HTTPException,
     Request,
     Query,
+    Header,
 )
 
 from app.conauti_auth import current_user
@@ -55,7 +56,7 @@ async def analyze_screen(
         default="",
         max_length=240,
     ),
-    context: str = Query(default="", max_length=500),
+    context: str = Header(default="", max_length=500, alias="X-Visual-Context"),
     user=Depends(current_user),
 ):
     # La dependencia autentica al estudiante.
