@@ -1798,3 +1798,67 @@ button.conauti-composer-send:disabled {
 }
 
 /* CONAUTI COMPOSER GLOBAL END */
+
+/* Acceso moderno y verificado, manteniendo la identidad visual aprobada. */
+.auth-card .mtc-google-signup {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:11px;
+  padding:6px 0 18px;
+  text-align:center;
+}
+.auth-card .mtc-google-signup h2 {
+  margin:2px 0 0;
+  font-size:17px;
+  color:#183247;
+  line-height:1.35;
+}
+.auth-card .mtc-google-signup p {
+  margin:0;
+  font-size:13px;
+  line-height:1.55;
+  max-width:310px;
+}
+.auth-card .mtc-google-signup small {
+  font-size:11px;
+  line-height:1.5;
+  max-width:300px;
+  color:#64748b;
+}
+.auth-card .mtc-google-button {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:43px;
+  width:100%;
+}
+.auth-card .mtc-google-unavailable {
+  padding:13px;
+  color:#985517;
+  background:#fff8eb;
+  border:1px solid #f6dbb3;
+  border-radius:11px;
+}
+.auth-card .mtc-legacy-access {
+  margin-top:12px;
+  border-top:1px solid #e6ebf0;
+  padding-top:15px;
+}
+.auth-card .mtc-legacy-toggle {
+  border:0;
+  background:transparent;
+  color:#176778;
+  padding:7px 0;
+  font-size:12px;
+  font-weight:600;
+  text-align:center;
+  width:100%;
+}
+.auth-card .mtc-legacy-toggle:hover {text-decoration:underline;}
+.auth-card .mtc-legacy-access form {margin-top:10px;}
+.auth-card .mtc-legacy-access input {border-radius:9px;}
+@media(max-width:460px) {
+  .auth-card {padding:24px 19px;}
+  .auth-card .mtc-google-signup {padding-bottom:13px;}
+}
