@@ -332,3 +332,55 @@ html[data-myteacher-theme] #root .mtc-auth-shell .mtc-auth-form-panel h2 {
 @media(prefers-reduced-motion:reduce) {
   #root .mtc-auth-shell * {transition:none!important;animation:none!important;}
 }
+
+/* Métodos verificados adicionales — el proveedor se habilita solo al
+   configurarse SMTP; ningún control simula un inicio de sesión. */
+#root .mtc-auth-shell .mtc-auth-alternatives {margin:17px 0 0;}
+#root .mtc-auth-shell .mtc-auth-divider {
+  display:flex;align-items:center;gap:12px;margin:0 0 16px;
+  color:var(--auth-muted);font-size:11px;
+}
+#root .mtc-auth-shell .mtc-auth-divider::before,
+#root .mtc-auth-shell .mtc-auth-divider::after {
+  content:"";height:1px;flex:1;background:var(--auth-line);
+}
+#root .mtc-auth-shell button.mtc-auth-email-choice {
+  width:100%;display:flex;align-items:center;gap:11px;
+  padding:12px 13px;border:1px solid var(--auth-line)!important;
+  border-radius:11px;background:var(--auth-surface)!important;
+  color:var(--auth-text)!important;text-align:left;font-size:12px;font-weight:650;
+}
+#root .mtc-auth-shell button.mtc-auth-email-choice > span:nth-child(2){flex:1;}
+#root .mtc-auth-shell button.mtc-auth-email-choice:hover:not(:disabled){
+  border-color:var(--auth-accent)!important;background:var(--auth-soft)!important;
+}
+#root .mtc-auth-shell button.mtc-auth-email-choice:disabled{opacity:.6;cursor:not-allowed;}
+#root .mtc-auth-shell .mtc-auth-method-pending {
+  padding:8px 2px 0;margin:0;color:var(--auth-muted)!important;
+  font-size:11px;line-height:1.55;text-align:center;
+}
+#root .mtc-auth-shell .mtc-auth-email-form {
+  display:grid;gap:8px;padding:17px 13px 13px;margin-top:10px;
+  border-radius:13px;border:1px solid var(--auth-line);
+  background:var(--auth-bg);
+}
+#root .mtc-auth-shell .mtc-auth-email-form label {
+  font-size:12px;font-weight:650;color:var(--auth-text);margin-top:4px;
+}
+#root .mtc-auth-shell .mtc-auth-email-form input {
+  width:100%;padding:12px 13px;border-radius:10px;
+  background:var(--auth-surface);color:var(--auth-text);
+  border:1px solid var(--auth-line);
+}
+#root .mtc-auth-shell button.mtc-auth-email-submit {
+  padding:12px;background:#0fba95!important;color:#062c27!important;
+  border:0!important;border-radius:10px;font-weight:750;
+}
+#root .mtc-auth-shell button.mtc-auth-email-back {
+  padding:6px;border:0!important;background:transparent!important;
+  color:var(--auth-accent)!important;font-size:11px;
+}
+#root .mtc-auth-shell .mtc-auth-email-feedback {
+  padding:10px;margin:3px 0 0;font-size:11px;color:var(--auth-text)!important;
+  background:var(--auth-soft);border-radius:9px;
+}
