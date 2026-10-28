@@ -7,11 +7,35 @@
  * No se envían textos ni audio a un servicio TTS de pago.
  */
 import { KokoroTTS } from 'kokoro-js'
-import { phonemize } from 'phonemizer'
+import { createEspeak } from '@spelling-creator/spellophone/browser'
 import type { KokoroVoice } from './KokoroPlayer'
 
 type Motor = Awaited<ReturnType<typeof KokoroTTS.from_pretrained>>
 let motorPromise: Promise<Motor> | null = null
+let fonemizadorPromise: ReturnType<typeof createEspeak> | null = null
+
+async function fonemizarEspanol(texto: string): Promise<string> {
+  if (!fonemizadorPromise) {
+    const tarea = createEspeak({
+      cdn: 'jsdelivr',
+      languages: ['es'],
+    })
+    fonemizadorPromise = tarea
+    void tarea.catch(() => {
+      if (fonemizadorPromise === tarea) fonemizadorPromise = null
+    })
+  }
+
+  const espeak = await fonemizadorPromise
+  espeak.setVoice('es')
+  const fonemas = espeak.phonemes(texto).trim()
+
+  if (!fonemas) {
+    throw new Error('eSpeak no pudo convertir el texto a fonemas españoles.')
+  }
+
+  return fonemas
+}
 
 function motor(): Promise<Motor> {
   // Un fallo de red no debe deshabilitar Kokoro definitivamente.
@@ -37,16 +61,19 @@ export async function sintetizarKokoroEnNavegador(
 ): Promise<Blob> {
   if (!texto.trim()) throw new Error('No hay texto para reproducir.')
 
+  // La version 1.2.1 de "phonemizer" solo admite ingles.
+  // Spellophone utiliza eSpeak-NG completo con diccionario español.
+  // Primero validar G2P; luego descargar el modelo de ~92 MB.
+  const fonemas = await fonemizarEspanol(texto)
   const instancia = await motor()
-
-  // eSpeak-NG WASM: idioma español, no pronunciación inglesa.
-  const palabras = await phonemize(texto, 'es')
-  const fonemas = palabras.join(' ').trim()
-  if (!fonemas) throw new Error('No se obtuvieron fonemas en español.')
 
   const { input_ids } = instancia.tokenizer(fonemas, {
     truncation: true,
   })
+
+  if (input_ids.dims.at(-1)! <= 2) {
+    throw new Error('Los fonemas españoles no produjeron tokens válidos.')
+  }
 
   // Kokoro-js 1.2.1 publica las voces españolas como pesos,
   // aunque su lista TypeScript enumera solamente voces inglesas.

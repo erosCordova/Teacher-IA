@@ -226,28 +226,14 @@ export default function VocesKokoro() {
           await import('./KokoroBrowser')
 
         if (abort.signal.aborted) return
-        // Si la descarga inicial excede 15 segundos, no dejar
-        // al estudiante esperando sin sonido: el motor sigue
-        // descargandose y puede usarse en el siguiente intento.
-        let reloj: ReturnType<typeof setTimeout> | null = null
-        try {
-          blob = await Promise.race([
-            sintetizarKokoroEnNavegador(
-              texto,
-              voz,
-              velocidad,
-            ),
-            new Promise<never>((_, reject) => {
-              reloj = setTimeout(() => {
-                reject(new Error(
-                  'Kokoro sigue descargandose en este dispositivo.',
-                ))
-              }, 15000)
-            }),
-          ])
-        } finally {
-          if (reloj !== null) clearTimeout(reloj)
-        }
+        // La primera carga necesita descargar un modelo neuronal.
+        // Mantener el indicador visible hasta completar el audio;
+        // no descartar la voz a los 15 segundos.
+        blob = await sintetizarKokoroEnNavegador(
+          texto,
+          voz,
+          velocidad,
+        )
       }
 
       if (abort.signal.aborted || !blob) return
