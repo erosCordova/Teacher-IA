@@ -115,12 +115,12 @@ function dividirTexto(texto: string): string[] {
   let restante = texto.trim()
 
   while (restante.length > 0) {
-    let corte = Math.min(1200, restante.length)
+    let corte = Math.min(220, restante.length)
 
     if (corte < restante.length) {
       const espacio = restante.lastIndexOf(' ', corte)
 
-      if (espacio > 400) {
+      if (espacio > 65) {
         corte = espacio + 1
       }
     }
@@ -146,9 +146,8 @@ export function hablarConKokoro(
 
   const velocidad = obtenerVelocidadKokoro()
   const volumen = obtenerVolumenKokoro()
+  const voz = obtenerVozKokoro()
 
-  // Mantener las preferencias en el respaldo
-  // de voz del navegador.
   mensaje.rate = velocidad
   mensaje.volume = volumen
 
@@ -163,10 +162,8 @@ export function hablarConKokoro(
 
   const finalizar = () => {
     if (!vigente()) return
-
     const handler = mensaje.onend
     limpiarAudio()
-
     handler?.call(
       mensaje,
       new Event('end') as SpeechSynthesisEvent,
@@ -176,136 +173,160 @@ export function hablarConKokoro(
   const respaldo = () => {
     if (!vigente()) return
 
+    // No reproducir de nuevo una frase que ya comenzó a oírse.
     if (iniciado) {
-      console.warn(
-        'Kokoro dejó de responder durante el audio.',
-      )
       finalizar()
       return
     }
 
     limpiarAudio()
-
     try {
       sintetizador.speak(mensaje)
     } catch (error) {
-      console.error(
-        'No se pudo activar la voz de respaldo.',
-        error,
+      console.error('No pudo iniciarse la voz del navegador.', error)
+      mensaje.onerror?.call(
+        mensaje,
+        new Event('error') as SpeechSynthesisErrorEvent,
       )
+    }
+  }
+
+  const reproducir = async (blob: Blob) => {
+    if (!vigente()) return
+    if (!blob.size) throw new Error('La voz devolvió audio vacío.')
+
+    const objectUrl = URL.createObjectURL(blob)
+    urlActual = objectUrl
+    const reproductor = new Audio(objectUrl)
+    reproductor.volume = volumen
+    audioActual = reproductor
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        let terminado = false
+        const limpiar = () => {
+          abort.signal.removeEventListener('abort', cancelar)
+          reproductor.onended = null
+          reproductor.onerror = null
+        }
+        const cancelar = () => {
+          if (terminado) return
+          terminado = true
+          limpiar()
+          reject(new Error('Audio cancelado'))
+        }
+        const completar = () => {
+          if (terminado) return
+          terminado = true
+          limpiar()
+          resolve()
+        }
+        const fallar = () => {
+          if (terminado) return
+          terminado = true
+          limpiar()
+          reject(new Error('No se pudo reproducir audio.'))
+        }
+
+        abort.signal.addEventListener('abort', cancelar, { once: true })
+        reproductor.onended = completar
+        reproductor.onerror = fallar
+
+        void reproductor.play().then(() => {
+          if (!vigente() || iniciado) return
+          iniciado = true
+          mensaje.onstart?.call(
+            mensaje,
+            new Event('start') as SpeechSynthesisEvent,
+          )
+        }).catch(fallar)
+      })
+    } finally {
+      if (audioActual === reproductor) {
+        reproductor.pause()
+        reproductor.removeAttribute('src')
+        audioActual = null
+      }
+      if (urlActual === objectUrl) {
+        URL.revokeObjectURL(objectUrl)
+        urlActual = null
+      }
     }
   }
 
   const ejecutar = async () => {
     const fragmentos = dividirTexto(mensaje.text)
-
     if (!fragmentos.length) {
       finalizar()
       return
     }
 
+    let motorLocal = false
+
     try {
       for (const fragmento of fragmentos) {
         if (!vigente()) return
 
-        const respuesta = await fetch(
-          '/api/conauti/kokoro/speech',
-          {
-            method: 'POST',
-            credentials: 'same-origin',
-            signal: abort.signal,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              text: fragmento,
-              voice: obtenerVozKokoro(),
-              speed: velocidad,
-            }),
-          },
-        )
+        let blob: Blob | null = null
 
-        if (!respuesta.ok) {
-          throw new Error(
-            `Kokoro HTTP ${respuesta.status}`,
-          )
-        }
-
-        const blob = await respuesta.blob()
-
-        if (!vigente()) return
-
-        if (!blob.size || !blob.type.startsWith('audio/')) {
-          throw new Error('Kokoro devolvió audio inválido')
-        }
-
-        const objectUrl = URL.createObjectURL(blob)
-        urlActual = objectUrl
-
-        const reproductor = new Audio(objectUrl)
-        reproductor.volume = volumen
-        audioActual = reproductor
-
-        await new Promise<void>((resolve, reject) => {
-          const quitar = () => {
-            abort.signal.removeEventListener(
-              'abort',
-              cancelar,
+        if (!motorLocal) {
+          try {
+            const respuesta = await fetch(
+              '/api/conauti/kokoro/speech',
+              {
+                method: 'POST',
+                credentials: 'same-origin',
+                signal: abort.signal,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  text: fragmento,
+                  voice: voz,
+                  speed: velocidad,
+                }),
+              },
             )
-          }
 
-          const cancelar = () => {
-            quitar()
-            reject(new Error('Audio cancelado'))
-          }
-
-          const terminado = () => {
-            quitar()
-            resolve()
-          }
-
-          const fallo = () => {
-            quitar()
-            reject(new Error('Error al reproducir audio'))
-          }
-
-          abort.signal.addEventListener(
-            'abort',
-            cancelar,
-            { once: true },
-          )
-
-          reproductor.onended = terminado
-          reproductor.onerror = fallo
-
-          void reproductor.play().then(() => {
-            if (vigente() && !iniciado) {
-              iniciado = true
-
-              mensaje.onstart?.call(
-                mensaje,
-                new Event('start') as SpeechSynthesisEvent,
-              )
+            if (!respuesta.ok) {
+              throw new Error(`Kokoro remoto: HTTP ${respuesta.status}`)
             }
-          }).catch(fallo)
-        })
+            blob = await respuesta.blob()
+            if (!blob.type.startsWith('audio/')) {
+              throw new Error('Audio remoto inválido.')
+            }
+          } catch (error) {
+            if (!vigente()) return
+            console.info(
+              'Kokoro remoto no disponible; iniciando Kokoro local.',
+              error,
+            )
+            motorLocal = true
+          }
+        }
+
+        if (motorLocal) {
+          // Se carga bajo demanda, sin aumentar el paquete de inicio.
+          const { sintetizarKokoroEnNavegador } =
+            await import('./KokoroBrowser')
+          if (!vigente()) return
+          blob = await sintetizarKokoroEnNavegador(
+            fragmento,
+            voz,
+            velocidad,
+          )
+        }
 
         if (!vigente()) return
-
-        audioActual = null
-        URL.revokeObjectURL(objectUrl)
-        urlActual = null
+        if (!blob) throw new Error('No se generó audio.')
+        await reproducir(blob)
       }
 
       finalizar()
     } catch (error) {
       if (!vigente()) return
-
       console.warn(
-        'Error en Kokoro. Evaluando respaldo.',
+        'Kokoro no pudo sintetizar en este dispositivo.',
         error,
       )
-
       respaldo()
     }
   }
