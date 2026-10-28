@@ -249,7 +249,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
       const response = await fetch("/api/conauti/screen/analyze?" + params.toString(), {
         method: "POST", cache: "no-store",
         headers: { Authorization: "Bearer " + token,
-          "Content-Type": "image/jpeg", "X-Visual-Context": contexto },
+          "Content-Type": "image/jpeg", "X-Visual-Context": encodeURIComponent(contexto) },
         body: image, signal: request.signal,
       });
       const result: Resultado & { detail?: string } = await response.json().catch(() => ({
