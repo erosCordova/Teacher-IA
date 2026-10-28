@@ -395,6 +395,42 @@ html[data-myteacher-theme="light"] #root .mtc-app .mtc-history .historial-fila.e
   box-shadow:inset 3px 0 #0a9e76;
 }
 
+/* Una consulta con documento muestra únicamente la pregunta y una ficha,
+   mientras los fragmentos se envían al modelo como contexto no visible. */
+#root .mtc-app .mtc-document-bubble {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  max-width:100%;
+  padding:11px 12px;
+  margin-top:10px;
+  border:1px solid var(--mtc-border);
+  border-radius:12px;
+  background:var(--mtc-surface);
+  color:var(--mtc-text);
+  text-align:left;
+}
+#root .mtc-app .mtc-document-bubble > span:first-child {
+  font-size:22px;
+  flex:0 0 auto;
+}
+#root .mtc-app .mtc-document-bubble > span:last-child {
+  display:grid;
+  gap:4px;
+  min-width:0;
+}
+#root .mtc-app .mtc-document-bubble strong {
+  font-size:12px;
+  font-weight:600;
+  overflow-wrap:anywhere;
+}
+#root .mtc-app .mtc-document-bubble small {
+  color:var(--mtc-muted);
+  font-size:11px;
+  overflow-wrap:anywhere;
+}
+
 /* MY TEACHER IA - BARRA COMPACTA Y MENU DE ADJUNTOS (V2)
    Solo un botón + permanece a la vista; las acciones se abren al pulsarlo. */
 html[data-myteacher-theme] #root .mtc-app form.mtc-composer {
