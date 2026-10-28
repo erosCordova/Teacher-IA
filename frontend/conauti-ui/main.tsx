@@ -7,10 +7,8 @@ import HistorialAvanzado from './HistorialAvanzado'
 import GuiaPedagogica from './GuiaPedagogica'
 import EntradaVoz from './EntradaVoz'
 import ConversacionVoz from './ConversacionVoz'
-import Estilo6Home from './Estilo6Home'
-import './composerGlobal'
 import './style.css'
-import './estilo6.css'
+import './chatgpt-layout.css'
 import './ConfiguracionGlobal'
 
 type User = {
@@ -31,7 +29,7 @@ type Message = {
   created_at: string
 }
 
-type Page = 'chat' | 'progress' | 'evaluations' | 'settings' | 'privacy' | 'subjects' | 'notes' | 'explore'
+type Page = 'chat' | 'progress' | 'settings' | 'privacy'
 
 const BASE = '/api/conauti'
 
@@ -90,6 +88,34 @@ function App() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [page, setPage] = useState<Page>('chat')
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try { return localStorage.getItem('myteacher.ui.theme') === 'light' ? 'light' : 'dark' }
+    catch { return 'dark' }
+  })
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [toolsOpen, setToolsOpen] = useState(false)
+  const [voiceOpen, setVoiceOpen] = useState(false)
+  const [screenOpen, setScreenOpen] = useState(false)
+  const [guideOpen, setGuideOpen] = useState(false)
+
+  useEffect(() => {
+    document.documentElement.dataset.myteacherTheme = theme
+    try { localStorage.setItem('myteacher.ui.theme', theme) }
+    catch { /* El tema sigue activo durante esta sesión */ }
+  }, [theme])
+  const toggleTheme = () =>
+    setTheme(previous => previous === 'dark' ? 'light' : 'dark')
+  const openPage = (next: Page) => {
+    setPage(next)
+    setToolsOpen(false)
+    setMobileOpen(false)
+    setScreenOpen(false)
+    setVoiceOpen(false)
+  }
+  const openVoiceLibrary = () =>
+    window.dispatchEvent(new Event('conauti:abrir-biblioteca'))
+  const openKokoroSettings = () =>
+    window.dispatchEvent(new Event('conauti:abrir-kokoro'))
   const [history, setHistory] = useState<Conversation[]>([])
   const [historyVersion, setHistoryVersion] = useState(0)
   const [hasOlder, setHasOlder] = useState(false)
@@ -105,22 +131,6 @@ function App() {
   const editor = useRef<HTMLTextAreaElement>(null)
   const retryId = useRef<string | null>(null)
   const requestNumber = useRef(0)
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    try { return localStorage.getItem('myteacher.estilo6.theme') === 'light' ? 'light' : 'dark' }
-    catch { return 'dark' }
-  })
-  const [showVoice, setShowVoice] = useState(false)
-  const [showScreen, setShowScreen] = useState(false)
-  const [studyNotes, setStudyNotes] = useState(() => {
-    try { return localStorage.getItem('myteacher.study.notes') || '' }
-    catch { return '' }
-  })
-  useEffect(() => {
-    document.documentElement.setAttribute('data-myteacher-theme', theme)
-    try { localStorage.setItem('myteacher.estilo6.theme', theme) }
-    catch { /* Sesión actual solamente */ }
-  }, [theme])
-
 
   useEffect(() => {
     let valid = true
@@ -220,13 +230,12 @@ function App() {
 
   async function openChat(id: string) {
     if (!token) return
-    setShowVoice(false)
-    setShowScreen(false)
     const number = ++requestNumber.current
     setActive(id)
     setMessages([])
     setLoadingMessages(true)
     setPage('chat')
+    setMobileOpen(false)
     setNotice('')
 
     try {
@@ -255,8 +264,10 @@ function App() {
   }
 
   function newChat() {
-    setShowVoice(false)
-    setShowScreen(false)
+    setMobileOpen(false)
+    setToolsOpen(false)
+    setScreenOpen(false)
+    setVoiceOpen(false)
     requestNumber.current++
     setActive(null)
     setMessages([])
@@ -362,7 +373,7 @@ function App() {
       retryId.current = null
       setDraft('')
       await refresh(token)
-      setNotice('Respuesta educativa generada correctamente.')
+      setNotice('')
     } catch (error) {
       setNotice(errorText(error))
     } finally {
@@ -473,7 +484,7 @@ function App() {
       <main className="auth">
         <section className="auth-card">
           <div className="logo">C</div>
-          <span className="eyebrow">CONAUTI · EDUCACIÓN CON IA</span>
+          <span className="eyebrow">MY TEACHER IA · EDUCACIÓN CON IA</span>
           <h1>Aprender es descubrir</h1>
           <p>Tu espacio para practicar, preguntar y avanzar.</p>
 
@@ -534,427 +545,297 @@ function App() {
     )
   }
 
-  const isHome = page === 'chat' && !active && messages.length === 0 &&
-    !loadingMessages && !showVoice
-  const iniciarMateria = (pregunta: string) => {
-    setPage('chat')
-    setShowVoice(false)
-    setDraft(pregunta)
-    setTimeout(() => document.querySelector<HTMLTextAreaElement>('#e6-pregunta')?.focus(), 0)
-  }
-  const cambiarTema = () => setTheme(previous => previous === 'dark' ? 'light' : 'dark')
   return (
-    <div className="app estilo6-app">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="logo compact">✦</div>
-          <div>
-            <strong>My Teacher IA</strong>
-            <small>Tu compañero de aprendizaje</small>
-          </div>
-        </div>
+    <div className="mtc-app">
+      {mobileOpen && (
+        <button type="button" className="mtc-backdrop" aria-label="Cerrar menú"
+          onClick={() => setMobileOpen(false)} />
+      )}
 
-        <button className="primary full e6-new" onClick={newChat}>
-          ＋ Nuevo chat
+      <aside className={'mtc-sidebar' + (mobileOpen ? ' mtc-sidebar-visible' : '')}>
+        <header className="mtc-side-head">
+          <div className="mtc-brand">
+            <span className="mtc-mark" aria-hidden="true">✦</span>
+            <strong>My Teacher IA</strong>
+          </div>
+          <button type="button" className="mtc-icon-button mtc-close-mobile"
+            aria-label="Cerrar menú" onClick={() => setMobileOpen(false)}>×</button>
+        </header>
+
+        <button type="button" className="mtc-new-chat" onClick={newChat}>
+          <span aria-hidden="true">＋</span> Nuevo chat
         </button>
 
-        <nav className="e6-sidebar-links" aria-label="Menú principal">
-          {([
-            ['chat','⌂','Inicio'],
-            ['subjects','◇','Mis materias'],
-            ['evaluations','▤','Evaluaciones'],
-            ['progress','▥','Progreso'],
-            ['notes','▣','Notas'],
-            ['explore','◎','Explorar'],
-          ] as const).map(([id, icon, label]) => (
-            <button key={id} type="button"
-              className={page === id ? 'active' : ''}
-              aria-current={page === id ? 'page' : undefined}
-              onClick={() => {
-                if (id === 'chat') newChat()
-                else {setShowVoice(false);setShowScreen(false);setPage(id)}
-              }}>
-              <span className="e6-nav-icon" aria-hidden="true">{icon}</span>
-              {label}
-            </button>
-          ))}
-        </nav>
+        <div className="mtc-side-nav" aria-label="Navegación">
+          <button type="button" className={page === 'chat' ? 'active' : ''}
+            onClick={newChat}>⌂ <span>Chat</span></button>
+          <button type="button" className={page === 'progress' ? 'active' : ''}
+            onClick={() => openPage('progress')}>▤ <span>Mi aprendizaje</span></button>
+        </div>
 
-        <HistorialAvanzado
-          token={token}
-          selected={active}
-          revision={historyVersion}
-          onOpen={id => void openChat(id)}
-          onRename={item => void rename(item)}
-          onDelete={item => void remove(item)}
-        />
+        <div className="mtc-history">
+          <HistorialAvanzado
+            token={token}
+            selected={active}
+            revision={historyVersion}
+            onOpen={id => void openChat(id)}
+            onRename={item => void rename(item)}
+            onDelete={item => void remove(item)}
+          />
+        </div>
 
-        <div className="account">
-          <span>👤 {user.username}</span>
-          <button type="button" onClick={() => setPage('privacy')} title="Mis datos personales">Privacidad</button>
-          <button type="button" onClick={() => void logout()}>Salir</button>
+        <div className="mtc-side-footer">
+          <button type="button" onClick={() => {setMobileOpen(false);openVoiceLibrary()}}>
+            ♫ <span>Biblioteca de voces</span>
+          </button>
+          <button type="button" className={page === 'settings' ? 'active' : ''}
+            onClick={() => openPage('settings')}>
+            ⚙ <span>Configuración</span>
+          </button>
+          <button type="button" className="mtc-account" onClick={() => openPage('settings')}>
+            <span className="mtc-avatar" aria-hidden="true">{user.username.slice(0,1).toUpperCase()}</span>
+            <span>{user.username}</span>
+          </button>
         </div>
       </aside>
 
-      <main className={isHome ? 'main e6-home-active' : 'main'}>
-        <header className="topbar">
-          <div>
-            <span className="eyebrow">ASISTENTE EDUCATIVO</span>
-            <h1>{
-              page === 'chat'
-                ? history.find(c => c.id === active)?.title
-                  || '¡Vamos a aprender!'
-                : page === 'progress' ? 'Mi progreso'
-                : page === 'evaluations' ? 'Evaluaciones'
-                : page === 'subjects' ? 'Mis materias'
-                : page === 'notes' ? 'Mis notas'
-                : page === 'explore' ? 'Explorar temas'
-                : page === 'settings' ? 'Configuración'
-                : 'Privacidad'
-            }</h1>
+      <div className="mtc-content">
+        <header className="mtc-topbar">
+          <div className="mtc-topbar-left">
+            <button type="button" className="mtc-icon-button mtc-mobile-menu"
+              aria-label="Abrir menú" onClick={() => setMobileOpen(true)}>☰</button>
+            <div className="mtc-title">
+              <strong>{page === 'chat' ? 'My Teacher IA' :
+                page === 'progress' ? 'Mi aprendizaje' :
+                page === 'privacy' ? 'Privacidad' : 'Configuración'}</strong>
+              <small>{page === 'chat' ? 'Tu tutor educativo' : 'Tu espacio personal'}</small>
+            </div>
           </div>
-          <button type="button" className="e6-common-switch"
-            aria-label={theme === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'}
-            title={theme === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'}
-            onClick={cambiarTema}>{theme === 'dark' ? '☀' : '☾'}</button>
+          <div className="mtc-topbar-right">
+            <button type="button" className="mtc-icon-button" onClick={toggleTheme}
+              title={theme === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'}
+              aria-label={theme === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'}>
+              {theme === 'dark' ? '☀' : '☾'}
+            </button>
+            <span className="mtc-user-circle" title={user.username}>
+              {user.username.slice(0,1).toUpperCase()}
+            </span>
+          </div>
         </header>
 
         {notice && (
-          <div className="notice" role="status">
-            {notice}
-            <button
-              aria-label="Cerrar aviso"
-              onClick={() => setNotice('')}
-            >×</button>
+          <div className="mtc-notice" role="status">
+            <span>{notice}</span>
+            <button type="button" onClick={() => setNotice('')} aria-label="Cerrar aviso">×</button>
           </div>
         )}
 
         {page === 'chat' && (
-          <>
-        {isHome && (
-          <Estilo6Home
-            username={user.username}
-            theme={theme}
-            draft={draft}
-            busy={busy}
-            onTheme={cambiarTema}
-            onDraft={value => { retryId.current = null; setDraft(value) }}
-            onSend={() => void send()}
-            onChat={() => document.querySelector<HTMLTextAreaElement>('#e6-pregunta')?.focus()}
-            onVoice={() => {
-              setShowVoice(true)
-              const el = document.querySelector<HTMLDetailsElement>('.conauti-gpt-voice-tools')
-              if (el) el.open = true
-            }}
-            onExercise={() => setPage('evaluations')}
-            onEvaluations={() => setPage('evaluations')}
-            onScreen={() => setShowScreen(true)}
-            onSubjects={() => setPage('subjects')}
-            onSubject={iniciarMateria}
-            onVoices={() => window.dispatchEvent(new Event('conauti:abrir-biblioteca'))}
-          />
-        )}
-<section className={isHome ? 'chat e6-legacy-hidden' : 'chat'}>
-
-            <details className="conauti-gpt-voice-tools">
-              <summary>
-                <span aria-hidden="true">🎙</span>
-                <span>Modo de voz</span>
-                <small>Hablar y escuchar respuestas</small>
-              </summary>
-              <div className="conauti-gpt-voice-body">
-            <ConversacionVoz
-              token={token ?? ''}
-              conversationId={active}
-              onConversationCreated={id => {
-                setActive(id)
-                setMessages([])
-                setHistoryVersion(value => value + 1)
-              }}
-              onMessages={incoming => {
-                setMessages(previous => {
-                  const known = new Set(
-                    previous.map(message => String(message.id))
-                  )
-                  const fresh = (
-                    incoming as Array<(typeof previous)[number]>
-                  ).filter(message =>
-                    message && !known.has(String(message.id))
-                  )
-                  return [...previous, ...fresh]
-                })
-                setHistoryVersion(value => value + 1)
-              }}
-            />
-            <EntradaVoz
-              token={token ?? ''}
-              disabled={busy}
-              onTranscription={text => {
-                retryId.current = null
-                setDraft(previous =>
-                  previous.trim()
-                    ? previous.trimEnd() + ' ' + text
-                    : text
-                )
-                editor.current?.focus()
-              }}
-            />
-              </div>
-            </details>
-            <details className="conauti-gpt-learning-tools">
-              <summary>
-                <span aria-hidden="true">✦</span>
-                <span>Herramientas de aprendizaje</span>
-              </summary>
-            <GuiaPedagogica
-              token={token ?? ''}
-              conversationId={active}
-              revision={historyVersion}
-              onPrepare={message => {
-                setDraft(message)
-                editor.current?.focus()
-              }}
-            />
-            </details>
-            <div className="messages" aria-live="polite">
+          <main className="mtc-chat">
+            <div className="mtc-scroller">
               {loadingMessages ? (
-                <p>Cargando...</p>
+                <p className="mtc-loading" role="status">Cargando conversación...</p>
               ) : messages.length === 0 ? (
-                <div className="welcome">
-                  <div className="star">✦</div>
-                  <h2>¿Qué quieres aprender hoy?</h2>
-                  <p>
-                    Pregunta, explora y descubre
-                    a tu propio ritmo.
-                  </p>
-
-                  <div className="subjects">
-                    {[
-                      ['📐 Matemática', 'Ayúdame con ecuaciones: '],
-                      ['📖 Comunicación', 'Ayúdame a comprender: '],
-                      ['🔬 Ciencias', 'Explícame este tema: ']
-                    ].map(([label, value]) => (
-                      <button
-                        key={label}
-                        onClick={() => setDraft(value)}
-                      >{label}</button>
+                <section className="mtc-welcome">
+                  <div className="mtc-welcome-symbol" aria-hidden="true">✦</div>
+                  <h1>¿Qué quieres aprender hoy?</h1>
+                  <p>Haz una pregunta. Te ayudaré a descubrir la respuesta paso a paso.</p>
+                  <div className="mtc-suggestions">
+                    {([
+                      ['Entender un tema', 'Explícame la fotosíntesis de manera sencilla.'],
+                      ['Practicar un ejercicio', 'Ayúdame a practicar ecuaciones paso a paso.'],
+                      ['Preparar una evaluación', 'Ayúdame a repasar ciencias para un examen.'],
+                      ['Aprender con ejemplos', 'Enséñame fracciones con ejemplos de la vida diaria.'],
+                    ] as const).map(([label, content]) => (
+                      <button type="button" key={label}
+                        onClick={() => {retryId.current=null;setDraft(content);editor.current?.focus()}}>
+                        {label}
+                      </button>
                     ))}
                   </div>
-                </div>
+                </section>
               ) : (
-                <div className="message-list">
+                <div className="mtc-messages" aria-live="polite">
                   {hasOlder && (
-                    <button
-                      type="button"
-                      className="mensajes-anteriores"
-                      disabled={loadingOlder}
-                      onClick={() => void loadOlder()}
-                    >
-                      {loadingOlder
-                        ? 'Cargando mensajes anteriores...'
-                        : 'Cargar mensajes anteriores'}
+                    <button type="button" className="mtc-older"
+                      disabled={loadingOlder} onClick={() => void loadOlder()}>
+                      {loadingOlder ? 'Cargando...' : 'Mostrar mensajes anteriores'}
                     </button>
                   )}
-                  {messages.map(m => (
-                    <article
-                      key={m.id}
-                      className={
-                        'message ' +
-                        (m.role === 'user' ? 'mine' : '')
-                      }
-                    >
-                      <strong>{
-                        m.role === 'user' ? 'Tú' : 'Asistente'
-                      }</strong>
-                      <p>{m.body}</p>
-                      <small>{
-                        new Date(m.created_at)
-                          .toLocaleString('es-PE')
-                      }</small>
+                  {messages.map(message => (
+                    <article key={message.id}
+                      className={'mtc-message ' + (message.role === 'user' ? 'mtc-message-user' : 'mtc-message-assistant')}>
+                      {message.role !== 'user' && <span className="mtc-ai-mark" aria-hidden="true">✦</span>}
+                      <div className="mtc-message-body">
+                        <p>{message.body}</p>
+                      </div>
                     </article>
                   ))}
                 </div>
               )}
             </div>
 
-            <div className="composer-area">
-              <div className="actions">
-                {[
-                  ['Dame una pista', 'Dame una pista para: '],
-                  ['Más fácil', 'Explícame más fácil: '],
-                  ['Otro ejemplo', 'Dame otro ejemplo de: '],
-                  ['Revisa mi intento', 'Revisa mi intento: ']
-                ].map(([label, value]) => (
-                  <button
-                    key={label}
-                    onClick={() => setDraft(value)}
-                  >{label}</button>
-                ))}
-              </div>
-
-              <form className="composer" onSubmit={send}>
-                <label htmlFor="chat-input" className="sr-only">
-                  Escribe tu mensaje
-                </label>
+            <div className="mtc-compose-area">
+              {guideOpen && (
+                <section className="mtc-inline-tool" aria-label="Herramientas de aprendizaje">
+                  <div className="mtc-inline-tool-head">
+                    <strong>Pistas y herramientas</strong>
+                    <button type="button" onClick={() => setGuideOpen(false)} aria-label="Cerrar">×</button>
+                  </div>
+                  <GuiaPedagogica
+                    token={token}
+                    conversationId={active}
+                    revision={historyVersion}
+                    onPrepare={value => {setDraft(value);editor.current?.focus()}}
+                  />
+                </section>
+              )}
+              <form className="mtc-composer" onSubmit={send}>
+                <label htmlFor="chat-input" className="sr-only">Escribe tu mensaje</label>
                 <textarea
-                  ref={editor}
                   id="chat-input"
-                  rows={3}
+                  ref={editor}
+                  rows={2}
                   maxLength={4000}
-                  placeholder="Escribe lo que quieres aprender..."
+                  placeholder="Escribe tu pregunta..."
                   value={draft}
-                  onChange={e => {
-                    retryId.current = null
-                    setDraft(e.target.value)
-                  }}
-                  onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
-                    if (e.key === 'Enter' && e.ctrlKey) {
-                      e.preventDefault()
-                      void send()
+                  disabled={busy}
+                  onChange={event => {retryId.current=null;setDraft(event.target.value)}}
+                  onKeyDown={(event: KeyboardEvent<HTMLTextAreaElement>) => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                      event.preventDefault()
+                      if (!busy && draft.trim()) void send()
                     }
                   }}
-                  disabled={busy}
                 />
-                <div className="composer-bottom">
-                  <small>Ctrl + Enter para enviar</small>
-                  <button
-                    className="primary"
-                    disabled={busy || !draft.trim()}
-                  >
-                    {busy ? 'Guardando...' : 'Enviar ➜'}
-                  </button>
+                <div className="mtc-composer-bottom">
+                  <div className="mtc-composer-tools">
+                    <button type="button" className="mtc-plus"
+                      aria-label="Abrir herramientas" title="Herramientas"
+                      aria-expanded={toolsOpen} onClick={() => setToolsOpen(value => !value)}>＋</button>
+                    {toolsOpen && (
+                      <div className="mtc-tools-menu" role="group" aria-label="Herramientas disponibles">
+                        <button type="button" onClick={() => {setToolsOpen(false);setScreenOpen(true)}}>
+                          ▧ Imagen o compartir pantalla
+                        </button>
+                        <button type="button" onClick={() => {setToolsOpen(false);setGuideOpen(true)}}>
+                          ✦ Pistas y explicaciones
+                        </button>
+                        <button type="button" onClick={() => {openPage('progress')}}>
+                          ▤ Prácticas y evaluaciones
+                        </button>
+                        <button type="button" onClick={() => {setToolsOpen(false);openVoiceLibrary()}}>
+                          ♫ Biblioteca de voces
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mtc-composer-right">
+                    <button type="button" className="mtc-voice-button" aria-label="Iniciar conversación por voz"
+                      title="Conversación por voz" onClick={() => setVoiceOpen(true)}>♩</button>
+                    <button type="submit" className="mtc-send" disabled={busy || !draft.trim()}
+                      aria-label="Enviar mensaje" title="Enviar mensaje">
+                      {busy ? '…' : '↑'}
+                    </button>
+                  </div>
                 </div>
               </form>
-              <p className="muted centered">
-                Las respuestas se generan mediante IA real cuando el proveedor está configurado.
-              </p>
+              <p className="mtc-guidance">Aprende con pistas y explicaciones. Tu tutor te acompaña paso a paso.</p>
             </div>
-          </section>
-{!isHome && <PantallaCompartida />}
-</>
-        )}
-        {showScreen && (
-          <div className="e6-screen-overlay" role="presentation">
-            <div className="e6-screen-content" role="dialog" aria-modal="true" aria-label="Analizar o compartir pantalla">
-              <button className="e6-screen-close" type="button" aria-label="Cerrar" onClick={() => setShowScreen(false)}>Cerrar ×</button>
-              <PantallaCompartida />
-            </div>
-          </div>
+          </main>
         )}
 
-        {(page === 'progress' || page === 'evaluations') && (
-          <div className="e6-dashboard-page">
+        {page === 'progress' && (
+          <main className="mtc-secondary">
             <EvaluacionesAcademicas />
-          </div>
+          </main>
         )}
-        {page === 'subjects' && (
-          <section className="e6-dashboard-page">
-            <h2>Mis materias</h2>
-            <p>Elige qué te gustaría aprender. Tu tutor te guiará paso a paso.</p>
-            <div className="e6-course-grid">
-              {([
-                ['Matemáticas','Practiquemos matemáticas paso a paso.'],
-                ['Ciencias','Explícame ciencias con ejemplos.'],
-                ['Historia','Quiero estudiar historia.'],
-                ['Lenguaje','Ayúdame a mejorar mi comprensión lectora.'],
-                ['Inglés','Quiero practicar inglés.'],
-                ['Computación','Quiero aprender computación.'],
-              ] as const).map(([label, prompt]) => (
-                <button type="button" key={label} onClick={() => iniciarMateria(prompt)}>{label}</button>
-              ))}
-            </div>
-          </section>
-        )}
-        {page === 'notes' && (
-          <section className="e6-dashboard-page">
-            <h2>Mis notas</h2>
-            <p>Apuntes personales guardados en este navegador.</p>
-            <label htmlFor="e6-notas">Tus apuntes</label>
-            <textarea id="e6-notas" className="e6-notes-editor" value={studyNotes}
-              onChange={event => {
-                setStudyNotes(event.target.value)
-                try {localStorage.setItem('myteacher.study.notes',event.target.value)}
-                catch {setNotice('No se pudieron guardar las notas en este navegador.')}
-              }} placeholder="Escribe aquí tus apuntes de estudio..."/>
-          </section>
-        )}
-        {page === 'explore' && (
-          <section className="e6-dashboard-page">
-            <h2>Explorar</h2>
-            <p>Elige un tema para practicar con el tutor.</p>
-            <div className="e6-course-grid">
-              {['Fracciones','Ecuaciones','Células','Fotosíntesis','Historia del Perú','Comprensión lectora','Inglés básico','Algoritmos'].map(topic => (
-                <button type="button" key={topic} onClick={() => iniciarMateria('Quiero entender ' + topic + '. Ayúdame con preguntas y pistas.')}>{topic}</button>
-              ))}
-            </div>
-          </section>
-        )}
+
         {page === 'settings' && (
-          <section className="panel">
-            <h2>⚙ Mi configuración</h2>
-            <p><strong>Usuario:</strong> {user.username}</p>
-            <p><strong>Roles:</strong> {roles.join(', ')}</p>
-            <p>
-              <strong>Conversaciones:</strong> {history.length}
-            </p>
-            <div className="info">
-              Las preferencias pedagógicas se integrarán
-              con la memoria personalizada en la fase 11.
-            </div>
-            <button
-              className="secondary"
-              onClick={() => void logout()}
-            >
-              Cerrar sesión
-            </button>
-          </section>
+          <main className="mtc-secondary">
+            <section className="mtc-settings-card">
+              <h1>Configuración</h1>
+              <p>Personaliza tu experiencia de aprendizaje.</p>
+              <div className="mtc-settings-row">
+                <div><strong>Apariencia</strong><small>Alterna entre tema claro y oscuro.</small></div>
+                <button type="button" onClick={toggleTheme}>{theme === 'dark' ? 'Tema oscuro' : 'Tema claro'}</button>
+              </div>
+              <div className="mtc-settings-row">
+                <div><strong>Voces de Kokoro</strong><small>Escucha y elige Dora, Alex o Santa.</small></div>
+                <button type="button" onClick={openVoiceLibrary}>Elegir voz</button>
+              </div>
+              <div className="mtc-settings-row">
+                <div><strong>Ajustes de voz</strong><small>Cambia velocidad, volumen y voz.</small></div>
+                <button type="button" onClick={openKokoroSettings}>Configurar</button>
+              </div>
+              <div className="mtc-settings-row">
+                <div><strong>Datos personales</strong><small>Exportar información o eliminar la cuenta.</small></div>
+                <button type="button" onClick={() => openPage('privacy')}>Administrar</button>
+              </div>
+              <div className="mtc-settings-row">
+                <div><strong>Sesión</strong><small>Cuenta: {user.username}</small></div>
+                <button type="button" onClick={() => void logout()}>Cerrar sesión</button>
+              </div>
+            </section>
+          </main>
         )}
 
         {page === 'privacy' && (
-          <section className="panel">
-            <h2>🔐 Mis datos personales</h2>
-            <p>
-              Exporta tus datos o elimina tu cuenta.
-              Estas operaciones están conectadas a FastAPI.
-            </p>
-
-            <button
-              className="primary"
-              disabled={busy}
-              onClick={() => void exportData()}
-            >
-              Exportar mis datos
-            </button>
-
-            <div className="danger-zone">
-              <h3>Eliminar mi cuenta</h3>
-              <p>
-                Esta acción elimina los datos asociados
-                y no se puede deshacer desde la aplicación.
-              </p>
-
-              <label htmlFor="delete-password">
-                Contraseña actual
-              </label>
-              <input
-                id="delete-password"
-                type="password"
-                autoComplete="current-password"
-                value={deletePassword}
-                onChange={e => setDeletePassword(e.target.value)}
-              />
-
-              <button
-                className="danger"
-                disabled={busy || deletePassword.length < 12}
-                onClick={() => void deleteAccount()}
-              >
-                Eliminar definitivamente
-              </button>
-            </div>
-          </section>
+          <main className="mtc-secondary">
+            <section className="mtc-settings-card">
+              <button type="button" className="mtc-text-link" onClick={() => openPage('settings')}>← Configuración</button>
+              <h1>Mis datos personales</h1>
+              <p>Exporta tus datos o elimina tu cuenta. Estas operaciones están conectadas a FastAPI.</p>
+              <button type="button" className="mtc-secondary-button" disabled={busy}
+                onClick={() => void exportData()}>Exportar mis datos</button>
+              <div className="mtc-danger">
+                <h2>Eliminar mi cuenta</h2>
+                <p>Esta acción elimina definitivamente los datos asociados.</p>
+                <label htmlFor="delete-password">Contraseña actual</label>
+                <input id="delete-password" type="password" autoComplete="current-password"
+                  value={deletePassword} onChange={event => setDeletePassword(event.target.value)} />
+                <button type="button" disabled={busy || deletePassword.length < 12}
+                  onClick={() => void deleteAccount()}>Eliminar definitivamente</button>
+              </div>
+            </section>
+          </main>
         )}
-      </main>
+
+        {voiceOpen && (
+          <div className="mtc-modal-layer">
+            <button type="button" className="mtc-modal-shade" onClick={() => setVoiceOpen(false)}
+              aria-label="Cerrar conversación por voz" />
+            <section role="dialog" aria-modal="true" aria-label="Conversación por voz" className="mtc-modal">
+              <header><h2>Conversación por voz</h2><button type="button" onClick={() => setVoiceOpen(false)} aria-label="Cerrar">×</button></header>
+              <ConversacionVoz token={token} conversationId={active}
+                onConversationCreated={id => {setActive(id);setMessages([]);setHistoryVersion(v=>v+1)}}
+                onMessages={incoming => {
+                  setMessages(previous => {
+                    const known = new Set(previous.map(m=>String(m.id)))
+                    const unique = (incoming as Array<(typeof previous)[number]>).filter(m=>m && !known.has(String(m.id)))
+                    return [...previous,...unique]
+                  })
+                  setHistoryVersion(v => v + 1)
+                }} />
+              <EntradaVoz token={token} disabled={busy} onTranscription={value => {
+                retryId.current=null
+                setDraft(previous => previous.trim() ? previous.trimEnd()+' '+value : value)
+              }} />
+            </section>
+          </div>
+        )}
+
+        {screenOpen && (
+          <div className="mtc-modal-layer">
+            <button type="button" className="mtc-modal-shade" onClick={() => setScreenOpen(false)}
+              aria-label="Cerrar análisis de pantalla" />
+            <section role="dialog" aria-modal="true" aria-label="Analizar imagen o pantalla" className="mtc-modal mtc-screen-modal">
+              <header><h2>Imagen y pantalla</h2><button type="button" onClick={() => setScreenOpen(false)} aria-label="Cerrar">×</button></header>
+              <PantallaCompartida />
+            </section>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -4,7 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport"
         content="width=device-width,initial-scale=1">
-  <title>My Teacher IA | Tu compañero de aprendizaje</title>
+  <title>My Teacher IA | Tutor educativo</title>
+<script>
+  try {
+    document.documentElement.dataset.myteacherTheme =
+      localStorage.getItem('myteacher.ui.theme') === 'light' ? 'light' : 'dark';
+  } catch {
+    document.documentElement.dataset.myteacherTheme = 'dark';
+  }
+</script>
 </head>
 <body>
   <div id="root"></div>
