@@ -10,6 +10,7 @@ import EntradaVoz from './EntradaVoz'
 import ConversacionVoz from './ConversacionVoz'
 import './style.css'
 import './chatgpt-layout.css'
+import './auth-premium.css'
 import './ConfiguracionGlobal'
 
 type User = {
@@ -738,73 +739,121 @@ function App() {
 
   if (!token || !user) {
     return (
-      <main className="auth">
-        <section className="auth-card">
-          <div className="logo">C</div>
-          <span className="eyebrow">MY TEACHER IA · EDUCACIÓN CON IA</span>
-          <h1>Aprender es descubrir</h1>
-          <p>Tu espacio para practicar, preguntar y avanzar.</p>
-
-          <div className="tabs">
-            <button type="button" className={!register ? 'selected' : ''}
-              onClick={() => {setRegister(false);setLegacyLoginOpen(false);setNotice('')}}>
-              Ingresar
-            </button>
-            <button type="button" className={register ? 'selected' : ''}
-              onClick={() => {setRegister(true);setLegacyLoginOpen(false);setNotice('')}}>
-              Registrarse
-            </button>
-          </div>
-
-          <div className="mtc-google-signup" aria-label="Acceso con Google">
-            <h2>{register ? 'Crea tu cuenta con tu correo' : 'Inicia sesión con tu correo'}</h2>
-            <p>
-              {register
-                ? 'Google comprobará que el correo te pertenece. No se admiten cuentas duplicadas.'
-                : 'Accede con la cuenta de Google que registraste anteriormente.'}
-            </p>
-            {googleConfig?.enabled && !googleConfigurationError ? (
-              <div ref={googleButton} className="mtc-google-button" />
-            ) : (
-              <p role="status" className="mtc-google-unavailable">
-                {googleConfigurationError || 'Verificando disponibilidad de Google...'}
-              </p>
-            )}
-            <small>Solo se aceptan correos verificados por Google. No necesitas crear otra contraseña.</small>
-          </div>
-
-          {!register && (
-            <div className="mtc-legacy-access">
-              <button type="button" className="mtc-legacy-toggle"
-                aria-expanded={legacyLoginOpen} onClick={() => setLegacyLoginOpen(value => !value)}>
-                {legacyLoginOpen ? 'Ocultar acceso anterior' : 'Tengo una cuenta anterior con usuario'}
-              </button>
-              {legacyLoginOpen && (
-                <form onSubmit={authenticate}>
-                  <label htmlFor="username">Usuario anterior</label>
-                  <input id="username" value={username}
-                    onChange={event => setUsername(event.target.value)}
-                    minLength={3} maxLength={32}
-                    autoComplete="username" required
-                    placeholder="Nombre de usuario anterior" />
-                  <label htmlFor="password">Contraseña anterior</label>
-                  <input id="password" type="password" value={password}
-                    onChange={event => setPassword(event.target.value)}
-                    minLength={12} maxLength={128}
-                    autoComplete="current-password" required
-                    placeholder="Contraseña" />
-                  <button className="primary full" disabled={busy}>
-                    {busy ? 'Ingresando...' : 'Entrar a mi cuenta anterior'}
-                  </button>
-                </form>
-              )}
+      <main className="mtc-auth-shell">
+        <section className="mtc-auth-showcase" aria-label="Descubre My Teacher IA">
+          <div className="mtc-auth-decoration mtc-auth-decoration-one" aria-hidden="true" />
+          <div className="mtc-auth-decoration mtc-auth-decoration-two" aria-hidden="true" />
+          <header className="mtc-auth-brand">
+            <span className="mtc-auth-brand-icon" aria-hidden="true">✦</span>
+            <span><strong>My Teacher IA</strong><small>Tu tutor educativo</small></span>
+            <span className="mtc-auth-brand-tag">EDUCACIÓN CON IA</span>
+          </header>
+          <div className="mtc-auth-hero">
+            <div className="mtc-auth-eyebrow"><span aria-hidden="true">✧</span> TU ESPACIO PARA DESCUBRIR</div>
+            <h1>Aprender puede ser <em>extraordinario.</em></h1>
+            <p>Pregunta con libertad, descubre pistas y comprende cada tema a tu ritmo. Tu aprendizaje empieza con curiosidad.</p>
+            <div className="mtc-auth-preview">
+              <div className="mtc-auth-preview-top">
+                <span className="mtc-auth-online"><span aria-hidden="true" />ASÍ APRENDEMOS</span>
+                <span aria-hidden="true">•••</span>
+              </div>
+              <div className="mtc-auth-preview-user">¿Cómo puedo entender mejor las fracciones?</div>
+              <div className="mtc-auth-preview-tutor">
+                <span className="mtc-auth-preview-spark" aria-hidden="true">✦</span>
+                <p>¡Descubrámoslo juntos! Si dividimos una pizza en cuatro partes,
+                  ¿cuántas necesitaríamos para tener la mitad?</p>
+              </div>
+              <div className="mtc-auth-preview-footer"><span aria-hidden="true">✧</span> Aquí aprendes pensando, no memorizando</div>
             </div>
-          )}
+            <div className="mtc-auth-features">
+              <div><span aria-hidden="true">✦</span><strong>Pistas inteligentes</strong><small>Paso a paso</small></div>
+              <div><span aria-hidden="true">▤</span><strong>Tu progreso</strong><small>A tu ritmo</small></div>
+              <div><span aria-hidden="true">◉</span><strong>Explora más</strong><small>Voz, imágenes y archivos</small></div>
+            </div>
+          </div>
+          <p className="mtc-auth-showcase-footer">Para estudiantes curiosos <span aria-hidden="true">✦</span> Hecho para aprender</p>
+        </section>
 
-          {notice && <p role="status" className="notice">{notice}</p>}
-          <nav className="mtc-public-links" aria-label="Información de My Teacher IA">
-            <a href="/acerca-de/">Sobre My Teacher IA</a>
-            <a href="/privacidad/">Política de privacidad</a>
+        <section className="mtc-auth-access" aria-label="Acceso de estudiantes">
+          <div className="mtc-auth-topbar">
+            <span>MY TEACHER IA <span aria-hidden="true">✦</span> MI ESPACIO</span>
+            <button type="button" className="mtc-auth-theme"
+              onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'}>
+              <span aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
+              {theme === 'dark' ? 'Tema claro' : 'Tema oscuro'}
+            </button>
+          </div>
+          <div className="mtc-auth-form-panel">
+            <div className="mtc-auth-mobile-brand"><span aria-hidden="true">✦</span> My Teacher IA</div>
+            <span className="mtc-auth-form-kicker">{register ? 'TU AVENTURA EMPIEZA AQUÍ' : 'CONTINÚA DONDE LO DEJASTE'}</span>
+            <h2>{register ? 'Crea tu espacio de aprendizaje' : '¡Qué bueno verte de nuevo!'}</h2>
+            <p className="mtc-auth-subtitle">
+              {register
+                ? 'Regístrate con tu cuenta de Google y empieza a aprender a tu manera.'
+                : 'Vuelve a tus conversaciones, prácticas y descubrimientos.'}
+            </p>
+            <div className="mtc-auth-tabs" role="group" aria-label="Tipo de acceso">
+              <button type="button" className={!register ? 'selected' : ''}
+                aria-pressed={!register}
+                onClick={() => {setRegister(false);setLegacyLoginOpen(false);setNotice('')}}>Iniciar sesión</button>
+              <button type="button" className={register ? 'selected' : ''}
+                aria-pressed={register}
+                onClick={() => {setRegister(true);setLegacyLoginOpen(false);setNotice('')}}>Crear cuenta</button>
+            </div>
+            <div className="mtc-auth-google-panel">
+              <div className="mtc-auth-google-header">
+                <span className="mtc-auth-google-monogram" aria-hidden="true">G</span>
+                <span><strong>Accede con tu cuenta Google</strong><small>Una forma rápida y segura de entrar</small></span>
+              </div>
+              {googleConfig?.enabled && !googleConfigurationError ? (
+                <div ref={googleButton} className="mtc-google-button" aria-label="Iniciar con Google" />
+              ) : (
+                <p role="status" className="mtc-google-unavailable">
+                  {googleConfigurationError || 'Conectando con Google de forma segura...'}
+                </p>
+              )}
+              <p className="mtc-auth-security">
+                <span aria-hidden="true">♧</span>
+                {register
+                  ? 'Solo correos verificados · No se permiten cuentas duplicadas.'
+                  : 'Tu historial y progreso están asociados a tu cuenta.'}
+              </p>
+            </div>
+            {!register && (
+              <div className="mtc-auth-legacy">
+                <button type="button" className="mtc-auth-legacy-toggle"
+                  aria-expanded={legacyLoginOpen} onClick={() => setLegacyLoginOpen(value => !value)}>
+                  <span>Tengo una cuenta anterior con usuario</span>
+                  <span aria-hidden="true">{legacyLoginOpen ? '−' : '+'}</span>
+                </button>
+                {legacyLoginOpen && (
+                  <form className="mtc-auth-legacy-form" onSubmit={authenticate}>
+                    <label htmlFor="username">Nombre de usuario</label>
+                    <input id="username" value={username}
+                      onChange={event => setUsername(event.target.value)}
+                      minLength={3} maxLength={32} autoComplete="username" required
+                      placeholder="Tu usuario anterior" />
+                    <label htmlFor="password">Contraseña</label>
+                    <input id="password" type="password" value={password}
+                      onChange={event => setPassword(event.target.value)}
+                      minLength={12} maxLength={128} autoComplete="current-password" required
+                      placeholder="Tu contraseña" />
+                    <button className="mtc-auth-legacy-submit" disabled={busy}>
+                      {busy ? 'Ingresando...' : 'Ingresar a mi cuenta anterior'}
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
+            {notice && <p role="status" className="mtc-auth-notice">{notice}</p>}
+            <div className="mtc-auth-encouragement"><span aria-hidden="true">✦</span>
+              Una mejor forma de aprender empieza con una pregunta.
+            </div>
+          </div>
+          <nav className="mtc-auth-links" aria-label="Información de My Teacher IA">
+            <a href="/acerca-de/">Sobre el proyecto</a>
+            <a href="/privacidad/">Privacidad</a>
             <a href="/terminos/">Condiciones de uso</a>
           </nav>
         </section>
