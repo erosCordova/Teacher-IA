@@ -178,7 +178,7 @@ function App() {
     setPage(next)
     setToolsOpen(false)
     setMobileOpen(false)
-    setScreenOpen(false)
+    // El asistente flotante mantiene la vista compartida al navegar.
     setVisualFile(null)
     // Los adjuntos pendientes y el documento activo pertenecen al chat,
     // no a la vista de navegación. No descartarlos al abrir ajustes o progreso.
@@ -225,6 +225,7 @@ function App() {
   function abrirPantalla() {
     setVisualFile(null)
     setScreenOpen(true)
+    setVoiceOpen(false)
     setToolsOpen(false)
   }
   const [history, setHistory] = useState<Conversation[]>([])
@@ -510,6 +511,9 @@ function App() {
     setActive(null)
     setAttachedFile(null)
     setContextDocument(null)
+    // Revoca al desmontar las pistas de pantalla y el micrófono.
+    setScreenOpen(false)
+    setVisualFile(null)
     setPage('chat')
 
     if (key) {
@@ -561,8 +565,7 @@ function App() {
   function newChat() {
     setMobileOpen(false)
     setToolsOpen(false)
-    setScreenOpen(false)
-    setVisualFile(null)
+    // La vista compartida puede seguir activa mientras comienza otro chat.
     setAttachedFile(null)
     setContextDocument(null)
     setVoiceOpen(false)
@@ -1232,7 +1235,7 @@ function App() {
                           <span aria-hidden="true">▧</span><span><strong>Subir imagen</strong><small>JPG o PNG, reconocimiento visual</small></span>
                         </button>
                         <button type="button" role="menuitem" onClick={abrirPantalla}>
-                          <span aria-hidden="true">▣</span><span><strong>Compartir pantalla</strong><small>Analizar una captura autorizada</small></span>
+                          <span aria-hidden="true">▣</span><span><strong>Compartir vista de pantalla</strong><small>Pregunta con voz o texto sobre lo que ves</small></span>
                         </button>
                         {contextDocument?.conversationId === active && (
                           <>
@@ -1365,14 +1368,8 @@ function App() {
         )}
 
         {screenOpen && (
-          <div className="mtc-modal-layer">
-            <button type="button" className="mtc-modal-shade" onClick={() => {setScreenOpen(false);setVisualFile(null)}}
-              aria-label="Cerrar análisis de pantalla" />
-            <section role="dialog" aria-modal="true" aria-label="Analizar imagen o pantalla" className="mtc-modal mtc-screen-modal">
-              <header><h2>{visualFile ? 'Analizar imagen' : 'Imagen y pantalla'}</h2><button type="button" onClick={() => {setScreenOpen(false);setVisualFile(null)}} aria-label="Cerrar">×</button></header>
-              <PantallaCompartida archivoInicial={visualFile} />
-            </section>
-          </div>
+          <PantallaCompartida archivoInicial={visualFile}
+            onClose={() => {setScreenOpen(false);setVisualFile(null)}} />
         )}
       </div>
     </div>
