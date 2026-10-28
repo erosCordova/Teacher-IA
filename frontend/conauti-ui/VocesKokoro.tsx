@@ -153,6 +153,9 @@ export default function VocesKokoro() {
       url.current = null
     }
 
+    // Detener tambien una muestra de respaldo del navegador.
+    window.speechSynthesis?.cancel()
+
     setCargando(false)
     setActiva(null)
   }
@@ -223,11 +226,28 @@ export default function VocesKokoro() {
           await import('./KokoroBrowser')
 
         if (abort.signal.aborted) return
-        blob = await sintetizarKokoroEnNavegador(
-          texto,
-          voz,
-          velocidad,
-        )
+        // Si la descarga inicial excede 15 segundos, no dejar
+        // al estudiante esperando sin sonido: el motor sigue
+        // descargandose y puede usarse en el siguiente intento.
+        let reloj: ReturnType<typeof setTimeout> | null = null
+        try {
+          blob = await Promise.race([
+            sintetizarKokoroEnNavegador(
+              texto,
+              voz,
+              velocidad,
+            ),
+            new Promise<never>((_, reject) => {
+              reloj = setTimeout(() => {
+                reject(new Error(
+                  'Kokoro sigue descargandose en este dispositivo.',
+                ))
+              }, 15000)
+            }),
+          ])
+        } finally {
+          if (reloj !== null) clearTimeout(reloj)
+        }
       }
 
       if (abort.signal.aborted || !blob) return
@@ -244,11 +264,59 @@ export default function VocesKokoro() {
     } catch (error) {
       if (abort.signal.aborted) return
 
-      detener()
+      // Mostrar claramente que el respaldo NO es una voz Kokoro.
+      setCargando(false)
+
+      if (!('speechSynthesis' in window)) {
+        detener()
+        setError(
+          'Kokoro no pudo generar audio y este navegador ' +
+          'no dispone de una voz alternativa.',
+        )
+        return
+      }
+
       setError(
-        'No se pudo generar o reproducir Kokoro. ' +
-        (error instanceof Error ? error.message : ''),
+        'Kokoro todavia no esta listo. ' +
+        (error instanceof Error ? error.message + ' ' : '') +
+        'La muestra actual utiliza temporalmente la voz ' +
+        'del navegador; vuelve a pulsar Escuchar cuando ' +
+        'termine la descarga para probar Dora, Alex o Santa.',
       )
+
+      try {
+        const muestra = new SpeechSynthesisUtterance(texto)
+        muestra.lang = 'es-PE'
+        muestra.rate = velocidad
+        muestra.volume = volumen
+
+        const voces = window.speechSynthesis.getVoices()
+        muestra.voice =
+          voces.find(v => v.lang.toLowerCase() === 'es-pe') ||
+          voces.find(v => v.lang.toLowerCase().startsWith('es')) ||
+          null
+
+        muestra.onend = () => {
+          if (controller.current === abort) detener()
+        }
+        muestra.onerror = () => {
+          if (controller.current !== abort) return
+          detener()
+          setError(
+            'El navegador tambien bloqueo la salida de audio. ' +
+            'Comprueba volumen y permisos de sonido.',
+          )
+        }
+
+        window.speechSynthesis.cancel()
+        window.speechSynthesis.speak(muestra)
+      } catch {
+        detener()
+        setError(
+          'El navegador no permitio reproducir sonido. ' +
+          'Comprueba el volumen y los permisos de audio.',
+        )
+      }
     }
   }
 
