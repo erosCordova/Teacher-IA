@@ -216,3 +216,49 @@ html[data-myteacher-theme="dark"] #root .estilo6-app .topbar {background:var(--e
 }
 html[data-myteacher-theme="dark"] #root .estilo6-app .main { color:var(--e6-text) !important; }
 html[data-myteacher-theme="light"] #root .estilo6-app .main { color:var(--e6-text) !important; }
+
+/* Los paneles globales usan portales al body y también cambian de tema. */
+html[data-myteacher-theme="dark"] .cv-modal,
+html[data-myteacher-theme="dark"] .myteacher-voices-dialog,
+html[data-myteacher-theme="dark"] .conauti-ajustes-ventana,
+html[data-myteacher-theme="dark"] .conauti-ajustes-navegacion {
+  background:#172039 !important;color:#f2f6ff !important;
+  border-color:#364365 !important;
+}
+html[data-myteacher-theme="dark"] .cv-modal h2,
+html[data-myteacher-theme="dark"] .cv-modal h3,
+html[data-myteacher-theme="dark"] .myteacher-voices-dialog h2,
+html[data-myteacher-theme="dark"] .myteacher-voices-dialog h3,
+html[data-myteacher-theme="dark"] .conauti-ajustes-ventana h2 {
+  color:#f2f6ff !important;
+}
+html[data-myteacher-theme="dark"] .cv-voice,
+html[data-myteacher-theme="dark"] .myteacher-voices-card,
+html[data-myteacher-theme="dark"] .conauti-ajustes-opcion {
+  background:#23304c !important;border-color:#435172 !important;color:#f1f5ff !important;
+}
+html[data-myteacher-theme="dark"] .cv-voice p,
+html[data-myteacher-theme="dark"] .cv-voice small,
+html[data-myteacher-theme="dark"] .cv-modal .cv-footer p,
+html[data-myteacher-theme="dark"] .myteacher-voices-dialog small,
+html[data-myteacher-theme="dark"] .conauti-ajustes-ventana p {
+  color:#b9c8e2 !important;
+}
+html[data-myteacher-theme="dark"] .cv-modal input,
+html[data-myteacher-theme="dark"] .cv-modal select,
+html[data-myteacher-theme="dark"] .myteacher-voices-dialog input {
+  background:#26334e !important;color:#f4f7ff !important;border-color:#546486 !important;
+}
+html[data-myteacher-theme="dark"] .cv-modal button,
+html[data-myteacher-theme="dark"] .myteacher-voices-dialog button,
+html[data-myteacher-theme="dark"] .conauti-ajustes-ventana button {
+  color:inherit;
+}
+html[data-myteacher-theme="dark"] .cv-modal .cv-search button,
+html[data-myteacher-theme="dark"] .myteacher-voices-dialog .myteacher-voices-done {
+  color:#fff !important;
+}
+html[data-myteacher-theme="dark"] #root .estilo6-app .e6-notes-editor:focus {
+  outline:2px solid #8e8cff;
+  outline-offset:2px;
+}
