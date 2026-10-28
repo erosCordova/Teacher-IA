@@ -119,6 +119,7 @@ function App() {
   const [googleConfig, setGoogleConfig] = useState<{ enabled: boolean; client_id: string | null } | null>(null)
   const [googleConfigurationError, setGoogleConfigurationError] = useState('')
   const [emailMethodReady, setEmailMethodReady] = useState(false)
+  const [microsoftReady, setMicrosoftReady] = useState(false)
   const [emailMethodOpen, setEmailMethodOpen] = useState(false)
   const [emailAddress, setEmailAddress] = useState('')
   const [emailCode, setEmailCode] = useState('')
@@ -349,6 +350,45 @@ function App() {
       .catch(() => { if (alive) setEmailMethodReady(false) })
     return () => { alive = false }
   }, [token])
+
+  useEffect(() => {
+    if (token) return
+    let valid = true
+    api<{ enabled: boolean }>('/auth/microsoft/config')
+      .then(config => { if (valid) setMicrosoftReady(config.enabled) })
+      .catch(() => { if (valid) setMicrosoftReady(false) })
+    return () => { valid = false }
+  }, [token])
+
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const ticket = url.searchParams.get('ms_ticket')
+    const error = url.searchParams.get('login_error')
+    if (!ticket && !error) return
+    url.searchParams.delete('ms_ticket')
+    url.searchParams.delete('login_error')
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash)
+    if (error) {
+      setNotice('No se pudo completar el acceso con Microsoft. Comprueba tu cuenta y vuelve a intentarlo.')
+      return
+    }
+    if (ticket) {
+      setChecking(true)
+      api<{ access_token: string }>(
+        '/auth/microsoft/complete?ticket=' + encodeURIComponent(ticket), null, 'POST'
+      ).then(result => completeSignIn(result.access_token))
+        .catch(reason => {
+          setNotice(errorText(reason))
+          setChecking(false)
+        })
+    }
+  }, [])
+
+  function startMicrosoft() {
+    if (!microsoftReady || busy) return
+    const mode = register ? 'register' : 'login'
+    window.location.assign('https://my-teacher-ia-api.onrender.com/api/conauti/auth/microsoft/start?mode=' + mode)
+  }
 
   async function requestEmailCode(event: FormEvent) {
     event.preventDefault()
@@ -890,6 +930,20 @@ function App() {
                 {!emailMethodReady && (
                   <p className="mtc-auth-method-pending" role="status">
                     El acceso por código está preparado, pero falta activar el servicio de envío de correos.
+                  </p>
+                )}
+                <button type="button" className="mtc-auth-email-choice mtc-auth-microsoft-choice"
+                  disabled={!microsoftReady} onClick={startMicrosoft}
+                  title={!microsoftReady ? 'Pendiente de registrar la aplicación en Microsoft Entra' : 'Continuar con Microsoft'}>
+                  <svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2 2h9.3v9.3H2zm10.7 0H22v9.3h-9.3zM2 12.7h9.3V22H2zm10.7 0H22V22h-9.3z"/>
+                  </svg>
+                  <span>Continuar con Microsoft</span>
+                  <span aria-hidden="true">›</span>
+                </button>
+                {!microsoftReady && (
+                  <p className="mtc-auth-method-pending">
+                    Microsoft estará disponible cuando se complete la configuración de Entra.
                   </p>
                 )}
                 {emailMethodOpen && emailMethodReady && (
