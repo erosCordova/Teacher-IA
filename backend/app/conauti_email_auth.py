@@ -149,8 +149,10 @@ def email_start(data: EmailStart):
         known = identity_for(conn, email)
         if data.mode == "register" and known:
             raise HTTPException(409, "Este correo ya está registrado. Inicia sesión.")
-        if data.mode == "login" and (not known or known["provider"] != "email"):
-            raise HTTPException(401, "No hay una cuenta con correo y código. Selecciona Crear cuenta.")
+        if data.mode == "login" and not known:
+            raise HTTPException(401, "No existe esa cuenta. Selecciona Crear cuenta.")
+        if data.mode == "login" and known["provider"] != "email":
+            raise HTTPException(401, "Esta cuenta utiliza otro proveedor. Inicia sesión con Google o Microsoft.")
 
         previous = conn.execute(
             """SELECT last_sent_at, hourly_window, hourly_count
