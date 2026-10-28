@@ -92,8 +92,8 @@ class DummyConnection:
             if self.subject:
                 return {"user_id": "registered-id", "email": self.email}
             return None
-        if "LOWER(email)" in self.query:
-            return {"user_id": "another-id"} if self.by_email else None
+        if "FROM conauti_verified_email_identities WHERE email =" in self.query:
+            return {"user_id": "another-id", "provider": "email"} if self.by_email else None
         if "RETURNING id" in self.query:
             return {"id": "new-student-id"}
         return None
