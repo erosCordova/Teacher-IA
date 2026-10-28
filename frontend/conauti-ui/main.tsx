@@ -862,6 +862,17 @@ function App() {
             <span className="mtc-avatar" aria-hidden="true">{user.username.slice(0,1).toUpperCase()}</span>
             <span>{user.username}</span>
           </div>
+          <button type="button" className="mtc-logout-button"
+            aria-label="Cerrar sesión de My Teacher IA" title="Cerrar sesión"
+            onClick={() => void logout()}>
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" strokeWidth="1.8"
+              strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <path d="M16 17l5-5-5-5M21 12H9"/>
+            </svg>
+            <span>Cerrar sesión</span>
+          </button>
         </div>
       </aside>
 
@@ -1089,10 +1100,7 @@ function App() {
                   <a href="/terminos/">Condiciones</a>
                 </div>
               </div>
-              <div className="mtc-settings-row">
-                <div><strong>Sesión</strong><small>Finaliza la sesión en este dispositivo.</small></div>
-                <button type="button" onClick={() => void logout()}>Cerrar sesión</button>
-              </div>
+
             </section>
           </main>
         )}
