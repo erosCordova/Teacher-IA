@@ -1,7 +1,8 @@
 import PantallaCompartida from "./PantallaCompartida";
+import { validarImagen } from "./ImagenEducativa";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
 import { useEffect, useRef, useState } from 'react'
-import type { FormEvent, KeyboardEvent } from 'react'
+import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react'
 import { createRoot } from 'react-dom/client'
 import HistorialAvanzado from './HistorialAvanzado'
 import GuiaPedagogica from './GuiaPedagogica'
@@ -96,6 +97,7 @@ function App() {
   const [toolsOpen, setToolsOpen] = useState(false)
   const [voiceOpen, setVoiceOpen] = useState(false)
   const [screenOpen, setScreenOpen] = useState(false)
+  const [visualFile, setVisualFile] = useState<File | null>(null)
   const [guideOpen, setGuideOpen] = useState(false)
 
   useEffect(() => {
@@ -110,12 +112,32 @@ function App() {
     setToolsOpen(false)
     setMobileOpen(false)
     setScreenOpen(false)
+    setVisualFile(null)
     setVoiceOpen(false)
   }
   const openVoiceLibrary = () =>
     window.dispatchEvent(new Event('conauti:abrir-biblioteca'))
   const openKokoroSettings = () =>
     window.dispatchEvent(new Event('conauti:abrir-kokoro'))
+  function seleccionarImagen(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0]
+    event.currentTarget.value = ''
+    if (!file) return
+    try {
+      validarImagen(file)
+      setVisualFile(file)
+      setScreenOpen(true)
+      setToolsOpen(false)
+      setNotice('')
+    } catch (error) {
+      setNotice(errorText(error))
+    }
+  }
+  function abrirPantalla() {
+    setVisualFile(null)
+    setScreenOpen(true)
+    setToolsOpen(false)
+  }
   const [history, setHistory] = useState<Conversation[]>([])
   const [historyVersion, setHistoryVersion] = useState(0)
   const [hasOlder, setHasOlder] = useState(false)
@@ -129,6 +151,7 @@ function App() {
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [deletePassword, setDeletePassword] = useState('')
   const editor = useRef<HTMLTextAreaElement>(null)
+  const imageInput = useRef<HTMLInputElement>(null)
   const retryId = useRef<string | null>(null)
   const requestNumber = useRef(0)
 
@@ -267,6 +290,7 @@ function App() {
     setMobileOpen(false)
     setToolsOpen(false)
     setScreenOpen(false)
+    setVisualFile(null)
     setVoiceOpen(false)
     requestNumber.current++
     setActive(null)
@@ -710,13 +734,34 @@ function App() {
                 />
                 <div className="mtc-composer-bottom">
                   <div className="mtc-composer-tools">
+                    <input
+                      ref={imageInput}
+                      className="mtc-attachment-input"
+                      type="file"
+                      accept="image/jpeg,image/png"
+                      aria-label="Seleccionar una imagen para analizar"
+                      onChange={seleccionarImagen}
+                    />
                     <button type="button" className="mtc-plus"
                       aria-label="Abrir herramientas" title="Herramientas"
                       aria-expanded={toolsOpen} onClick={() => setToolsOpen(value => !value)}>＋</button>
+                    <button type="button" className="mtc-visual-action"
+                      title="Subir imagen JPG o PNG" aria-label="Subir imagen"
+                      onClick={() => imageInput.current?.click()}>
+                      <span aria-hidden="true">📎</span><span>Imagen</span>
+                    </button>
+                    <button type="button" className="mtc-visual-action"
+                      title="Compartir pantalla para analizar" aria-label="Compartir pantalla"
+                      onClick={abrirPantalla}>
+                      <span aria-hidden="true">▣</span><span>Pantalla</span>
+                    </button>
                     {toolsOpen && (
                       <div className="mtc-tools-menu" role="group" aria-label="Herramientas disponibles">
-                        <button type="button" onClick={() => {setToolsOpen(false);setScreenOpen(true)}}>
-                          ▧ Imagen o compartir pantalla
+                        <button type="button" onClick={() => {setToolsOpen(false);imageInput.current?.click()}}>
+                          📎 Subir imagen (JPG o PNG)
+                        </button>
+                        <button type="button" onClick={abrirPantalla}>
+                          ▣ Compartir pantalla
                         </button>
                         <button type="button" onClick={() => {setToolsOpen(false);setGuideOpen(true)}}>
                           ✦ Pistas y explicaciones
@@ -827,11 +872,11 @@ function App() {
 
         {screenOpen && (
           <div className="mtc-modal-layer">
-            <button type="button" className="mtc-modal-shade" onClick={() => setScreenOpen(false)}
+            <button type="button" className="mtc-modal-shade" onClick={() => {setScreenOpen(false);setVisualFile(null)}}
               aria-label="Cerrar análisis de pantalla" />
             <section role="dialog" aria-modal="true" aria-label="Analizar imagen o pantalla" className="mtc-modal mtc-screen-modal">
-              <header><h2>Imagen y pantalla</h2><button type="button" onClick={() => setScreenOpen(false)} aria-label="Cerrar">×</button></header>
-              <PantallaCompartida />
+              <header><h2>{visualFile ? 'Analizar imagen' : 'Imagen y pantalla'}</h2><button type="button" onClick={() => {setScreenOpen(false);setVisualFile(null)}} aria-label="Cerrar">×</button></header>
+              <PantallaCompartida archivoInicial={visualFile} />
             </section>
           </div>
         )}
