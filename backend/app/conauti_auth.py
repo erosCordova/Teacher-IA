@@ -170,18 +170,26 @@ def login(data: Credentials):
 
 @router.get("/auth/me")
 def me(user=Depends(current_user)):
-    # Los usuarios anteriores conservan su nombre. Los nuevos ven su correo.
+    # El correo mostrado es el de la identidad verificada, no el nombre técnico.
     with connect() as conn:
-        relation = conn.execute(
-            "SELECT to_regclass('public.conauti_google_accounts') AS available"
+        tables = conn.execute(
+            """SELECT to_regclass('public.conauti_verified_email_identities') AS shared,
+                      to_regclass('public.conauti_google_accounts') AS google"""
         ).fetchone()
-        if relation and relation["available"]:
-            google = conn.execute(
+        if tables and tables["shared"]:
+            identity = conn.execute(
+                "SELECT email FROM conauti_verified_email_identities WHERE user_id = %s",
+                (user["id"],),
+            ).fetchone()
+            if identity:
+                return {**user, "username": identity["email"], "email": identity["email"]}
+        if tables and tables["google"]:
+            identity = conn.execute(
                 "SELECT email FROM conauti_google_accounts WHERE user_id = %s",
                 (user["id"],),
             ).fetchone()
-            if google:
-                return {**user, "username": google["email"], "email": google["email"]}
+            if identity:
+                return {**user, "username": identity["email"], "email": identity["email"]}
     return user
 
 
