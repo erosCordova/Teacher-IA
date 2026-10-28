@@ -116,10 +116,17 @@ def google_authentication(data: GoogleIdentityInput):
     # Fail closed sin configuración: jamás se acepta un Gmail no verificado.
     subject, email = validate_google_identity(data.credential, client_id())
 
+    # Registro único entre el acceso Google y el verificado por correo.
+    from app.conauti_email_auth import (
+        GLOBAL_SCHEMA, GOOGLE_BACKFILL, lock_email, identity_for,
+    )
+
     try:
         with connect() as conn:
-            # Migración incremental e idempotente, sin modificar cuentas anteriores.
             conn.execute(SCHEMA)
+            conn.execute(GLOBAL_SCHEMA)
+            conn.execute(GOOGLE_BACKFILL)
+            lock_email(conn, email)
             match = conn.execute(
                 "SELECT user_id, email FROM conauti_google_accounts WHERE google_sub = %s",
                 (subject,),
@@ -135,12 +142,9 @@ def google_authentication(data: GoogleIdentityInput):
 
             # Para evitar secuestro de cuentas no se permite asociar un correo
             # que esté vinculado a un Google subject diferente.
-            existing_email = conn.execute(
-                "SELECT user_id FROM conauti_google_accounts WHERE LOWER(email) = %s",
-                (email,),
-            ).fetchone()
+            existing_email = identity_for(conn, email)
             if existing_email:
-                raise HTTPException(409, "Este correo ya está registrado.")
+                raise HTTPException(409, "Este correo ya está registrado. Inicia sesión con su método original.")
 
             # Los usuarios Google no tienen contraseña local utilizable.
             password_hash = hash_password(secrets.token_urlsafe(64))
@@ -155,6 +159,11 @@ def google_authentication(data: GoogleIdentityInput):
             conn.execute(
                 "INSERT INTO conauti_google_accounts (google_sub, email, user_id) VALUES (%s, %s, %s)",
                 (subject, email, user["id"]),
+            )
+            conn.execute(
+                """INSERT INTO conauti_verified_email_identities(email,user_id,provider)
+                   VALUES(%s,%s,'google')""",
+                (email, user["id"]),
             )
             return create_session(conn, user["id"])
     except UniqueViolation as exc:
