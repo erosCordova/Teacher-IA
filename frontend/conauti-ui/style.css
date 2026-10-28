@@ -1862,3 +1862,35 @@ button.conauti-composer-send:disabled {
   .auth-card {padding:24px 19px;}
   .auth-card .mtc-google-signup {padding-bottom:13px;}
 }
+
+/* Enlaces legales públicos del acceso y de configuración.
+   Mantenerlos discretos y legibles en móvil, sin alterar el chat. */
+.auth-card .mtc-public-links {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:center;
+  column-gap:15px;
+  row-gap:9px;
+  padding-top:16px;
+  margin-top:14px;
+  border-top:1px solid #dbe6ed;
+}
+.auth-card .mtc-public-links a {
+  font-size:11px;
+  font-weight:550;
+  color:#087c69;
+  text-underline-offset:3px;
+}
+#root .mtc-app .mtc-legal-settings-links {
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+#root .mtc-app .mtc-legal-settings-links a {
+  color:var(--mtc-accent);
+  text-decoration:underline;
+  text-underline-offset:3px;
+  font-size:13px;
+  font-weight:600;
+}
