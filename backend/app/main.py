@@ -59,6 +59,10 @@ def health():
     }
 
 
+# Autenticación de correo con identidad verificada por Google.
+from app.conauti_google_auth import router as google_auth_router
+app.include_router(google_auth_router)
+
 # CONAUTI - Rutas de autenticacion y conversaciones
 from app.conauti_auth import router as conauti_auth_router
 app.include_router(conauti_auth_router)
