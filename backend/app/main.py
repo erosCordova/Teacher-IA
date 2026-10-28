@@ -13,6 +13,8 @@ def conauti_cors_origins():
         "http://127.0.0.1:5174",
         "http://localhost:5175",
         "http://127.0.0.1:5175",
+        # Demo temporal verificada para la presentación: solo este origen.
+        "https://my-teacher-ia-presentacion.onrender.com",
     ]
 
     extra = os.getenv("CONAUTI_CORS_ORIGINS", "")
