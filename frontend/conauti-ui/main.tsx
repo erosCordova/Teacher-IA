@@ -118,6 +118,12 @@ function App() {
   const [legacyLoginOpen, setLegacyLoginOpen] = useState(false)
   const [googleConfig, setGoogleConfig] = useState<{ enabled: boolean; client_id: string | null } | null>(null)
   const [googleConfigurationError, setGoogleConfigurationError] = useState('')
+  const [emailMethodReady, setEmailMethodReady] = useState(false)
+  const [emailMethodOpen, setEmailMethodOpen] = useState(false)
+  const [emailAddress, setEmailAddress] = useState('')
+  const [emailCode, setEmailCode] = useState('')
+  const [emailStep, setEmailStep] = useState<'address' | 'code'>('address')
+  const [emailFeedback, setEmailFeedback] = useState('')
   const googleButton = useRef<HTMLDivElement>(null)
   const googleInitialized = useRef(false)
   const googleMode = useRef<'login' | 'register'>('login')
@@ -334,6 +340,57 @@ function App() {
       })
     return () => { active = false }
   }, [token])
+
+  useEffect(() => {
+    if (token) return
+    let alive = true
+    api<{ enabled: boolean }>('/auth/email/config')
+      .then(result => { if (alive) setEmailMethodReady(result.enabled) })
+      .catch(() => { if (alive) setEmailMethodReady(false) })
+    return () => { alive = false }
+  }, [token])
+
+  async function requestEmailCode(event: FormEvent) {
+    event.preventDefault()
+    if (busy || !emailMethodReady) return
+    setBusy(true)
+    setEmailFeedback('')
+    try {
+      const result = await api<{ sent: boolean; message: string }>(
+        '/auth/email/start', null, 'POST', {
+          email: emailAddress.trim(), mode: register ? 'register' : 'login',
+        },
+      )
+      setEmailStep('code')
+      setEmailFeedback(result.message)
+      setEmailCode('')
+    } catch (error) {
+      setEmailFeedback(errorText(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function confirmEmailCode(event: FormEvent) {
+    event.preventDefault()
+    if (busy || !emailMethodReady || !/^[0-9]{8}$/.test(emailCode)) return
+    setBusy(true)
+    setEmailFeedback('')
+    try {
+      const result = await api<{ access_token: string }>(
+        '/auth/email/verify', null, 'POST', {
+          email: emailAddress.trim(), code: emailCode,
+          mode: register ? 'register' : 'login',
+        },
+      )
+      setEmailCode('')
+      completeSignIn(result.access_token)
+    } catch (error) {
+      setEmailFeedback(errorText(error))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   useEffect(() => {
     googleMode.current = register ? 'register' : 'login'
@@ -796,10 +853,10 @@ function App() {
             <div className="mtc-auth-tabs" role="group" aria-label="Tipo de acceso">
               <button type="button" className={!register ? 'selected' : ''}
                 aria-pressed={!register}
-                onClick={() => {setRegister(false);setLegacyLoginOpen(false);setNotice('')}}>Iniciar sesión</button>
+                onClick={() => {setRegister(false);setLegacyLoginOpen(false);setEmailStep('address');setEmailFeedback('');setNotice('')}}>Iniciar sesión</button>
               <button type="button" className={register ? 'selected' : ''}
                 aria-pressed={register}
-                onClick={() => {setRegister(true);setLegacyLoginOpen(false);setNotice('')}}>Crear cuenta</button>
+                onClick={() => {setRegister(true);setLegacyLoginOpen(false);setEmailStep('address');setEmailFeedback('');setNotice('')}}>Crear cuenta</button>
             </div>
             <div className="mtc-auth-google-panel">
               <div className="mtc-auth-google-header">
@@ -813,6 +870,60 @@ function App() {
                   {googleConfigurationError || 'Conectando con Google de forma segura...'}
                 </p>
               )}
+              <div className="mtc-auth-alternatives">
+                <div className="mtc-auth-divider"><span>O utiliza otro método</span></div>
+                <button type="button"
+                  className="mtc-auth-email-choice"
+                  aria-expanded={emailMethodOpen}
+                  onClick={() => {setEmailMethodOpen(v => !v);setEmailFeedback('')}}
+                  disabled={!emailMethodReady}
+                  title={!emailMethodReady ? 'Pendiente de configurar el envío seguro de correos' : undefined}>
+                  <svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="1.7"
+                    strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="5" width="18" height="14" rx="3" />
+                    <path d="m4 7 8 6 8-6" />
+                  </svg>
+                  <span>Continuar con correo electrónico</span>
+                  <span aria-hidden="true">›</span>
+                </button>
+                {!emailMethodReady && (
+                  <p className="mtc-auth-method-pending" role="status">
+                    El acceso por código está preparado, pero falta activar el servicio de envío de correos.
+                  </p>
+                )}
+                {emailMethodOpen && emailMethodReady && (
+                  <form className="mtc-auth-email-form"
+                    onSubmit={emailStep === 'address' ? requestEmailCode : confirmEmailCode}>
+                    <label htmlFor="mtc-email-address">Tu correo electrónico</label>
+                    <input id="mtc-email-address" type="email" required maxLength={254}
+                      value={emailAddress} disabled={emailStep === 'code'}
+                      onChange={event => setEmailAddress(event.target.value)}
+                      autoComplete="email" placeholder="tu-correo@ejemplo.com"/>
+                    {emailStep === 'code' && (
+                      <>
+                        <label htmlFor="mtc-email-code">Código de 8 dígitos</label>
+                        <input id="mtc-email-code" inputMode="numeric" required
+                          autoComplete="one-time-code" minLength={8} maxLength={8}
+                          pattern="[0-9]{8}" placeholder="00000000"
+                          value={emailCode} onChange={event => setEmailCode(
+                            event.target.value.replace(/[^0-9]/g, '').slice(0, 8)
+                          )}/>
+                      </>
+                    )}
+                    <button type="submit" className="mtc-auth-email-submit" disabled={busy}>
+                      {busy ? 'Procesando...' : emailStep === 'code' ? 'Verificar e ingresar' : 'Enviar código seguro'}
+                    </button>
+                    {emailStep === 'code' && (
+                      <button type="button" className="mtc-auth-email-back"
+                        onClick={() => {setEmailStep('address');setEmailCode('');setEmailFeedback('')}}>
+                        Cambiar correo
+                      </button>
+                    )}
+                    {emailFeedback && <p role="status" className="mtc-auth-email-feedback">{emailFeedback}</p>}
+                  </form>
+                )}
+              </div>
               <p className="mtc-auth-security">
                 <span aria-hidden="true">♧</span>
                 {register
