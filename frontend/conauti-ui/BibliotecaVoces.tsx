@@ -1,9 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import {
+  KOKORO_VOICE_KEY,
+  obtenerVozKokoro,
+  obtenerVelocidadKokoro,
+  obtenerVolumenKokoro,
+  type KokoroVoice,
+} from './KokoroPlayer'
+import {
+  habilitarAudioKokoro,
+  reproducirBlobKokoro,
+} from './KokoroAudio'
+import { programarGuardadoRemoto } from './PreferenciasVozRemotas'
 import './BibliotecaVoces.css'
 
 type Voice = {
-  voice_id: string
+  voice_id: KokoroVoice
   public_owner_id: string
   name: string
   description: string
@@ -14,21 +26,48 @@ type Voice = {
   preview_url: string | null
 }
 
-type Catalog = {
-  voices: Voice[]
-  has_more: boolean
-  page: number
-}
+// Son las voces Kokoro españolas que la aplicación puede
+// sintetizar de verdad, sin API externa ni pago por minuto.
+const LOCAL_VOICES: Voice[] = [
+  {
+    voice_id: 'ef_dora',
+    public_owner_id: 'kokoro',
+    name: 'Dora',
+    description: 'Voz femenina natural para aprender en español.',
+    language: 'es',
+    accent: 'Español',
+    gender: 'female',
+    category: 'Kokoro',
+    preview_url: null,
+  },
+  {
+    voice_id: 'em_alex',
+    public_owner_id: 'kokoro',
+    name: 'Alex',
+    description: 'Voz masculina para explicaciones y conversaciones.',
+    language: 'es',
+    accent: 'Español',
+    gender: 'male',
+    category: 'Kokoro',
+    preview_url: null,
+  },
+  {
+    voice_id: 'em_santa',
+    public_owner_id: 'kokoro',
+    name: 'Santa',
+    description: 'Voz masculina para acompañar las actividades.',
+    language: 'es',
+    accent: 'Español',
+    gender: 'male',
+    category: 'Kokoro',
+    preview_url: null,
+  },
+]
 
-const STORAGE_KEY = 'conauti.voice.selection.v1'
-
-function readSelected(): Voice | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) as Voice : null
-  } catch {
-    return null
-  }
+function readSelected(): Voice {
+  const voz = obtenerVozKokoro()
+  return LOCAL_VOICES.find(item => item.voice_id === voz)
+    ?? LOCAL_VOICES[0]
 }
 
 export default function BibliotecaVoces() {
@@ -37,122 +76,69 @@ export default function BibliotecaVoces() {
   const [search, setSearch] = useState('')
   const [language, setLanguage] = useState('es')
   const [page, setPage] = useState(0)
-  const [voices, setVoices] = useState<Voice[]>([])
+  const [voices, setVoices] = useState<Voice[]>(LOCAL_VOICES)
   const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [selected, setSelected] =
-    useState<Voice | null>(readSelected)
+  const [selected, setSelected] = useState<Voice>(readSelected)
   const [playing, setPlaying] = useState('')
-  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [generating, setGenerating] = useState(false)
+  const previewAbortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
-    const handler = () => {
+    const abrir = () => {
+      setSelected(readSelected())
+      setError('')
       setOpen(true)
     }
-
-    window.addEventListener(
-      'conauti:abrir-biblioteca',
-      handler,
-    )
-
+    window.addEventListener('conauti:abrir-biblioteca', abrir)
     return () => {
-      window.removeEventListener(
-        'conauti:abrir-biblioteca',
-        handler,
-      )
+      window.removeEventListener('conauti:abrir-biblioteca', abrir)
     }
   }, [])
 
+  // El catálogo funciona sin red: ElevenLabs rechazaba las
+  // consultas y sus voces no estaban conectadas al TTS.
   useEffect(() => {
     if (!open) return
-
-    const controller = new AbortController()
-
-    const load = async () => {
-      setLoading(true)
-      setError('')
-
-      try {
-        const params = new URLSearchParams({
-          search,
-          language,
-          page: String(page),
-        })
-
-        const response = await fetch(
-          `/api/conauti/voice-library/catalog?${params}`,
-          {
-            signal: controller.signal,
-            credentials: 'same-origin',
-          },
-        )
-
-        if (!response.ok) {
-          let detail = 'No se pudo cargar el catálogo.'
-
-          try {
-            const data: { detail?: string } =
-              await response.json()
-
-            if (data.detail) detail = data.detail
-          } catch {
-            // Mantener el error general.
-          }
-
-          throw new Error(detail)
-        }
-
-        const result: Catalog = await response.json()
-
-        if (controller.signal.aborted) return
-
-        setVoices(result.voices)
-        setHasMore(result.has_more)
-      } catch (err) {
-        if (controller.signal.aborted) return
-
-        setVoices([])
-        setHasMore(false)
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'Ocurrió un error al buscar voces.',
-        )
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false)
-        }
+    const term = search.toLocaleLowerCase('es').trim()
+    const matching = LOCAL_VOICES.filter(item => {
+      if (language !== 'all' && item.language !== language) {
+        return false
       }
-    }
-
-    void load()
-
-    return () => controller.abort()
+      return !term || [
+        item.name, item.description, item.accent,
+        item.category, item.gender,
+      ].some(value => value.toLocaleLowerCase('es').includes(term))
+    })
+    const offset = page * 24
+    setVoices(matching.slice(offset, offset + 24))
+    setHasMore(matching.length > offset + 24)
+    setLoading(false)
   }, [open, search, language, page])
 
   useEffect(() => {
     if (!open) return
-
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close()
     }
-
     window.addEventListener('keydown', handleEscape)
-
     return () => {
       window.removeEventListener('keydown', handleEscape)
     }
   }, [open])
 
-  function stopPreview() {
-    if (audioRef.current) {
-      audioRef.current.pause()
-      audioRef.current.src = ''
-      audioRef.current = null
+  useEffect(() => {
+    return () => {
+      previewAbortRef.current?.abort()
     }
+  }, [])
 
+  function stopPreview() {
+    previewAbortRef.current?.abort()
+    previewAbortRef.current = null
     setPlaying('')
+    setGenerating(false)
   }
 
   function close() {
@@ -161,55 +147,71 @@ export default function BibliotecaVoces() {
   }
 
   function preview(voice: Voice) {
-    if (!voice.preview_url) return
-
     if (playing === voice.voice_id) {
       stopPreview()
       return
     }
 
     stopPreview()
+    // Se habilita WebAudio inmediatamente dentro del clic.
+    habilitarAudioKokoro()
 
-    const audio = new Audio(voice.preview_url)
-
-    audioRef.current = audio
-    audio.onended = () => {
-      setPlaying('')
-      audioRef.current = null
-    }
-
-    audio.onerror = () => {
-      setPlaying('')
-      setError(
-        'No se pudo reproducir esta muestra de voz.',
-      )
-    }
-
-    setError('')
+    const controller = new AbortController()
+    previewAbortRef.current = controller
     setPlaying(voice.voice_id)
+    setGenerating(true)
+    setError('')
 
-    void audio.play().catch(() => {
-      setPlaying('')
-      setError(
-        'El navegador bloqueó o no pudo reproducir el audio.',
-      )
-    })
+    const play = async () => {
+      try {
+        const { sintetizarKokoroEnNavegador } =
+          await import('./KokoroBrowser')
+        if (controller.signal.aborted) return
+
+        const sample = 'Hola, soy ' + voice.name +
+          ', tu voz educativa. Aprenderemos juntos paso a paso.'
+        const blob = await sintetizarKokoroEnNavegador(
+          sample,
+          voice.voice_id,
+          obtenerVelocidadKokoro(),
+        )
+        if (controller.signal.aborted) return
+        setGenerating(false)
+        await reproducirBlobKokoro(
+          blob,
+          obtenerVolumenKokoro(),
+          controller.signal,
+        )
+      } catch (cause) {
+        if (controller.signal.aborted) return
+        setError(
+          'No se pudo reproducir la muestra de Kokoro. ' +
+          (cause instanceof Error ? cause.message : ''),
+        )
+      } finally {
+        if (previewAbortRef.current === controller) {
+          previewAbortRef.current = null
+          setPlaying('')
+          setGenerating(false)
+        }
+      }
+    }
+    void play()
   }
 
   function select(voice: Voice) {
     try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(voice),
-      )
-
+      // La misma clave utilizada por las respuestas de Gemini.
+      localStorage.setItem(KOKORO_VOICE_KEY, voice.voice_id)
       setSelected(voice)
+      programarGuardadoRemoto()
 
       window.dispatchEvent(
         new CustomEvent('conauti:voz-seleccionada', {
-          detail: voice,
+          detail: { voice: voice.voice_id },
         }),
       )
+      setError('')
     } catch {
       setError(
         'No se pudo guardar la voz en este navegador.',
@@ -359,11 +361,11 @@ export default function BibliotecaVoces() {
                 <div className="cv-actions">
                   <button
                     type="button"
-                    disabled={!voice.preview_url}
+                    disabled={loading}
                     onClick={() => preview(voice)}
                   >
                     {playing === voice.voice_id
-                      ? 'Detener'
+                      ? generating ? 'Generando...' : 'Detener'
                       : 'Escuchar'}
                   </button>
 
@@ -412,9 +414,8 @@ export default function BibliotecaVoces() {
           </div>
 
           <p>
-            La selección se guarda en este navegador.
-            La conexión con las respuestas habladas
-            se habilitará en la siguiente integración.
+            La voz elegida se utiliza en las respuestas habladas
+            y se guarda también en tu cuenta al iniciar sesión.
           </p>
         </footer>
       </section>
