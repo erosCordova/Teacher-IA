@@ -12,13 +12,10 @@ import type { KokoroVoice } from './KokoroPlayer'
 
 type Motor = Awaited<ReturnType<typeof KokoroTTS.from_pretrained>>
 let motorPromise: Promise<Motor> | null = null
-let falloDeCarga = false
 
 function motor(): Promise<Motor> {
-  if (falloDeCarga) {
-    return Promise.reject(new Error('Kokoro no está disponible en este navegador.'))
-  }
-
+  // Un fallo de red no debe deshabilitar Kokoro definitivamente.
+  // Permitir un nuevo intento cuando el usuario vuelva a escuchar.
   if (!motorPromise) {
     const tarea = KokoroTTS.from_pretrained(
       'onnx-community/Kokoro-82M-v1.0-ONNX',
@@ -26,7 +23,6 @@ function motor(): Promise<Motor> {
     )
     motorPromise = tarea
     void tarea.catch(() => {
-      falloDeCarga = true
       if (motorPromise === tarea) motorPromise = null
     })
   }
