@@ -207,11 +207,23 @@ function App() {
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [deletePassword, setDeletePassword] = useState('')
   const editor = useRef<HTMLTextAreaElement>(null)
+  const conversationScroll = useRef<HTMLDivElement>(null)
+  const lastScrolledMessage = useRef<number | null>(null)
   const imageInput = useRef<HTMLInputElement>(null)
   const anyFileInput = useRef<HTMLInputElement>(null)
   const toolsContainer = useRef<HTMLDivElement>(null)
   const retryId = useRef<string | null>(null)
   const requestNumber = useRef(0)
+
+  useEffect(() => {
+    const latest = messages.at(-1)?.id
+    if (page !== 'chat' || latest == null || lastScrolledMessage.current === latest) return
+    lastScrolledMessage.current = latest
+    requestAnimationFrame(() => {
+      const area = conversationScroll.current
+      if (area) area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' })
+    })
+  }, [messages, page])
 
   useEffect(() => {
     let valid = true
@@ -417,6 +429,7 @@ function App() {
       let promptToSend = draft.trim()
       const fileToSend = attachedFile || (contextDocument?.conversationId === active ? contextDocument.file : null)
       if (fileToSend) {
+        setNotice('Analizando el archivo y buscando los apartados relevantes...')
         const response = await fetch(
           BASE + '/files/inspect?filename=' + encodeURIComponent(fileToSend.name)
           + '&question=' + encodeURIComponent(draft.trim().slice(0, 240)),
@@ -466,6 +479,7 @@ function App() {
           + result.excerpt.slice(0, 2850)
           + '\n--- FIN DEL CONTENIDO ---'
         ).slice(0, 4000)
+        setNotice('Consultando a My Teacher IA sobre el documento...')
       }
       let id = active
 
@@ -775,7 +789,7 @@ function App() {
 
         {page === 'chat' && (
           <main className="mtc-chat">
-            <div className="mtc-scroller">
+            <div className="mtc-scroller" ref={conversationScroll}>
               {loadingMessages ? (
                 <p className="mtc-loading" role="status">Cargando conversación...</p>
               ) : messages.length === 0 ? (
