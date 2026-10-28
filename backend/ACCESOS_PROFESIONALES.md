@@ -19,9 +19,25 @@ un proveedor real. No se compran dominios ni servicios.
   No se acepta como verificado un simple \`email\` o \`preferred_username\`
   del token Microsoft.
 
+## Opción gratuita: correo Mailjet por HTTPS en Render Free
+
+Render Free bloquea los puertos de salida SMTP 25, 465 y 587. Usar una
+API de envío vía HTTPS para mantener el proyecto gratuito.
+
+1. Crear una cuenta gratuita en Mailjet y verificar el remitente en el
+   panel del proveedor. Mailjet requiere que el remitente esté activo.
+2. Configurar en Render las variables secretas `MAILJET_API_KEY`,
+   `MAILJET_SECRET_KEY` y `MAILJET_SENDER_EMAIL`.
+3. Configurar `EMAIL_OTP_PEPPER` con al menos 32 caracteres aleatorios.
+4. Verificar la entrega a un buzón de prueba y sus límites de uso.
+
+La API de Mailjet utilizada es `https://api.mailjet.com/v3.1/send`.
+La entrega puede verse afectada por requisitos de dominio verificado,
+filtros de spam o límites de cuenta del proveedor.
+
 ## Correo de un solo uso — configurar en Render
 
-Configurar estas variables del servicio backend mediante el panel de Render,
+Opción SMTP solo para desarrollo local o instancias que permitan SMTP.\nActivar `EMAIL_OTP_SMTP_ENABLED=true` únicamente cuando ese transporte funcione.\nConfigurar estas variables del servicio backend mediante el panel de Render,
 nunca compartir las claves en el chat ni almacenarlas en GitHub:
 
 - \`SMTP_HOST\`: servidor SMTP compatible con STARTTLS.
