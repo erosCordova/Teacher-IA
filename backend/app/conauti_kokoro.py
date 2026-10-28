@@ -17,7 +17,7 @@ router = APIRouter(
     tags=["CONAUTI - Voz neuronal local"],
 )
 
-BASE_URL = "http://127.0.0.1:8880"
+BASE_URL = os.getenv("CONAUTI_KOKORO_URL", "http://127.0.0.1:8880").rstrip("/")
 
 VOICES = {
     "ef_dora": {

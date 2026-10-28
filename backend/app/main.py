@@ -1,5 +1,30 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+
+def conauti_cors_origins():
+    """Orígenes autorizados para desarrollo y producción."""
+    origins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+        "http://localhost:5175",
+        "http://127.0.0.1:5175",
+    ]
+
+    extra = os.getenv("CONAUTI_CORS_ORIGINS", "")
+
+    for origin in extra.split(","):
+        origin = origin.strip().rstrip("/")
+
+        if origin.startswith(("https://", "http://")):
+            origins.append(origin)
+
+    return list(dict.fromkeys(origins))
+
 
 app = FastAPI(
     title="Asistente Educativo IA - CONAUTI",
@@ -9,10 +34,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=conauti_cors_origins(),
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["*"],
