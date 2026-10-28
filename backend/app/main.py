@@ -59,6 +59,10 @@ def health():
     }
 
 
+# Inicio Microsoft (OAuth 2.0, PKCE) solo cuando está configurado en Entra.
+from app.conauti_microsoft_auth import router as microsoft_auth_router
+app.include_router(microsoft_auth_router)
+
 # Códigos de un solo uso: verificación del buzón sin contraseñas adicionales.
 from app.conauti_email_auth import router as email_auth_router
 app.include_router(email_auth_router)
