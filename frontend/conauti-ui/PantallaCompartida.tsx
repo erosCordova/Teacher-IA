@@ -9,7 +9,7 @@ type Resultado = {
   automatic_capture: boolean;
 };
 
-export default function PantallaCompartida() {
+export default function PantallaCompartida({ archivoInicial = null }: { archivoInicial?: File | null }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -18,7 +18,7 @@ export default function PantallaCompartida() {
   const [respuesta, setRespuesta] = useState("");
   const [pregunta, setPregunta] = useState("");
   // MYTEACHER_IMAGE_UPLOAD_V1
-  const [archivo, setArchivo] = useState<File | null>(null);
+  const [archivo, setArchivo] = useState<File | null>(archivoInicial);
   const [vistaArchivo, setVistaArchivo] = useState("");
   const [error, setError] = useState("");
 
@@ -355,12 +355,12 @@ export default function PantallaCompartida() {
           </span>
 
           <h3 id="mt-pantalla-title">
-            Compartir mi pantalla
+            {archivo ? "Analizar imagen" : "Compartir pantalla o subir imagen"}
           </h3>
 
           <p>
-            Muéstrale a My Teacher IA lo que estás
-            estudiando para recibir orientación.
+            Sube una imagen de tu ejercicio o comparte tu pantalla
+            para recibir orientación con inteligencia artificial.
           </p>
         </div>
 
@@ -373,15 +373,15 @@ export default function PantallaCompartida() {
 
       <p className="mt-pantalla-privacidad">
         Tú decides cuándo compartir y cuándo analizar.
-        Solo se envía a Gemini una captura al pulsar
-        «Analizar pantalla». No se envía audio ni se
+        Solo se envía a Gemini la imagen seleccionada o una captura
+        cuando pulsas «Analizar». No se envía audio ni se
         guarda la imagen en nuestra base de datos.
         Evita mostrar contraseñas o datos personales.
       </p>
 
       <div className="mt-pantalla-pregunta">
         <label htmlFor="mt-pregunta-visual">
-          ¿Qué te gustaría entender de tu pantalla?
+          ¿Qué te gustaría entender de la imagen o pantalla?
         </label>
 
         <textarea
