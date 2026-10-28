@@ -59,6 +59,10 @@ def health():
     }
 
 
+# Códigos de un solo uso: verificación del buzón sin contraseñas adicionales.
+from app.conauti_email_auth import router as email_auth_router
+app.include_router(email_auth_router)
+
 # Autenticación de correo con identidad verificada por Google.
 from app.conauti_google_auth import router as google_auth_router
 app.include_router(google_auth_router)
