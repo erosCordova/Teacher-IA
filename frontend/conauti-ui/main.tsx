@@ -155,8 +155,8 @@ function App() {
     setMobileOpen(false)
     setScreenOpen(false)
     setVisualFile(null)
-    setAttachedFile(null)
-    setContextDocument(null)
+    // Los adjuntos pendientes y el documento activo pertenecen al chat,
+    // no a la vista de navegación. No descartarlos al abrir ajustes o progreso.
     setVoiceOpen(false)
   }
   const openVoiceLibrary = () =>
