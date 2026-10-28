@@ -49,7 +49,7 @@ def test_visual_followup_sends_question_and_previous_context(client):
         "/api/conauti/screen/analyze?question=Por%20qu%C3%A9",
         headers={
             "Content-Type": "image/jpeg",
-            "X-Visual-Context": "Pregunta anterior: fracciones. Orientación anterior: divide en cuatro.",
+            "X-Visual-Context": "Pregunta%20anterior%3A%20fracciones.%20Orientaci%C3%B3n%20anterior%3A%20divide%20en%20cuatro.",
         },
         content=jpeg,
     )
