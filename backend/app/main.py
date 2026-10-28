@@ -136,6 +136,10 @@ from app.conauti_screen import (
 app.include_router(conauti_screen_router)
 
 
+# MYTEACHER_FILES_V1 - subir documentos académicos
+from app.conauti_files import router as conauti_files_router
+app.include_router(conauti_files_router)
+
 # MYTEACHER_ERROR_COACH_GRID_V3
 from app.conauti_error_coach import (
     router as conauti_error_coach_router,
