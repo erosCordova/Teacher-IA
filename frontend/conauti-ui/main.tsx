@@ -631,7 +631,30 @@ function App() {
 
         {page === 'chat' && (
           <>
-<section className="chat">
+        {isHome && (
+          <Estilo6Home
+            username={user.username}
+            theme={theme}
+            draft={draft}
+            busy={busy}
+            onTheme={cambiarTema}
+            onDraft={value => { retryId.current = null; setDraft(value) }}
+            onSend={() => void send()}
+            onChat={() => document.querySelector<HTMLTextAreaElement>('#e6-pregunta')?.focus()}
+            onVoice={() => {
+              setShowVoice(true)
+              const el = document.querySelector<HTMLDetailsElement>('.conauti-gpt-voice-tools')
+              if (el) el.open = true
+            }}
+            onExercise={() => setPage('evaluations')}
+            onEvaluations={() => setPage('evaluations')}
+            onScreen={() => setShowScreen(true)}
+            onSubjects={() => setPage('subjects')}
+            onSubject={iniciarMateria}
+            onVoices={() => window.dispatchEvent(new Event('conauti:abrir-biblioteca'))}
+          />
+        )}
+<section className={isHome ? 'chat e6-legacy-hidden' : 'chat'}>
 
             <details className="conauti-gpt-voice-tools">
               <summary>
@@ -807,27 +830,65 @@ function App() {
               </p>
             </div>
           </section>
-<PantallaCompartida />
+{!isHome && <PantallaCompartida />}
 </>
         )}
+        {showScreen && (
+          <div className="e6-screen-overlay" role="presentation">
+            <div className="e6-screen-content" role="dialog" aria-modal="true" aria-label="Analizar o compartir pantalla">
+              <button className="e6-screen-close" type="button" aria-label="Cerrar" onClick={() => setShowScreen(false)}>Cerrar ×</button>
+              <PantallaCompartida />
+            </div>
+          </div>
+        )}
 
-        {page === 'progress' && (
-          <>
-<section className="panel">
-            <h2>📊 Mi progreso académico</h2>
-            <p>
-              Aquí podrás visualizar actividades,
-              evaluaciones y recomendaciones de repaso.
-            </p>
-            <div className="info">
-              Módulo de aprendizaje pendiente de la fase 12.
-              No se muestran estadísticas inventadas.
+        {(page === 'progress' || page === 'evaluations') && (
+          <div className="e6-dashboard-page">
+            <EvaluacionesAcademicas />
+          </div>
+        )}
+        {page === 'subjects' && (
+          <section className="e6-dashboard-page">
+            <h2>Mis materias</h2>
+            <p>Elige qué te gustaría aprender. Tu tutor te guiará paso a paso.</p>
+            <div className="e6-course-grid">
+              {([
+                ['Matemáticas','Practiquemos matemáticas paso a paso.'],
+                ['Ciencias','Explícame ciencias con ejemplos.'],
+                ['Historia','Quiero estudiar historia.'],
+                ['Lenguaje','Ayúdame a mejorar mi comprensión lectora.'],
+                ['Inglés','Quiero practicar inglés.'],
+                ['Computación','Quiero aprender computación.'],
+              ] as const).map(([label, prompt]) => (
+                <button type="button" key={label} onClick={() => iniciarMateria(prompt)}>{label}</button>
+              ))}
             </div>
           </section>
-<EvaluacionesAcademicas />
-</>
         )}
-
+        {page === 'notes' && (
+          <section className="e6-dashboard-page">
+            <h2>Mis notas</h2>
+            <p>Apuntes personales guardados en este navegador.</p>
+            <label htmlFor="e6-notas">Tus apuntes</label>
+            <textarea id="e6-notas" className="e6-notes-editor" value={studyNotes}
+              onChange={event => {
+                setStudyNotes(event.target.value)
+                try {localStorage.setItem('myteacher.study.notes',event.target.value)}
+                catch {setNotice('No se pudieron guardar las notas en este navegador.')}
+              }} placeholder="Escribe aquí tus apuntes de estudio..."/>
+          </section>
+        )}
+        {page === 'explore' && (
+          <section className="e6-dashboard-page">
+            <h2>Explorar</h2>
+            <p>Elige un tema para practicar con el tutor.</p>
+            <div className="e6-course-grid">
+              {['Fracciones','Ecuaciones','Células','Fotosíntesis','Historia del Perú','Comprensión lectora','Inglés básico','Algoritmos'].map(topic => (
+                <button type="button" key={topic} onClick={() => iniciarMateria('Quiero entender ' + topic + '. Ayúdame con preguntas y pistas.')}>{topic}</button>
+              ))}
+            </div>
+          </section>
+        )}
         {page === 'settings' && (
           <section className="panel">
             <h2>⚙ Mi configuración</h2>
