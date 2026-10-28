@@ -8,6 +8,7 @@ pypdf>=5.0,<7.0
 
 psycopg[binary]>=3.2,<4
 google-auth>=2.38,<3
+email-validator>=2.2,<3
 
 # Orquestador educativo basado en LangGraph y Gemini
 langchain-core==1.7.0
