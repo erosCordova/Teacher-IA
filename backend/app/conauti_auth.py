@@ -121,26 +121,12 @@ def database_health():
     return {"status": "ok", "database": row["database"]}
 
 
-@router.post("/auth/register", status_code=201)
+@router.post("/auth/register", status_code=403)
 def register(data: Credentials):
-    username = data.username.lower()
-    password_hash = hash_password(data.password)
-
-    try:
-        with connect() as conn:
-            row = conn.execute(
-                """
-                INSERT INTO conauti_users(username, password_hash)
-                VALUES (%s, %s)
-                RETURNING id, username
-                """,
-                (username, password_hash),
-            ).fetchone()
-
-        return row
-
-    except UniqueViolation:
-        raise HTTPException(409, "Usuario ya registrado")
+    # Se conserva la ruta para avisar a clientes anteriores, pero se impide
+    # crear cuentas sin verificar la propiedad del correo.
+    del data
+    raise HTTPException(403, "Regístrate con Google para verificar tu correo electrónico.")
 
 
 @router.post("/auth/login")
@@ -184,6 +170,18 @@ def login(data: Credentials):
 
 @router.get("/auth/me")
 def me(user=Depends(current_user)):
+    # Los usuarios anteriores conservan su nombre. Los nuevos ven su correo.
+    with connect() as conn:
+        relation = conn.execute(
+            "SELECT to_regclass('public.conauti_google_accounts') AS available"
+        ).fetchone()
+        if relation and relation["available"]:
+            google = conn.execute(
+                "SELECT email FROM conauti_google_accounts WHERE user_id = %s",
+                (user["id"],),
+            ).fetchone()
+            if google:
+                return {**user, "username": google["email"], "email": google["email"]}
     return user
 
 
