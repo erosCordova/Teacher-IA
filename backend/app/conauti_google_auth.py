@@ -68,8 +68,20 @@ def validate_google_identity(credential: str, audience: str) -> tuple[str, str]:
         raise HTTPException(401, "Google no proporcionó un correo electrónico válido.")
     email = email.strip().lower()
 
-    # No se usa validación SMTP ni MX: Google garantiza una identidad real.
-    # Se conserva la validación estructural para impedir entradas anómalas.
+    # Google solo es autoridad sobre la titularidad del buzón en Gmail
+    # o en un dominio administrado por Google Workspace (claim hd).
+    # Para correos de terceros se necesitaría un enlace de verificación propio.
+    domain = email.rsplit("@", 1)[-1]
+    hosted_domain = claims.get("hd")
+    if domain != "gmail.com" and not (
+        isinstance(hosted_domain, str) and hosted_domain.lower() == domain
+    ):
+        raise HTTPException(
+            403,
+            "Por seguridad, utiliza Gmail o un correo verificado de Google Workspace."
+        )
+
+    # Validación estructural adicional; no basta con tener sintaxis de email.
     if not re.fullmatch(r"[^\s@]{1,64}@[^\s@]+\.[a-z]{2,63}", email):
         raise HTTPException(401, "El correo verificado no tiene un formato válido.")
     return subject, email
