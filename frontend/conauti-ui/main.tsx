@@ -18,6 +18,8 @@ import './ConfiguracionGlobal'
 type User = {
   id: string
   username: string
+  email?: string
+  display_name?: string | null
 }
 
 type Conversation = {
@@ -242,6 +244,9 @@ function App() {
   const [busy, setBusy] = useState(false)
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [deletePassword, setDeletePassword] = useState('')
+  const [profileName, setProfileName] = useState('')
+  const [profileFeedback, setProfileFeedback] = useState('')
+  const [savingProfile, setSavingProfile] = useState(false)
   const editor = useRef<HTMLTextAreaElement>(null)
   const conversationScroll = useRef<HTMLDivElement>(null)
   const lastScrolledMessage = useRef<number | null>(null)
@@ -275,10 +280,15 @@ function App() {
       api<User>('/auth/me', token),
       api<Conversation[]>('/conversations', token),
       api<{ roles: string[] }>('/auth/roles', token),
+      // Una falla temporal del perfil no debe impedir iniciar sesión.
+      api<{ display_name: string | null }>('/profile', token)
+        .catch(() => ({ display_name: null })),
     ])
-      .then(([account, conversations, access]) => {
+      .then(([account, conversations, access, profile]) => {
         if (!valid) return
-        setUser(account)
+        setUser({ ...account, display_name: profile.display_name })
+        setProfileName(profile.display_name || '')
+        setProfileFeedback('')
         setHistory(conversations)
         setRoles(access.roles)
         setChecking(false)
@@ -507,6 +517,8 @@ function App() {
     sessionStorage.removeItem('conauti_token')
     setToken(null)
     setUser(null)
+    setProfileName('')
+    setProfileFeedback('')
     setRoles([])
     setHistory([])
     setMessages([])
@@ -776,39 +788,27 @@ function App() {
     }
   }
 
-  async function exportData() {
-    if (!token || busy) return
-    setBusy(true)
-
+  async function saveDisplayName(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!token || savingProfile || busy) return
+    const name = profileName.trim().replace(/\s+/g, ' ')
+    if (name.length < 2 || name.length > 60) {
+      setProfileFeedback('Escribe un nombre de entre 2 y 60 caracteres.')
+      return
+    }
+    setSavingProfile(true)
+    setProfileFeedback('')
     try {
-      const response = await apiFetch(
-        BASE + '/privacy/export',
-        {
-          cache: 'no-store',
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
+      const result = await api<{ display_name: string; saved: boolean }>(
+        '/profile', token, 'PATCH', { display_name: name }
       )
-
-      if (!response.ok) {
-        throw new Error('No se pudo exportar.')
-      }
-
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = 'conauti_datos.json'
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      setTimeout(() => URL.revokeObjectURL(url), 1000)
-      setNotice('Datos exportados.')
+      setUser(previous => previous ? { ...previous, display_name: result.display_name } : null)
+      setProfileName(result.display_name)
+      setProfileFeedback('¡Nombre actualizado! Ya aparece en tu perfil.')
     } catch (error) {
-      setNotice(errorText(error))
+      setProfileFeedback(errorText(error))
     } finally {
-      setBusy(false)
+      setSavingProfile(false)
     }
   }
 
@@ -1083,9 +1083,9 @@ function App() {
             onClick={() => openPage('settings')}>
             ⚙ <span>Configuración</span>
           </button>
-          <div className="mtc-account" aria-label={'Cuenta conectada: ' + user.username}>
-            <span className="mtc-avatar" aria-hidden="true">{user.username.slice(0,1).toUpperCase()}</span>
-            <span>{user.username}</span>
+          <div className="mtc-account" aria-label={'Cuenta conectada: ' + (user.display_name || user.username)}>
+            <span className="mtc-avatar" aria-hidden="true">{(user.display_name || user.username).slice(0,1).toLocaleUpperCase('es')}</span>
+            <span title={user.display_name || user.username}>{user.display_name || user.username}</span>
           </div>
           <button type="button" className="mtc-logout-button"
             aria-label="Cerrar sesión de My Teacher IA" title="Cerrar sesión"
@@ -1327,7 +1327,7 @@ function App() {
                 <button type="button" onClick={openKokoroSettings}>Configurar</button>
               </div>
               <div className="mtc-settings-row">
-                <div><strong>Datos personales</strong><small>Exportar información o eliminar la cuenta.</small></div>
+                <div><strong>Mi perfil</strong><small>Cambia tu nombre visible y administra tu cuenta.</small></div>
                 <button type="button" onClick={() => openPage('privacy')}>Administrar</button>
               </div>
               <div className="mtc-settings-row">
@@ -1346,10 +1346,34 @@ function App() {
           <main className="mtc-secondary">
             <section className="mtc-settings-card">
               <button type="button" className="mtc-text-link" onClick={() => openPage('settings')}>← Configuración</button>
-              <h1>Mis datos personales</h1>
-              <p>Exporta tus datos o elimina tu cuenta. Estas operaciones están conectadas a FastAPI.</p>
-              <button type="button" className="mtc-secondary-button" disabled={busy}
-                onClick={() => void exportData()}>Exportar mis datos</button>
+              <h1>Mi perfil</h1>
+              <p>Personaliza cómo te conocen en My Teacher IA, sin modificar tu correo de acceso.</p>
+              <form className="mtc-profile-form" onSubmit={event => void saveDisplayName(event)}>
+                <div className="mtc-profile-heading">
+                  <span className="mtc-profile-avatar" aria-hidden="true">{(user.display_name || user.username).slice(0,1).toLocaleUpperCase('es')}</span>
+                  <div>
+                    <h2>Nombre visible</h2>
+                    <p>Este nombre aparecerá en tu cuenta y en el menú lateral.</p>
+                  </div>
+                </div>
+                <label htmlFor="profile-display-name">Tu nombre</label>
+                <input id="profile-display-name" type="text" autoComplete="name"
+                  value={profileName} minLength={2} maxLength={60} required
+                  placeholder="Ejemplo: Eros Córdova"
+                  onChange={event => {setProfileName(event.target.value);setProfileFeedback('')}} />
+                <small>De 2 a 60 caracteres. Puedes usar tildes, espacios y apellidos.</small>
+                <div className="mtc-profile-action">
+                  <button type="submit" disabled={savingProfile || busy || profileName.trim().length < 2}>
+                    {savingProfile ? 'Guardando…' : 'Guardar nombre'}
+                  </button>
+                </div>
+                {profileFeedback && <p className="mtc-profile-feedback" role="status">{profileFeedback}</p>}
+                <div className="mtc-profile-identity">
+                  <strong>{user.email ? 'Correo verificado' : 'Cuenta de acceso'}</strong>
+                  <span>{user.email || user.username}</span>
+                  <small>Tu identificación para iniciar sesión no cambia al editar el nombre.</small>
+                </div>
+              </form>
               <div className="mtc-danger">
                 <h2>Eliminar mi cuenta</h2>
                 <p>Esta acción elimina definitivamente los datos asociados.</p>
