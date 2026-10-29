@@ -1,3 +1,4 @@
+import MarcaMyTeacher from "./MarcaMyTeacher";
 import PantallaCompartida from "./PantallaCompartida";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
 import { useEffect, useRef, useState } from 'react'
@@ -655,7 +656,7 @@ function App() {
                 <p>Cargando...</p>
               ) : messages.length === 0 ? (
                 <div className="welcome">
-                  <div className="star">✦</div>
+                  <div className="star" aria-label="Logotipo My Teacher IA"><MarcaMyTeacher /></div>
                   <h2>¿Qué quieres aprender hoy?</h2>
                   <p>
                     Pregunta, explora y descubre
