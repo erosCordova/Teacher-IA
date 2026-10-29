@@ -293,3 +293,23 @@ html[data-myteacher-theme] #root .mtc-app .mtc-side-nav .av-side-emoji{
 html[data-myteacher-theme="light"] #root .mtc-app .mtc-topbar{
   background:linear-gradient(90deg,#fafbff,#f9fffc)!important;
 }
+
+
+/* Identidad completa: la bienvenida ya utiliza nuestro robot, no la estrella. */
+html[data-myteacher-theme] #root .mtc-app .mtc-welcome-symbol {
+  display:inline-flex;align-items:center;justify-content:center;
+  width:92px;height:92px;margin-bottom:17px;
+  border-radius:25px;
+  background:linear-gradient(140deg,rgba(94,112,250,.14),rgba(163,96,214,.10),rgba(54,202,175,.12));
+  text-shadow:none!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-welcome-symbol svg {
+  display:block;width:81px;height:81px;max-width:100%;filter:drop-shadow(0 4px 8px rgba(44,85,169,.15));
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-ai-mark {
+  background:transparent!important;box-shadow:none!important;
+  display:grid;place-items:center;overflow:visible;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-ai-mark svg {
+  display:block;width:34px;height:34px;max-width:none;
+}
