@@ -1,5 +1,4 @@
 import { useId } from 'react'
-import type { CSSProperties } from 'react'
 
 /** Ilustraciones originales para los rompecabezas. No dependen de emojis del sistema operativo. */
 export function PiezaIlustrada({id, tema, forma, grande=false}:{id:string;tema:string;forma:string;grande?:boolean}) {
