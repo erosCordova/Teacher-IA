@@ -186,7 +186,7 @@ const PAREJAS=[
 ] as const
 
 function PanelMemoria({materia,onComplete}:{materia:MateriaId|'todas';onComplete:(id:string,materia:MateriaId,puntos:number)=>void}){
-  const pairs=useMemo(()=>{const matched=PAREJAS.filter(p=>materia==='todas'||p.materia===materia);return mezclar(matched.length>=2?matched:PAREJAS).slice(0,6)},[materia])
+  const pairs=useMemo(()=>{const matched=PAREJAS.filter(p=>materia==='todas'||p.materia===materia);return mezclar(matched.length>=2?matched:[...PAREJAS]).slice(0,6)},[materia])
   const cards=useMemo(()=>mezclar(pairs.flatMap((p,i)=>[{id:i+'a',pareja:i,text:p.a},{id:i+'b',pareja:i,text:p.b}])),[pairs])
   const [abiertos,setAbiertos]=useState<string[]>([]),[resueltos,setResueltos]=useState<number[]>([])
   const [intentos,setIntentos]=useState(0),[bloqueado,setBloqueado]=useState(false)
