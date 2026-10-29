@@ -9,7 +9,7 @@ import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react'
 import { createRoot } from 'react-dom/client'
 import HistorialAvanzado from './HistorialAvanzado'
 import GuiaPedagogica from './GuiaPedagogica'
-import EntradaVoz from './EntradaVoz'
+import { habilitarAudioKokoro } from './KokoroAudio'
 import ConversacionVoz from './ConversacionVoz'
 import './style.css'
 import './chatgpt-layout.css'
@@ -1365,8 +1365,11 @@ function App() {
                   />
                   <div className="mtc-composer-right">
                     <button type="button" className="mtc-voice-button"
-                      aria-label="Iniciar conversación por voz" title="Conversación por voz"
-                      onClick={() => setVoiceOpen(true)}>
+                      aria-label="Iniciar conversación por voz" title="Hablar con My Teacher IA"
+                      onClick={() => {
+                        habilitarAudioKokoro()
+                        setVoiceOpen(true)
+                      }}>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
                         aria-hidden="true">
@@ -1476,13 +1479,23 @@ function App() {
         )}
 
         {voiceOpen && (
-          <div className="mtc-modal-layer">
-            <button type="button" className="mtc-modal-shade" onClick={() => setVoiceOpen(false)}
+          <div className="mtc-live-voice-overlay">
+            <button type="button" className="mtc-live-voice-shade" onClick={() => setVoiceOpen(false)}
               aria-label="Cerrar conversación por voz" />
-            <section role="dialog" aria-modal="true" aria-label="Conversación por voz" className="mtc-modal">
-              <header><h2>Conversación por voz</h2><button type="button" onClick={() => setVoiceOpen(false)} aria-label="Cerrar">×</button></header>
-              <ConversacionVoz token={token} conversationId={active}
-                onConversationCreated={id => {setActive(id);setMessages([]);setHistoryVersion(v=>v+1)}}
+            <section role="dialog" aria-modal="true" aria-label="Hablar con My Teacher IA"
+              className="mtc-live-voice-panel">
+              <div className="mtc-live-voice-header">
+                <span><MarcaMyTeacher /> Conversación con My Teacher IA</span>
+                <button type="button" onClick={() => setVoiceOpen(false)} aria-label="Finalizar y cerrar">×</button>
+              </div>
+              <ConversacionVoz token={token} conversationId={active} autoStart compact
+                onClose={() => setVoiceOpen(false)}
+                onConversationCreated={id => {
+                  setActive(id)
+                  setMessages([])
+                  setHistoryVersion(v=>v+1)
+                  void refresh(token)
+                }}
                 onMessages={incoming => {
                   setMessages(previous => {
                     const known = new Set(previous.map(m=>String(m.id)))
@@ -1491,10 +1504,6 @@ function App() {
                   })
                   setHistoryVersion(v => v + 1)
                 }} />
-              <EntradaVoz token={token} disabled={busy} onTranscription={value => {
-                retryId.current=null
-                setDraft(previous => previous.trim() ? previous.trimEnd()+' '+value : value)
-              }} />
             </section>
           </div>
         )}
