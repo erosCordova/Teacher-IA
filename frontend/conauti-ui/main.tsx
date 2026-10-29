@@ -862,7 +862,7 @@ function App() {
               </div>
               <div className="mtc-auth-preview-user">¿Cómo puedo entender mejor las fracciones?</div>
               <div className="mtc-auth-preview-tutor">
-                <span className="mtc-auth-preview-spark" aria-hidden="true">✦</span>
+                <span className="mtc-auth-preview-spark" aria-hidden="true"><MarcaMyTeacher /></span>
                 <p>¡Descubrámoslo juntos! Si dividimos una pizza en cuatro partes,
                   ¿cuántas necesitaríamos para tener la mitad?</p>
               </div>
@@ -1141,7 +1141,7 @@ function App() {
                 <p className="mtc-loading" role="status">Cargando conversación...</p>
               ) : messages.length === 0 ? (
                 <section className="mtc-welcome">
-                  <div className="mtc-welcome-symbol" aria-hidden="true">✦</div>
+                  <div className="mtc-welcome-symbol" aria-hidden="true"><MarcaMyTeacher /></div>
                   <h1>¿Qué quieres aprender hoy?</h1>
                   <p>Haz una pregunta. Te ayudaré a descubrir la respuesta paso a paso.</p>
                 </section>
@@ -1158,7 +1158,7 @@ function App() {
                     return (
                       <article key={message.id}
                         className={'mtc-message ' + (message.role === 'user' ? 'mtc-message-user' : 'mtc-message-assistant')}>
-                        {message.role !== 'user' && <span className="mtc-ai-mark" aria-hidden="true">✦</span>}
+                        {message.role !== 'user' && <span className="mtc-ai-mark" aria-hidden="true"><MarcaMyTeacher /></span>}
                         <div className="mtc-message-body">
                           {document ? (
                             <>
