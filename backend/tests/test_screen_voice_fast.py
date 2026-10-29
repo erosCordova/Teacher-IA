@@ -35,10 +35,30 @@ class MockGemini:
         return Response()
 
 
+class FakeDB:
+    records = []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return None
+
+    def execute(self, sql, params):
+        if "INSERT INTO conauti_voice_usage" in sql:
+            self.records.append(params)
+        return self
+
+    def fetchone(self):
+        return {"total": 0}
+
+
 @pytest.fixture
 def client(monkeypatch):
     monkeypatch.setattr(voice, "config", lambda name: "test-key")
     monkeypatch.setattr(voice, "current_model", lambda: "gemini-test")
+    monkeypatch.setattr(voice, "connect", lambda: FakeDB())
+    FakeDB.records = []
     monkeypatch.setattr(voice.httpx, "AsyncClient", lambda **kwargs: MockGemini())
     app.dependency_overrides[current_user] = lambda: {"id": "estudiante"}
     MockGemini.calls = 0
@@ -65,6 +85,7 @@ def test_pregunta_con_voz_y_vista_usa_una_sola_llamada_gemini(client):
     result = client.post("/api/conauti/screen/ask-voice", json=audio_e_imagen())
     assert result.status_code == 200
     assert MockGemini.calls == 1
+    assert len(FakeDB.records) == 1
     assert result.json()["question"] == "¿Qué es una fracción?"
     assert result.json()["image_stored"] is False
     assert result.json()["audio_stored"] is False
