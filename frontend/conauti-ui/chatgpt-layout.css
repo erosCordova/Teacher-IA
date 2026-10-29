@@ -701,3 +701,68 @@ html[data-myteacher-theme] #root .mtc-app .mtc-file-chip button:hover {
 @media(prefers-reduced-motion:reduce) {
   #root .mtc-app .mtc-sidebar {transition:none;}
 }
+
+
+/* Nombre visible editable: estilo de perfil; temas claro y oscuro. */
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-form {
+  display:flex;flex-direction:column;gap:12px;margin-top:26px;
+  padding:clamp(20px,3vw,28px);border:1px solid var(--mtc-border);
+  border-radius:18px;background:var(--mtc-surface);color:var(--mtc-text);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-heading {
+  display:flex;gap:15px;align-items:center;margin-bottom:8px;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-avatar {
+  display:grid;place-items:center;flex:0 0 54px;width:54px;height:54px;
+  border-radius:18px;color:#fff;font-size:22px;font-weight:850;
+  background:linear-gradient(135deg,#4788f5,#8e62e7 68%,#df76be);
+  box-shadow:0 7px 18px rgba(93,102,218,.2);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-heading h2 {
+  color:var(--mtc-text);font-weight:750;font-size:17px;margin:0 0 4px;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-heading p,
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-form small {
+  color:var(--mtc-muted);font-size:12px;line-height:1.6;margin:0;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-form label {
+  font-weight:700;font-size:13px;color:var(--mtc-text);margin-top:5px;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-form input {
+  width:100%;max-width:460px;min-height:48px;border-radius:12px;
+  border:1px solid var(--mtc-border);padding:12px 14px;
+  color:var(--mtc-text);background:var(--mtc-bg);font:inherit;font-size:14px;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-form input:focus-visible {
+  border-color:#8b6be7;outline:3px solid rgba(134,107,232,.17);outline-offset:1px;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-action {
+  display:flex;align-items:center;justify-content:flex-start;margin-top:5px;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-action button {
+  background:linear-gradient(110deg,#5a78f2,#9361e5)!important;
+  border:0;border-radius:11px;padding:12px 18px;color:#fff!important;
+  font-weight:800;font-size:13px;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-action button:disabled {
+  opacity:.5;cursor:not-allowed;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-feedback {
+  color:var(--mtc-accent);font-size:13px;font-weight:650;line-height:1.6;margin:0;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-identity {
+  border-top:1px solid var(--mtc-border);padding-top:17px;margin-top:8px;
+  display:grid;gap:5px;min-width:0;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-identity strong {
+  font-size:12px;font-weight:750;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-profile-identity span {
+  color:var(--mtc-muted);font-size:13px;overflow-wrap:anywhere;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer .mtc-account span:last-child {
+  font-weight:650;
+}
+@media(max-width:480px) {
+  html[data-myteacher-theme] #root .mtc-app .mtc-profile-form {padding:18px}
+}
