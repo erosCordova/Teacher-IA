@@ -54,6 +54,10 @@ function motor(): Promise<Motor> {
   return motorPromise
 }
 
+export async function prepararKokoroEnNavegador(): Promise<void> {
+  await Promise.all([motor(), fonemizarEspanol('Hola')])
+}
+
 export async function sintetizarKokoroEnNavegador(
   texto: string,
   voz: KokoroVoice,
