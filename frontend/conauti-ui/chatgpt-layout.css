@@ -776,3 +776,19 @@ html[data-myteacher-theme] #root .mtc-app .mtc-mark {
 html[data-myteacher-theme] #root .mtc-app .mtc-mark svg {
   width:36px;height:36px;max-width:none;display:block;
 }
+
+/* Presentación del emblema propio en el inicio del chat */
+html[data-myteacher-theme] #root .mtc-app .mtc-welcome-symbol {
+  display: grid;
+  place-items: center;
+  min-height: 80px;
+  margin: 0 auto 17px;
+  font-size: 0 !important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-welcome-symbol svg {
+  display: block;
+  width: 72px !important;
+  height: 72px !important;
+  max-width: 100%;
+  filter: drop-shadow(0 5px 11px rgba(25, 136, 240, .12));
+}
