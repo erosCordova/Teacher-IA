@@ -28,6 +28,5 @@ export default function MarcaMyTeacher({className = ""}: {className?: string}) {
     <path d="M42 46v8q22 15 44 0v-8" fill="#1649BC"/>
     <path d="M104 38v18" stroke="#326DE1" strokeWidth="3" strokeLinecap="round"/>
     <circle cx="104" cy="59" r="4" fill="#55C7F9"/>
-    <path d="m112 22 2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6Z" fill="#9B73F9"/>
   </svg>
 }
