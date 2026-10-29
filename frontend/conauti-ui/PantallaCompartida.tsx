@@ -34,7 +34,11 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
   const imageRequestRef = useRef<AbortController | null>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
-  const speechEnabledRef = useRef(false);
+  // La respuesta hablada viene activada: preguntar por micrófono debe recibir voz.
+  // Se puede silenciar expresamente con el botón de la interfaz.
+  const speechEnabledRef = useRef(true);
+  const speechTurnRef = useRef(0);
+  const speechUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const dialogIdRef = useRef(0);
   const lastAnswerRef = useRef("");
   const lastQuestionRef = useRef("");
@@ -44,7 +48,8 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
   const [compartiendo, setCompartiendo] = useState(false);
   const [analizando, setAnalizando] = useState(false);
   const [estadoVoz, setEstadoVoz] = useState<"listo" | "permiso" | "grabando" | "transcribiendo">("listo");
-  const [leerRespuestas, setLeerRespuestas] = useState(false);
+  const [leerRespuestas, setLeerRespuestas] = useState(true);
+  const [hablando, setHablando] = useState(false);
   const [archivo, setArchivo] = useState<File | null>(archivoInicial);
   const [vistaArchivo, setVistaArchivo] = useState("");
   const [pregunta, setPregunta] = useState("");
@@ -75,6 +80,13 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
     video.srcObject = streamRef.current;
     void video.play().catch(() => {});
   }, [compartiendo, minimizado, popout]);
+
+  const detenerLectura = useCallback(() => {
+    speechTurnRef.current += 1;
+    speechUtteranceRef.current = null;
+    window.speechSynthesis?.cancel();
+    if (mountedRef.current) setHablando(false);
+  }, []);
 
   const detenerVoz = useCallback(() => {
     if (audioTimerRef.current !== null) clearTimeout(audioTimerRef.current);
@@ -108,11 +120,11 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
     detenerVoz();
     detener();
     imageRequestRef.current?.abort();
-    window.speechSynthesis?.cancel();
+    detenerLectura();
     if (popoutRef.current && !popoutRef.current.closed) popoutRef.current.close();
     popoutRef.current = null;
     onClose();
-  }, [detener, detenerVoz, onClose]);
+  }, [detener, detenerVoz, detenerLectura, onClose]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -124,10 +136,10 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
       recorderRef.current?.state !== "inactive" && recorderRef.current?.stop();
       imageRequestRef.current?.abort();
       transcriptRequestRef.current?.abort();
-      window.speechSynthesis?.cancel();
+      detenerLectura();
       if (popoutRef.current && !popoutRef.current.closed) popoutRef.current.close();
     };
-  }, []);
+  }, [detenerLectura]);
 
   async function comenzar() {
     setError("");
@@ -208,15 +220,82 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
   }
 
   function hablar(texto: string) {
-    if (!speechEnabledRef.current || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(texto.slice(0, 1400));
-    utterance.lang = "es-PE";
-    utterance.rate = 1;
-    const voces = window.speechSynthesis.getVoices();
-    utterance.voice = voces.find(v => v.lang.toLowerCase() === "es-pe")
-      || voces.find(v => v.lang.toLowerCase().startsWith("es")) || null;
-    window.speechSynthesis.speak(utterance);
+    if (!speechEnabledRef.current || !mountedRef.current) return;
+    if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+      setError("Este navegador no ofrece lectura en voz alta. Prueba Chrome o Edge.");
+      return;
+    }
+
+    // Se utiliza la voz española disponible en el dispositivo para no depender
+    // del servidor Kokoro: el audio empieza sin descargar modelos ni usar cuotas.
+    const limpio = texto
+      .replace(/https?:\/\/\S+/g, "un enlace")
+      .replace(/[`*_#]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim().slice(0, 2600);
+    if (!limpio) return;
+
+    const partes: string[] = [];
+    let restante = limpio;
+    while (restante.length > 0) {
+      let corte = Math.min(180, restante.length);
+      if (corte < restante.length) {
+        const espacio = restante.lastIndexOf(" ", corte);
+        if (espacio > 70) corte = espacio;
+      }
+      partes.push(restante.slice(0, corte).trim());
+      restante = restante.slice(corte).trim();
+    }
+
+    detenerLectura();
+    const turno = speechTurnRef.current;
+    const sintetizador = window.speechSynthesis;
+    const voces = sintetizador.getVoices();
+    const voz = voces.find(v => v.lang.toLowerCase() === "es-pe")
+      || voces.find(v => v.lang.toLowerCase().startsWith("es"))
+      || null;
+    let indice = 0;
+
+    const siguiente = () => {
+      if (!mountedRef.current || !speechEnabledRef.current || speechTurnRef.current !== turno) return;
+      if (indice >= partes.length) {
+        speechUtteranceRef.current = null;
+        setHablando(false);
+        setEstado("Respuesta terminada. Puedes seguir preguntando.");
+        return;
+      }
+      const mensaje = new SpeechSynthesisUtterance(partes[indice++]);
+      mensaje.lang = voz?.lang || "es-PE";
+      mensaje.voice = voz;
+      mensaje.rate = 1;
+      mensaje.volume = 1;
+      // Conservar la referencia evita que algunos navegadores interrumpan la lectura.
+      speechUtteranceRef.current = mensaje;
+      mensaje.onstart = () => {
+        if (speechTurnRef.current === turno) {
+          setHablando(true);
+          setEstado("My Teacher IA está respondiendo con voz...");
+        }
+      };
+      mensaje.onend = siguiente;
+      mensaje.onerror = evento => {
+        if (speechTurnRef.current !== turno) return;
+        speechUtteranceRef.current = null;
+        setHablando(false);
+        if (evento.error !== "canceled" && evento.error !== "interrupted") {
+          setError("No se pudo reproducir la voz. Comprueba el volumen o pulsa «Escuchar de nuevo».");
+        }
+      };
+      try {
+        sintetizador.speak(mensaje);
+        if (sintetizador.paused) sintetizador.resume();
+      } catch {
+        speechUtteranceRef.current = null;
+        setHablando(false);
+        setError("El navegador bloqueó el audio. Pulsa «Escuchar de nuevo» para activarlo.");
+      }
+    };
+    siguiente();
   }
 
   async function consultar(texto?: string) {
@@ -323,7 +402,10 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
       setError("Tu navegador no permite grabar audio. Puedes escribir tu pregunta.");
       return;
     }
-    window.speechSynthesis?.cancel();
+    detenerLectura();
+    // Interacción explícita del estudiante: despierta las voces disponibles
+    // antes de recibir de forma asíncrona la respuesta de la IA.
+    window.speechSynthesis?.getVoices();
     setEstadoVoz("permiso");
     setError("");
     try {
@@ -521,12 +603,25 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
             const next = !speechEnabledRef.current;
             speechEnabledRef.current = next;
             setLeerRespuestas(next);
-            if (!next) window.speechSynthesis?.cancel();
+            if (!next) detenerLectura();
+            else if (lastAnswerRef.current) hablar(lastAnswerRef.current);
           }}
           aria-pressed={leerRespuestas} title="Leer respuestas en voz alta">
-          {leerRespuestas ? "🔊 Respuestas por voz: sí" : "🔇 Respuestas por voz: no"}
+          {leerRespuestas ? "🔊 Voz activada" : "🔇 Voz silenciada"}
         </button>
-        <span>{estadoVoz === "grabando" ? "Escuchando..." : estadoVoz === "transcribiendo" ? "Transcribiendo..." : analizando ? "Analizando..." : estado}</span>
+        {lastAnswerRef.current && (
+          <button type="button" className="mt-pantalla-replay"
+            title={hablando ? "Detener la lectura" : "Repetir la última respuesta en voz alta"}
+            onClick={() => {
+              if (hablando) { detenerLectura(); return; }
+              speechEnabledRef.current = true;
+              setLeerRespuestas(true);
+              hablar(lastAnswerRef.current);
+            }}>
+            {hablando ? "■ Detener voz" : "↻ Escuchar de nuevo"}
+          </button>
+        )}
+        <span>{estadoVoz === "grabando" ? "Escuchando..." : estadoVoz === "transcribiendo" ? "Transcribiendo..." : analizando ? "Analizando..." : hablando ? "Respondiendo con voz..." : estado}</span>
       </div>
       {error && <div className="mt-pantalla-error" role="alert">{error}</div>}
     </section>
