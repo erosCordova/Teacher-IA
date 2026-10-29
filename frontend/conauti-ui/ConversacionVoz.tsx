@@ -18,7 +18,9 @@ type Props = {
   onMessages: (messages: unknown[]) => void
   autoStart?: boolean
   compact?: boolean
+  headless?: boolean
   onClose?: () => void
+  onStatusChange?: (phase: Phase, notice: string) => void
 }
 
 export default function ConversacionVoz({
@@ -28,7 +30,9 @@ export default function ConversacionVoz({
   onMessages,
   autoStart = false,
   compact = false,
+  headless = false,
   onClose,
+  onStatusChange,
 }: Props) {
   const [phase, setPhase] = useState<Phase>('inactivo')
   const [notice, setNotice] = useState(
@@ -52,6 +56,10 @@ export default function ConversacionVoz({
   const controller = useRef<AbortController | null>(null)
   const parts = useRef<Blob[]>([])
   const manualStop = useRef(false)
+
+  useEffect(() => {
+    onStatusChange?.(phase, notice)
+  }, [phase, notice, onStatusChange])
 
   function releaseMicrophone() {
     if (monitor.current) clearInterval(monitor.current)
@@ -240,9 +248,9 @@ export default function ConversacionVoz({
           (!heardVoice && !manualStop.current) ||
           blob.size < 900
         ) {
-          halt(
-            'No se escuchó una frase clara. Vuelve a iniciar la conversación.',
-          )
+          // Sin voz detectable no cerramos la conversación: seguimos escuchando.
+          setNotice('Sigo escuchando. Puedes hablar cuando quieras.')
+          void listen(id)
           return
         }
 
@@ -626,6 +634,8 @@ export default function ConversacionVoz({
     // El modo se monta una sola vez por cada apertura del usuario.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart])
+
+  if (headless) return null
 
   if (compact) {
     const estado = {
