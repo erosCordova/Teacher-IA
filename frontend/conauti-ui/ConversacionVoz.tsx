@@ -16,6 +16,9 @@ type Props = {
   conversationId: string | null
   onConversationCreated: (id: string) => void
   onMessages: (messages: unknown[]) => void
+  autoStart?: boolean
+  compact?: boolean
+  onClose?: () => void
 }
 
 export default function ConversacionVoz({
@@ -23,6 +26,9 @@ export default function ConversacionVoz({
   conversationId,
   onConversationCreated,
   onMessages,
+  autoStart = false,
+  compact = false,
+  onClose,
 }: Props) {
   const [phase, setPhase] = useState<Phase>('inactivo')
   const [notice, setNotice] = useState(
@@ -611,6 +617,73 @@ export default function ConversacionVoz({
     cancelarVozKokoro(window.speechSynthesis)
 
     void listen(session.current)
+  }
+
+  // La conversación principal comienza al abrirse, sin un segundo clic.
+  // Se solicita el micrófono únicamente al activarse esta interfaz.
+  useEffect(() => {
+    if (autoStart) begin()
+    // El modo se monta una sola vez por cada apertura del usuario.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart])
+
+  if (compact) {
+    const estado = {
+      inactivo: 'Micrófono apagado',
+      escuchando: 'Te estoy escuchando',
+      transcribiendo: 'Reconociendo tu voz',
+      pensando: 'Preparando respuesta',
+      hablando: 'My Teacher IA está hablando',
+      pausado: 'Respuesta en pausa',
+    }[phase]
+
+    return (
+      <section className="mtc-live-voice" aria-label="Conversación por voz">
+        <div className={'mtc-live-voice-orb phase-' + phase} aria-hidden="true">
+          <svg viewBox="0 0 80 80" width="64" height="64" fill="none">
+            <circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="2" opacity=".22" />
+            <rect x="34" y="19" width="12" height="30" rx="6" fill="currentColor" />
+            <path d="M26 37a14 14 0 0 0 28 0M40 52v11m-10 0h20" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+          </svg>
+        </div>
+        <strong className="mtc-live-voice-title">{estado}</strong>
+        <p className="mtc-live-voice-description" role="status">{notice}</p>
+        {phase === 'escuchando' && (
+          <div className="mtc-live-voice-meter" aria-label="Nivel de entrada del micrófono">
+            <div style={{width: volume + '%'}} />
+          </div>
+        )}
+        {heard && <div className="mtc-live-voice-line">
+          <small>Tu pregunta</small><p>{heard}</p>
+        </div>}
+        {answered && <div className="mtc-live-voice-line mtc-live-voice-answer">
+          <small>My Teacher IA</small><p>{answered}</p>
+        </div>}
+        <div className="mtc-live-voice-actions">
+          {phase === 'inactivo' && (
+            <button type="button" onClick={begin} className="mtc-live-action-primary">Activar micrófono</button>
+          )}
+          {phase === 'escuchando' && (
+            <button type="button" className="mtc-live-action-primary" onClick={() => {
+              if (recorder.current?.state === 'recording') {
+                manualStop.current = true
+                recorder.current.stop()
+              }
+            }}>Enviar mi frase</button>
+          )}
+          {(phase === 'hablando' || phase === 'pausado') && (
+            <button type="button" className="mtc-live-action-primary" onClick={interrupt}>
+              Interrumpir y hablar
+            </button>
+          )}
+          <button type="button" className="mtc-live-action-end" onClick={() => {
+            halt()
+            onClose?.()
+          }}>Finalizar</button>
+        </div>
+        <small className="mtc-live-voice-help">Habla con naturalidad. Después de una pausa enviaré tu pregunta y responderé con voz.</small>
+      </section>
+    )
   }
 
   return (
