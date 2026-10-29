@@ -209,17 +209,18 @@ export function hablarConKokoro(
   const reproducir = async (blob: Blob) => {
     if (!vigente()) return
 
-    // AudioContext se desbloquea desde el boton "Iniciar"
-    // antes de acceder al microfono y consultar a Gemini.
-    await reproducirBlobKokoro(blob, volumen, abort.signal)
-
-    if (vigente() && !iniciado) {
+    // Avisar al componente ANTES de empezar a reproducir.
+    // La implementación anterior emitía onstart al terminar TODO el primer
+    // fragmento y no permitía detener a tiempo una respuesta Kokoro larga.
+    if (!iniciado) {
       iniciado = true
       mensaje.onstart?.call(
         mensaje,
         new Event('start') as SpeechSynthesisEvent,
       )
     }
+    if (!vigente()) return
+    await reproducirBlobKokoro(blob, volumen, abort.signal)
   }
 
   const ejecutar = async () => {
