@@ -4,7 +4,7 @@ import AventuraEducativa from "./AventuraEducativa";
 import MarcaMyTeacher from "./MarcaMyTeacher";
 import { validarImagen, dimensionesImagen, LIMITE_ENVIO } from "./ImagenEducativa";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react'
 import { createRoot } from 'react-dom/client'
 import HistorialAvanzado from './HistorialAvanzado'
@@ -175,6 +175,12 @@ function App() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [toolsOpen, setToolsOpen] = useState(false)
   const [voiceOpen, setVoiceOpen] = useState(false)
+  const [voicePhase, setVoicePhase] = useState<'inactivo' | 'escuchando' | 'transcribiendo' | 'pensando' | 'hablando' | 'pausado'>('inactivo')
+  const [voiceNotice, setVoiceNotice] = useState('')
+  const updateVoiceStatus = useCallback((phase: typeof voicePhase, notice: string) => {
+    setVoicePhase(phase)
+    setVoiceNotice(notice)
+  }, [])
   const [screenOpen, setScreenOpen] = useState(false)
   const [visualFile, setVisualFile] = useState<File | null>(null)
   const [attachedFile, setAttachedFile] = useState<File | null>(null)
@@ -1364,11 +1370,20 @@ function App() {
                     }}
                   />
                   <div className="mtc-composer-right">
-                    <button type="button" className="mtc-voice-button"
-                      aria-label="Iniciar conversación por voz" title="Hablar con My Teacher IA"
+                    <button type="button" className={'mtc-voice-button' + (voiceOpen ? ' mtc-voice-button-active' : '')}
+                      aria-pressed={voiceOpen}
+                      aria-label={voiceOpen ? 'Detener conversación por voz' : 'Iniciar conversación por voz'}
+                      title={voiceOpen ? 'Detener conversación' : 'Hablar con My Teacher IA'}
                       onClick={() => {
-                        habilitarAudioKokoro()
-                        setVoiceOpen(true)
+                        if (voiceOpen) {
+                          setVoiceOpen(false)
+                          setVoicePhase('inactivo')
+                          setVoiceNotice('')
+                        } else {
+                          habilitarAudioKokoro()
+                          setVoiceNotice('Activando el micrófono…')
+                          setVoiceOpen(true)
+                        }
                       }}>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
@@ -1385,7 +1400,19 @@ function App() {
                   </div>
                 </div>
               </form>
-              <p className="mtc-guidance">Aprende con pistas y explicaciones. Tu tutor te acompaña paso a paso.</p>
+              {voiceOpen ? (
+                <p className="mtc-voice-inline-status" role="status" aria-live="polite">
+                  <span className={'mtc-voice-status-dot phase-' + voicePhase} aria-hidden="true" />
+                  {voicePhase === 'escuchando' ? 'Escuchando… habla con naturalidad'
+                    : voicePhase === 'transcribiendo' ? 'Reconociendo tu voz…'
+                    : voicePhase === 'pensando' ? 'Preparando una respuesta…'
+                    : voicePhase === 'hablando' ? 'My Teacher IA está respondiendo con voz…'
+                    : voicePhase === 'pausado' ? 'Respuesta en pausa'
+                    : voiceNotice || 'Activando micrófono…'}
+                </p>
+              ) : (
+                <p className="mtc-guidance">Aprende con pistas y explicaciones. Tu tutor te acompaña paso a paso.</p>
+              )}
             </div>
           </main>
         )}
@@ -1479,33 +1506,23 @@ function App() {
         )}
 
         {voiceOpen && (
-          <div className="mtc-live-voice-overlay">
-            <button type="button" className="mtc-live-voice-shade" onClick={() => setVoiceOpen(false)}
-              aria-label="Cerrar conversación por voz" />
-            <section role="dialog" aria-modal="true" aria-label="Hablar con My Teacher IA"
-              className="mtc-live-voice-panel">
-              <div className="mtc-live-voice-header">
-                <span><MarcaMyTeacher /> Conversación con My Teacher IA</span>
-                <button type="button" onClick={() => setVoiceOpen(false)} aria-label="Finalizar y cerrar">×</button>
-              </div>
-              <ConversacionVoz token={token} conversationId={active} autoStart compact
-                onClose={() => setVoiceOpen(false)}
-                onConversationCreated={id => {
-                  setActive(id)
-                  setMessages([])
-                  setHistoryVersion(v=>v+1)
-                  void refresh(token)
-                }}
-                onMessages={incoming => {
-                  setMessages(previous => {
-                    const known = new Set(previous.map(m=>String(m.id)))
-                    const unique = (incoming as Array<(typeof previous)[number]>).filter(m=>m && !known.has(String(m.id)))
-                    return [...previous,...unique]
-                  })
-                  setHistoryVersion(v => v + 1)
-                }} />
-            </section>
-          </div>
+          <ConversacionVoz token={token} conversationId={active} autoStart headless
+            onStatusChange={updateVoiceStatus}
+            onConversationCreated={id => {
+              setActive(id)
+              setMessages([])
+              setHistoryVersion(v => v + 1)
+              void refresh(token)
+            }}
+            onMessages={incoming => {
+              setMessages(previous => {
+                const known = new Set(previous.map(m => String(m.id)))
+                const unique = (incoming as Array<(typeof previous)[number]>)
+                  .filter(m => m && !known.has(String(m.id)))
+                return [...previous, ...unique]
+              })
+              setHistoryVersion(v => v + 1)
+            }} />
         )}
 
         {screenOpen && (
