@@ -4,6 +4,7 @@ import {
   CURIOSIDADES, JUEGOS, MATERIAS, PREGUNTAS, ROMPECABEZAS,
   type MateriaId, type Pieza, type Pregunta, type Rompecabezas,
 } from './AventuraDatos'
+import { PiezaIlustrada, EscenarioRompecabezas } from './IlustracionesPuzzle'
 import './AventuraEducativa.css'
 
 export type SeccionAventura = 'juegos' | 'sabias' | 'logros'
@@ -48,75 +49,155 @@ function PanelRompecabezas({tema,onComplete,onHint}:{tema:Rompecabezas;onComplet
   const [mensaje,setMensaje]=useState('')
   const [mostrarPista,setMostrarPista]=useState(false)
   const [completado,setCompletado]=useState(false)
+  const [zonaActiva,setZonaActiva]=useState<string|null>(null)
+  const [zonaError,setZonaError]=useState<string|null>(null)
   const piezas=useMemo(()=>mezclar(tema.piezas),[tema.id])
-  useEffect(()=>{setPuestos({});setElegido(null);setIntentos(0);setMensaje('');setMostrarPista(false);setCompletado(false)},[tema.id])
+  useEffect(()=>{
+    setPuestos({});setElegido(null);setIntentos(0);setMensaje('')
+    setMostrarPista(false);setCompletado(false);setZonaActiva(null);setZonaError(null)
+  },[tema.id])
   const restantes=piezas.filter(p=>!puestos[p.id])
-  const total=tema.piezas.length, correctos=Object.keys(puestos).length
+  const total=tema.piezas.length
+  const correctos=Object.keys(puestos).length
+  const porcentaje=total?Math.round(correctos/total*100):0
   const pista=elegido?tema.piezas.find(p=>p.id===elegido):null
+  const reiniciar=()=>{
+    setPuestos({});setElegido(null);setIntentos(0);setMensaje('')
+    setMostrarPista(false);setCompletado(false);setZonaActiva(null);setZonaError(null)
+  }
   const colocar=(destino:string,origen:string|null)=>{
+    setZonaActiva(null)
     if(!origen || completado || puestos[destino])return
-    const pieza=tema.piezas.find(p=>p.id===origen);if(!pieza)return
+    const pieza=tema.piezas.find(p=>p.id===origen)
+    if(!pieza||puestos[origen])return
     setIntentos(n=>n+1)
-    if(destino!==origen){setMensaje('Ese no es su lugar. Observa las pistas de la silueta e inténtalo otra vez.');return}
-    const siguiente={...puestos,[destino]:origen};setPuestos(siguiente);setElegido(null);setMostrarPista(false)
-    setMensaje('¡Excelente! '+pieza.descripcion)
+    if(destino!==origen){
+      setZonaError(destino)
+      setMensaje('Todavía no es la posición correcta. Observa el esquema y vuelve a intentarlo.')
+      return
+    }
+    const siguiente={...puestos,[destino]:origen}
+    setPuestos(siguiente);setElegido(null);setMostrarPista(false);setZonaError(null)
+    setMensaje('¡Muy bien! '+pieza.descripcion)
     if(Object.keys(siguiente).length===total){
-      setCompletado(true);onComplete(tema.id,tema.materia,Math.max(35,90-Math.max(0,intentos+1-total)*5))
+      setCompletado(true)
+      onComplete(tema.id,tema.materia,Math.max(35,90-Math.max(0,intentos+1-total)*5))
     }
   }
-  return <div className="av-play-grid">
-    <div className="av-board-wrap">
-      <div className="av-board-top"><span>🧩 Tablero interactivo</span><span>{correctos} de {total} piezas</span></div>
-      <div className={'av-puzzle-board av-board-'+tema.tipo} aria-label={'Tablero: '+tema.nombre}>
-        {tema.tipo==='cuerpo'&& <svg className="av-body-shape" viewBox="0 0 260 380" aria-hidden="true">
-          <circle cx="130" cy="43" r="35" fill="#bedff4" fillOpacity=".42" stroke="#6dacc9" strokeWidth="3"/>
-          <path d="M99 78 L70 94 Q56 105 48 135 L28 214 Q26 228 39 231 Q51 233 56 219 L79 157 L91 212 L93 277 L88 352 Q86 367 101 367 L114 367 Q126 365 126 351 L130 272 L134 351 Q136 365 150 367 L163 367 Q178 364 174 350 L170 276 L169 209 L182 157 L205 219 Q210 233 222 231 Q237 228 231 211 L211 133 Q204 104 191 94 L160 78Z" fill="#bad9ef" fillOpacity=".33" stroke="#7cacc7" strokeWidth="3"/>
-          <path d="M130 80V220M89 165H172" stroke="#6facc9" strokeDasharray="4 10" strokeWidth="2"/>
-        </svg>}
-        {tema.tipo==='celula'&&<svg className="av-body-shape" viewBox="0 0 260 380" aria-hidden="true">
-          <ellipse cx="130" cy="195" rx="111" ry="150" fill="#b7f6e4" fillOpacity=".3" stroke="#17b99f" strokeWidth="5"/>
-          <ellipse cx="135" cy="190" rx="47" ry="57" fill="#bd8bea" fillOpacity=".23" stroke="#9563dc" strokeWidth="2" strokeDasharray="6 5"/>
-          <path d="M55 130Q80 94 105 132M158 290Q188 307 212 277M63 235Q90 269 112 245" fill="none" stroke="#61c5be" strokeWidth="4"/>
-        </svg>}
-        {tema.tipo==='sistema'&&<svg className="av-diagram-lines" viewBox="0 0 400 180" aria-hidden="true">
-          <circle cx="32" cy="90" r="26" fill="#ffc250"/><path d="M77 90H388" stroke="#f9bb57" strokeWidth="3" strokeDasharray="5 10"/>
-        </svg>}
-        {tema.tipo==='diagrama'&&<svg className="av-diagram-lines" viewBox="0 0 400 180" aria-hidden="true">
-          <path d="M23 89H380" stroke="currentColor" strokeOpacity=".15" strokeWidth="4" strokeDasharray="8 10"/>
-        </svg>}
-        {tema.piezas.map((pieza,indice)=><button key={pieza.id} type="button"
-          className={'av-drop '+(puestos[pieza.id]?'av-drop-done':'')+' av-drop-'+tema.tipo}
-          style={{left:pieza.x+'%',top:pieza.y+'%'} as React.CSSProperties}
-          onClick={()=>colocar(pieza.id,elegido)}
-          onDragOver={event=>event.preventDefault()}
-          onDrop={event=>{event.preventDefault();colocar(pieza.id,event.dataTransfer.getData('text/plain'))}}
-          title={puestos[pieza.id]?pieza.descripcion:'Coloca aquí '+pieza.nombre}
-          aria-label={puestos[pieza.id]?'Ubicado: '+pieza.nombre:'Zona '+(indice+1)+': '+pieza.nombre}>
-          {puestos[pieza.id]?<><span className="av-done-emoji">{pieza.forma}</span><small>{pieza.nombre}</small></>:<><strong>＋</strong><small>{tema.tipo==='cuerpo'?'Zona '+(indice+1):'Pieza '+(indice+1)}</small></>}
-        </button>)}
+  return (
+    <section className="av-puzzle-experience" aria-label={'Rompecabezas: '+tema.nombre}>
+      <div className="av-puzzle-intro">
+        <span className="av-puzzle-intro-icon" aria-hidden="true">🧩</span>
+        <div><strong>{tema.nombre}</strong><p>{tema.subtitulo} Selecciona una pieza o arrástrala a la zona adecuada.</p></div>
+        <span className="av-puzzle-intro-tag">Misión interactiva</span>
       </div>
-      <div className="av-board-footer"><span>Arrastra una pieza o selecciónala y toca su zona.</span><button type="button" onClick={()=>{setPuestos({});setElegido(null);setMensaje('');setCompletado(false);setIntentos(0)}}>↺ Reiniciar</button></div>
-    </div>
-    <div className="av-pieces-panel">
-      <div className="av-pieces-head"><h3>Tu colección de piezas</h3><span>{restantes.length} pendientes</span></div>
-      <div className="av-piece-list">
-        {restantes.length?restantes.map(pieza=><button key={pieza.id} type="button" draggable
-          onDragStart={event=>{event.dataTransfer.setData('text/plain',pieza.id);setElegido(pieza.id)}}
-          onClick={()=>{setElegido(pieza.id);setMostrarPista(false);setMensaje('Ahora elige su posición en el tablero.')}}
-          className={'av-piece '+(elegido===pieza.id?'av-piece-picked':'')}>
-          <span>{pieza.forma}</span><span>{pieza.nombre}</span><span aria-hidden="true">⠿</span>
-        </button>):<div className="av-winner">🏆 ¡Rompecabezas completado!</div>}
+      <div className="av-play-grid av-play-grid-pro">
+        <div className="av-board-wrap av-board-wrap-pro">
+          <div className="av-board-top av-board-top-pro">
+            <div className="av-board-caption">
+              <span className="av-title-icon" aria-hidden="true">🧩</span>
+              <span><strong>Tablero interactivo</strong><small>Relaciona cada pieza con su posición</small></span>
+            </div>
+            <div className="av-puzzle-counter" aria-label={correctos+' de '+total+' piezas colocadas'}>
+              <strong>{correctos} de {total}</strong><small>piezas</small>
+            </div>
+          </div>
+          <div className="av-progress-track" role="progressbar" aria-label="Progreso del rompecabezas"
+            aria-valuenow={correctos} aria-valuemin={0} aria-valuemax={total}>
+            <div style={{width:porcentaje+'%'}} />
+          </div>
+          <div className="av-board-viewport">
+            <div className={'av-puzzle-board av-board-pro av-board-'+tema.tipo+(tema.tipo==='cuerpo'?' av-board-anatomia':'')}
+              aria-label={'Tablero: '+tema.nombre}>
+              <div className="av-board-decoration av-decor-one" aria-hidden="true" />
+              <div className="av-board-decoration av-decor-two" aria-hidden="true" />
+              <EscenarioRompecabezas tipo={tema.tipo} identificador={tema.id}/>
+              {tema.piezas.map((pieza,indice)=>{
+                const ubicado=Boolean(puestos[pieza.id])
+                const activo=zonaActiva===pieza.id
+                const error=zonaError===pieza.id
+                return <button key={pieza.id} type="button"
+                  className={'av-drop av-drop-pro av-drop-'+tema.tipo+
+                    (ubicado?' av-drop-done':'')+(activo?' av-drop-target':'')+(error?' av-drop-error':'')}
+                  style={{left:pieza.x+'%',top:pieza.y+'%'} as React.CSSProperties}
+                  onClick={()=>colocar(pieza.id,elegido)}
+                  onDragEnter={event=>{event.preventDefault();setZonaActiva(pieza.id)}}
+                  onDragOver={event=>{event.preventDefault();event.dataTransfer.dropEffect='move'}}
+                  onDragLeave={()=>setZonaActiva(actual=>actual===pieza.id?null:actual)}
+                  onDrop={event=>{
+                    event.preventDefault()
+                    const origen=event.dataTransfer.getData('text/plain')
+                    colocar(pieza.id,origen)
+                  }}
+                  aria-label={ubicado?'Pieza colocada: '+pieza.nombre:'Zona vacía '+(indice+1)}
+                  title={ubicado?pieza.descripcion:'Selecciona primero una pieza y toca esta zona'}>
+                  {ubicado?<><span className="av-slot-illustration"><PiezaIlustrada id={pieza.id} tema={tema.id} forma={pieza.forma} grande/></span>
+                    <small>{pieza.nombre}</small><span className="av-slot-check" aria-hidden="true">✓</span></>
+                    :<><span className="av-drop-plus" aria-hidden="true">+</span><small>Zona {indice+1}</small></>}
+                </button>
+              })}
+              {completado&&<div className="av-board-celebration" role="status">
+                <span aria-hidden="true">🏆</span><strong>¡Lo lograste!</strong>
+                <small>Has completado todas las piezas.</small>
+              </div>}
+            </div>
+          </div>
+          <div className="av-board-footer">
+            <span><span aria-hidden="true">☝️</span> Arrastra una pieza o tócala y elige su zona.</span>
+            <button type="button" onClick={reiniciar}>↻ Volver a jugar</button>
+          </div>
+        </div>
+        <div className="av-pieces-panel av-pieces-panel-pro">
+          <div className="av-pieces-head av-pieces-head-pro">
+            <div className="av-board-caption">
+              <span className="av-title-icon av-title-icon-bag" aria-hidden="true">🎒</span>
+              <span><strong>Tu colección de piezas</strong><small>Elige la siguiente ilustración</small></span>
+            </div>
+            <span className="av-pieces-pending">{restantes.length} pendientes</span>
+          </div>
+          <div className="av-piece-list av-piece-list-pro">
+            {restantes.length?restantes.map((pieza,indice)=><button key={pieza.id} type="button" draggable={!completado}
+              onDragStart={event=>{
+                event.dataTransfer.setData('text/plain',pieza.id)
+                event.dataTransfer.effectAllowed='move'
+                setElegido(pieza.id);setZonaError(null)
+              }}
+              onDragEnd={()=>setZonaActiva(null)}
+              onClick={()=>{
+                setElegido(pieza.id);setMostrarPista(false);setZonaError(null)
+                setMensaje('Seleccionaste '+pieza.nombre+'. Ahora toca su posición en el tablero.')
+              }}
+              aria-pressed={elegido===pieza.id}
+              aria-label={'Seleccionar pieza '+pieza.nombre}
+              className={'av-piece av-piece-pro av-piece-color-'+(indice%6)+(elegido===pieza.id?' av-piece-picked':'')}>
+              <span className="av-piece-visual"><PiezaIlustrada id={pieza.id} tema={tema.id} forma={pieza.forma}/></span>
+              <strong className="av-piece-name">{pieza.nombre}</strong>
+              <span className="av-piece-grip" aria-hidden="true">⠿</span>
+              {elegido===pieza.id&&<span className="av-piece-selected">Seleccionada ✓</span>}
+            </button>):<div className="av-winner"><span>🏆</span><strong>¡Colección completa!</strong>
+              <small>Has ubicado todas las piezas correctamente.</small></div>}
+          </div>
+          <div className="av-puzzle-help av-puzzle-help-pro">
+            <span className="av-puzzle-help-icon" aria-hidden="true">💡</span>
+            <div className="av-puzzle-help-copy">
+              <strong>¿Necesitas ayuda?</strong>
+              <p>Observa las formas y sus funciones. Descubre la ubicación con una pista, sin que te demos directamente la respuesta.</p>
+              <div className="av-help-actions">
+                <button type="button" onClick={()=>setMostrarPista(v=>!v)} aria-expanded={mostrarPista}>
+                  {mostrarPista?'Ocultar pista':'💡 Ver una pista'}
+                </button>
+                <button type="button" onClick={()=>onHint('Estoy jugando '+tema.nombre+'. Dame una pista para comprender la función y ubicación de '+(pista?.nombre||'las piezas')+', sin decir directamente la respuesta.')}>
+                  ✦ Preguntar al tutor
+                </button>
+              </div>
+              {mostrarPista&&<p className="av-hint" role="status">Pista: {pista?pista.descripcion:'Selecciona primero una pieza para descubrir qué función tiene.'}</p>}
+            </div>
+          </div>
+          {mensaje&&<p className={'av-feedback av-feedback-pro'+(mensaje.startsWith('¡')?' ok':'')} role="status" aria-live="polite">{mensaje}</p>}
+        </div>
       </div>
-      <div className="av-puzzle-help">
-        <strong>💡 ¿Necesitas ayuda?</strong>
-        <p>Observa la posición de cada zona. La IA también puede orientarte sin darte directamente la respuesta.</p>
-        <div className="av-help-actions"><button type="button" onClick={()=>setMostrarPista(v=>!v)}>Mostrar pista</button>
-          <button type="button" onClick={()=>onHint('Estoy jugando '+tema.nombre+'. Ayúdame con pistas para comprender la función y ubicación de '+(pista?.nombre||'las piezas')+', sin revelar de inmediato la respuesta.')}>Preguntar al tutor ✦</button></div>
-        {mostrarPista&&<p className="av-hint">Pista: {pista?pista.descripcion:'Selecciona primero una pieza para descubrir qué función tiene.'}</p>}
-      </div>
-      {mensaje&&<p className={'av-feedback '+(mensaje.startsWith('¡')?'ok':'')} role="status">{mensaje}</p>}
-    </div>
-  </div>
+    </section>
+  )
 }
 
 function PanelPreguntas({materia,nivel,modo,onComplete,onAskTutor}:{materia:MateriaId|'todas';nivel:1|2|3;modo:JuegoId;onComplete:(id:string,materia:MateriaId,puntos:number)=>void;onAskTutor:(s:string)=>void}){
