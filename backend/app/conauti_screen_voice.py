@@ -12,8 +12,9 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.conauti_ai import config, current_model
-from app.conauti_auth import current_user
+from app.conauti_auth import current_user, connect
 from app.conauti_screen import INSTRUCTIONS
+from app.conauti_voice import MAX_DAILY
 
 
 router = APIRouter(
@@ -62,6 +63,21 @@ async def ask_voice_over_screen(
         raise HTTPException(400, "La imagen JPEG no es válida.")
     if not (900 <= len(raw_audio) <= MAX_AUDIO):
         raise HTTPException(400, "La grabación de voz no tiene un tamaño válido.")
+
+    # Conservar el mismo límite diario que la transcripción convencional.
+    # El audio solo se cuenta después de procesar correctamente la consulta.
+    with connect() as conn:
+        row = conn.execute(
+            """
+            SELECT COUNT(*) AS total FROM conauti_voice_usage
+            WHERE user_id = %s
+              AND created_at >= DATE_TRUNC('day', NOW() AT TIME ZONE 'UTC')
+              AT TIME ZONE 'UTC'
+            """,
+            (user["id"],),
+        ).fetchone()
+    if row["total"] >= MAX_DAILY:
+        raise HTTPException(429, "Has alcanzado el límite diario de preguntas por voz.")
 
     key = config("GEMINI_API_KEY")
     model = current_model()
@@ -125,6 +141,15 @@ async def ask_voice_over_screen(
             raise ValueError("Respuesta incompleta.")
     except (KeyError, ValueError, IndexError, TypeError, AttributeError) as exc:
         raise HTTPException(502, "Gemini devolvió un formato de respuesta inválido.") from exc
+
+    with connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO conauti_voice_usage(user_id, audio_bytes)
+            VALUES (%s, %s)
+            """,
+            (user["id"], len(raw_audio)),
+        )
 
     return {
         "question": question[:240] or "Pregunta por voz sobre la pantalla",
