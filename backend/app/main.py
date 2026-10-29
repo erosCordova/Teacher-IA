@@ -149,6 +149,9 @@ from app.conauti_screen import (
 )
 app.include_router(conauti_screen_router)
 
+from app.conauti_screen_voice import router as conauti_screen_voice_router
+app.include_router(conauti_screen_voice_router)
+
 
 # MYTEACHER_FILES_V1 - subir documentos académicos
 from app.conauti_files import router as conauti_files_router
