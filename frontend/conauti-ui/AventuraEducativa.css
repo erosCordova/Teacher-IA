@@ -313,3 +313,290 @@ html[data-myteacher-theme] #root .mtc-app .mtc-ai-mark {
 html[data-myteacher-theme] #root .mtc-app .mtc-ai-mark svg {
   display:block;width:34px;height:34px;max-width:none;
 }
+ 
+
+/* MYTEACHER_PUZZLE_PREMIUM_V3
+   Diseño ilustrado, responsivo y accesible para todas las misiones. */
+#root .mtc-app .av-puzzle-experience {
+  display:grid;gap:15px;min-width:0;
+  --av-ink:#162c57;--av-blue:#247ed4;--av-teal:#0bab9c;
+}
+#root .mtc-app .av-puzzle-intro {
+  display:flex;gap:13px;align-items:center;
+  background:linear-gradient(100deg,#e5f7ff,#eef8ff 50%,#eefff8);
+  padding:15px 20px;border:1px solid #d0e9f3;
+  border-radius:20px;box-shadow:0 8px 24px rgba(47,119,175,.06);
+  color:#163a66;
+}
+#root .mtc-app .av-puzzle-intro-icon {
+  display:grid;place-items:center;font-size:25px;flex:0 0 48px;
+  width:48px;height:48px;background:#fff;border-radius:14px;
+  box-shadow:0 5px 14px #6199cf20;
+}
+#root .mtc-app .av-puzzle-intro strong {font-size:17px;font-weight:850;}
+#root .mtc-app .av-puzzle-intro p {font-size:12px;margin-top:4px;color:#527196;line-height:1.6}
+#root .mtc-app .av-puzzle-intro-tag{
+  margin-left:auto;white-space:nowrap;border-radius:100px;
+  background:#d5f7ee;color:#087869;padding:10px 12px;font-weight:850;font-size:11px;
+}
+#root .mtc-app .av-play-grid-pro {
+  display:grid;grid-template-columns:minmax(0,1.45fr) minmax(315px,1fr);
+  align-items:stretch;gap:16px;
+}
+#root .mtc-app .av-board-wrap-pro,#root .mtc-app .av-pieces-panel-pro {
+  min-width:0;padding:19px 20px;border:1px solid var(--mtc-border);
+  border-radius:26px;background:var(--mtc-surface);
+  box-shadow:0 12px 35px rgba(22,75,128,.07);
+}
+#root .mtc-app .av-board-wrap-pro {display:flex;flex-direction:column;}
+#root .mtc-app .av-board-top-pro {
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;margin-bottom:12px;min-height:50px;
+}
+#root .mtc-app .av-board-caption {display:flex;align-items:center;gap:10px;min-width:0;}
+#root .mtc-app .av-board-caption>span:last-child {display:grid;gap:3px;min-width:0;}
+#root .mtc-app .av-board-caption strong {font-size:16px;font-weight:850;letter-spacing:-.35px;}
+#root .mtc-app .av-board-caption small {font-size:11px;color:var(--mtc-muted);font-weight:500;line-height:1.4;}
+#root .mtc-app .av-title-icon {
+  flex:0 0 43px;display:grid;place-items:center;width:43px;height:43px;
+  background:linear-gradient(145deg,#bcebf5,#e0ffef);border-radius:13px;font-size:22px;
+}
+#root .mtc-app .av-title-icon-bag {background:linear-gradient(145deg,#e1deff,#eef2ff)}
+#root .mtc-app .av-puzzle-counter {
+  flex:0 0 auto;display:flex;flex-direction:column;align-items:center;
+  padding:7px 17px;border-radius:17px;
+  background:linear-gradient(130deg,#dcfbf3,#dbf2fc);
+  color:#078c85;
+}
+#root .mtc-app .av-puzzle-counter strong {font-size:17px;font-weight:900;line-height:1.25;}
+#root .mtc-app .av-puzzle-counter small {font-size:10px;font-weight:650;}
+#root .mtc-app .av-progress-track {
+  height:7px;border-radius:100px;overflow:hidden;background:var(--mtc-border);
+  margin:0 1px 14px;
+}
+#root .mtc-app .av-progress-track>div {
+  height:100%;background:linear-gradient(90deg,#06b6b0,#2a91d3);
+  border-radius:100px;transition:width .24s ease;
+}
+#root .mtc-app .av-board-viewport {width:100%;min-width:0;overflow:hidden;border-radius:20px;flex:1;}
+#root .mtc-app .av-puzzle-board.av-board-pro {
+  position:relative;isolation:isolate;overflow:hidden;width:100%;height:580px;
+  border-radius:20px;color:#1a5281;
+  background:radial-gradient(ellipse at 60% 30%,#e6feff 0,#d6f2ff 43%,transparent 70%),
+             linear-gradient(140deg,#e7f3ff,#ebfff4);
+  box-shadow:inset 0 0 0 1px rgba(71,163,207,.12);
+}
+#root .mtc-app .av-puzzle-board.av-board-pro:before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(circle at 8% 17%,#b8dafa88 0 8%,transparent 8.2%),
+             radial-gradient(circle at 95% 14%,#c3eefa80 0 10%,transparent 10.2%),
+             radial-gradient(circle at 84% 85%,#a9e7e780 0 7%,transparent 7.2%),
+             radial-gradient(circle at 12% 93%,#b1dbf288 0 13%,transparent 13.2%);
+}
+#root .mtc-app .av-puzzle-board.av-board-pro.av-board-celula {
+  background:radial-gradient(ellipse at 50% 40%,#f2ffed 0,#dff5fa 57%,#e1edff 100%);
+}
+#root .mtc-app .av-puzzle-board.av-board-pro.av-board-sistema {
+  height:300px;background:linear-gradient(120deg,#0b1838,#243e71 52%,#3a337e);color:white;
+}
+#root .mtc-app .av-puzzle-board.av-board-pro.av-board-diagrama {
+  height:320px;background:linear-gradient(125deg,#e6f2ff,#f5edff);color:#314e81;
+}
+#root .mtc-app .av-board-decoration {
+  position:absolute;z-index:0;pointer-events:none;width:100px;height:100px;border-radius:50%;
+  border:1px solid #6fbad54b;opacity:.5;
+}
+#root .mtc-app .av-decor-one {left:-30px;bottom:34px}
+#root .mtc-app .av-decor-two {right:-40px;top:40px;width:155px;height:155px}
+#root .mtc-app .av-scene {
+  position:absolute;inset:0;width:100%;height:100%;pointer-events:none;
+  z-index:0;filter:drop-shadow(0 7px 4px rgba(60,113,151,.1));
+}
+#root .mtc-app .av-scene-body{height:100%;width:100%;}
+#root .mtc-app button.av-drop.av-drop-pro {
+  position:absolute;z-index:3;transform:translate(-50%,-50%);
+  width:clamp(78px,12vw,106px);max-width:22%;min-height:58px;
+  border:2px dashed #2494d4!important;border-radius:18px;
+  background:#fffffff0!important;backdrop-filter:blur(5px);color:#245782!important;
+  box-shadow:0 8px 18px rgba(20,110,165,.12);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  padding:7px 9px;cursor:pointer;
+  transition:transform .16s,border-color .16s,box-shadow .16s,background .16s;
+}
+#root .mtc-app button.av-drop.av-drop-pro:hover,
+#root .mtc-app button.av-drop.av-drop-pro.av-drop-target {
+  transform:translate(-50%,-50%) scale(1.065);
+  border-color:#0db68f!important;
+  background:#e8fff6!important;
+  box-shadow:0 10px 24px rgba(3,159,138,.25);
+}
+#root .mtc-app .av-drop-plus {
+  width:32px;height:32px;display:grid;place-items:center;
+  border-radius:50%;background:#e4f4ff;
+  color:#218bce;font-size:26px;font-weight:600;line-height:1;
+}
+#root .mtc-app button.av-drop.av-drop-pro small {
+  font-size:10px;font-weight:800;line-height:1.18;
+  max-width:100%;overflow-wrap:anywhere;color:inherit;
+}
+#root .mtc-app button.av-drop.av-drop-pro.av-drop-done {
+  min-height:90px;background:#eefff6!important;border:2px solid #1ec59a!important;
+  color:#075f59!important;box-shadow:0 8px 24px #12af8430;
+}
+#root .mtc-app .av-slot-illustration {
+  display:grid;place-items:center;width:62px;height:58px;
+  max-width:100%;pointer-events:none;
+}
+#root .mtc-app .av-slot-illustration .av-organ-svg {
+  width:100%;height:100%;filter:drop-shadow(0 3px 3px #d04d4929);
+}
+#root .mtc-app .av-slot-check {
+  display:grid;place-items:center;position:absolute;top:-8px;right:-8px;
+  background:#12bc91;color:white;border:2px solid #fff;border-radius:50%;
+  width:25px;height:25px;font-size:14px;font-weight:900;
+}
+#root .mtc-app button.av-drop.av-drop-pro.av-drop-error {
+  border-color:#e55e60!important;box-shadow:0 0 0 5px #e55e6025;
+}
+#root .mtc-app .av-board-celebration {
+  position:absolute;z-index:5;left:50%;bottom:18px;transform:translateX(-50%);
+  padding:13px 19px;border-radius:18px;display:grid;gap:3px;text-align:center;
+  background:#fffffff2;box-shadow:0 9px 27px #2d659932;
+  min-width:180px;color:#144a78;
+}
+#root .mtc-app .av-board-celebration>span{font-size:30px}
+#root .mtc-app .av-board-celebration strong{font-weight:900;font-size:17px}
+#root .mtc-app .av-board-celebration small{font-size:11px;color:#527196}
+#root .mtc-app .av-board-footer {
+  display:flex;align-items:center;justify-content:space-between;
+  gap:14px;padding:13px 1px 0;color:var(--mtc-muted);
+  font-size:11px;line-height:1.5;
+}
+#root .mtc-app .av-board-footer button {
+  flex:0 0 auto;font-size:11px;font-weight:800;
+  background:color-mix(in srgb,var(--mtc-accent) 11%,var(--mtc-surface))!important;
+  color:var(--mtc-accent)!important;border:1px solid var(--mtc-border)!important;
+  border-radius:11px;padding:8px 11px;
+}
+#root .mtc-app .av-pieces-panel-pro {display:flex;flex-direction:column;}
+#root .mtc-app .av-pieces-head-pro {margin-bottom:18px;min-height:50px;gap:10px;}
+#root .mtc-app .av-pieces-pending {
+  white-space:nowrap;padding:8px 10px;border-radius:100px;font-size:10px!important;font-weight:750;
+  background:color-mix(in srgb,#6978f7 11%,var(--mtc-surface));
+  color:var(--mtc-accent)!important;
+}
+#root .mtc-app .av-piece-list-pro {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+}
+#root .mtc-app button.av-piece.av-piece-pro {
+  position:relative;min-width:0;min-height:175px;
+  padding:14px 15px 15px!important;border-radius:20px;
+  border:1.5px solid #f6d1e2!important;
+  background:linear-gradient(135deg,#fff8fb,#ffeaf3)!important;
+  color:#14234c!important;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:5px;
+  box-shadow:0 8px 20px rgba(37,66,115,.035);
+  cursor:grab;touch-action:manipulation;
+}
+#root .mtc-app button.av-piece.av-piece-pro.av-piece-color-1 {
+  background:linear-gradient(135deg,#fffaf1,#fff0de)!important;border-color:#f7dcad!important;
+}
+#root .mtc-app button.av-piece.av-piece-pro.av-piece-color-2 {
+  background:linear-gradient(135deg,#f3f6ff,#e9efff)!important;border-color:#d1dcff!important;
+}
+#root .mtc-app button.av-piece.av-piece-pro.av-piece-color-3 {
+  background:linear-gradient(135deg,#effffb,#ddf9f2)!important;border-color:#c1eadf!important;
+}
+#root .mtc-app button.av-piece.av-piece-pro.av-piece-color-4 {
+  background:linear-gradient(135deg,#faf5ff,#eee6ff)!important;border-color:#dfd1ff!important;
+}
+#root .mtc-app button.av-piece.av-piece-pro.av-piece-color-5 {
+  background:linear-gradient(135deg,#fffaf1,#fff0d7)!important;border-color:#f7e0b4!important;
+}
+#root .mtc-app button.av-piece.av-piece-pro:hover {
+  transform:translateY(-4px);border-color:#4a8adb!important;
+  box-shadow:0 15px 25px rgba(40,90,145,.14);
+}
+#root .mtc-app button.av-piece.av-piece-pro.av-piece-picked,
+#root .mtc-app button.av-piece.av-piece-pro.av-piece-picked:hover {
+  border:2px solid #3b79e4!important;box-shadow:0 0 0 4px #3b79e422,0 14px 26px #336ac120;
+  transform:translateY(-3px);
+}
+#root .mtc-app .av-piece-visual{
+  display:grid;place-items:center;width:110px;height:106px;max-width:100%;
+  position:relative;pointer-events:none;
+}
+#root .mtc-app .av-organ-svg{display:block;width:100%;height:100%;object-fit:contain;max-width:110px}
+#root .mtc-app .av-piece-emoji {font-size:62px;line-height:1;filter:drop-shadow(0 6px 3px #334b7d21)}
+#root .mtc-app .av-piece-name {
+  text-align:center;font-size:13px!important;font-weight:850;line-height:1.35;
+  color:#152953;max-width:100%;overflow-wrap:anywhere;
+}
+#root .mtc-app .av-piece-grip {
+  position:absolute;right:10px;top:calc(50% - 8px);font-size:17px;
+  color:#6889b1;opacity:.65;
+}
+#root .mtc-app .av-piece-selected {
+  position:absolute;top:8px;left:8px;border-radius:8px;
+  padding:4px 7px;background:#e0eeff;color:#2e64bd;
+  font-size:9px;font-weight:900;
+}
+#root .mtc-app .av-puzzle-help-pro{
+  display:flex;align-items:flex-start;gap:12px;margin-top:18px;
+  background:linear-gradient(115deg,#eaf4ff,#e4f3ff);
+  border-radius:19px;padding:16px 15px;color:#203762;
+}
+#root .mtc-app .av-puzzle-help-icon {
+  flex:0 0 38px;display:grid;place-items:center;width:38px;height:38px;
+  border-radius:50%;background:#ffe8a4;font-size:23px;
+}
+#root .mtc-app .av-puzzle-help-copy {min-width:0;}
+#root .mtc-app .av-puzzle-help-pro strong {font-size:13px;font-weight:850;color:#1a2d52;}
+#root .mtc-app .av-puzzle-help-pro p {font-size:11px;color:#557298;line-height:1.6;margin:6px 0 10px;}
+#root .mtc-app .av-help-actions button {
+  font-size:11px;padding:9px 11px;background:#fff!important;border:1px solid #cce2f5!important;
+  color:#30689a!important;border-radius:10px;
+}
+#root .mtc-app .av-help-actions button:last-child{
+  background:#e9e4ff!important;color:#6553b3!important;border-color:#d8d0ff!important;
+}
+#root .mtc-app .av-puzzle-help-pro .av-hint {
+  background:#ffffffd9;color:#34516d;padding:12px;
+}
+#root .mtc-app .av-feedback-pro {border-radius:13px;font-weight:650;margin-top:14px!important;font-size:12px;}
+#root .mtc-app .av-winner {display:grid;gap:6px;place-items:center;min-height:180px;background:linear-gradient(135deg,#e5fff5,#ddf3ff);color:#1a7562}
+#root .mtc-app .av-winner>span {font-size:38px;}
+#root .mtc-app .av-winner strong {font-size:15px;}
+#root .mtc-app .av-winner small {font-size:11px;}
+@media (max-width:1120px) {
+  #root .mtc-app .av-play-grid-pro {grid-template-columns:minmax(0,1fr)}
+  #root .mtc-app .av-piece-list-pro {grid-template-columns:repeat(3,minmax(0,1fr))}
+  #root .mtc-app .av-puzzle-board.av-board-pro {height:555px}
+  #root .mtc-app .av-puzzle-board.av-board-pro.av-board-diagrama {height:310px}
+  #root .mtc-app .av-puzzle-board.av-board-pro.av-board-sistema {height:310px}
+}
+@media (max-width:680px) {
+  #root .mtc-app .av-puzzle-intro {padding:12px 13px;align-items:flex-start}
+  #root .mtc-app .av-puzzle-intro-icon {width:38px;height:38px;flex-basis:38px}
+  #root .mtc-app .av-puzzle-intro-tag {display:none}
+  #root .mtc-app .av-board-wrap-pro,#root .mtc-app .av-pieces-panel-pro{padding:12px;border-radius:19px}
+  #root .mtc-app .av-board-caption strong{font-size:13px}
+  #root .mtc-app .av-board-caption small{font-size:10px}
+  #root .mtc-app .av-title-icon{width:34px;height:34px;flex-basis:34px}
+  #root .mtc-app .av-puzzle-counter{padding:6px 10px}
+  #root .mtc-app .av-puzzle-board.av-board-pro{height:440px;border-radius:15px}
+  #root .mtc-app .av-puzzle-board.av-board-pro.av-board-sistema,
+  #root .mtc-app .av-puzzle-board.av-board-pro.av-board-diagrama{height:220px}
+  #root .mtc-app button.av-drop.av-drop-pro{
+    width:70px;min-height:48px;max-width:22%;padding:5px;border-radius:13px;gap:1px;
+  }
+  #root .mtc-app .av-drop-plus{width:25px;height:25px;font-size:20px}
+  #root .mtc-app button.av-drop.av-drop-pro.av-drop-done{min-height:66px}
+  #root .mtc-app .av-slot-illustration{width:45px;height:41px}
+  #root .mtc-app button.av-drop.av-drop-pro small{font-size:8px}
+  #root .mtc-app .av-piece-list-pro{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  #root .mtc-app button.av-piece.av-piece-pro{min-height:142px;padding:9px!important}
+  #root .mtc-app .av-piece-visual{width:86px;height:82px}
+  #root .mtc-app .av-piece-name{font-size:11px!important}
+  #root .mtc-app .av-board-footer{align-items:flex-start}
+}
