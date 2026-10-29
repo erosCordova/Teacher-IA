@@ -160,6 +160,17 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
     };
   }, [detenerLectura]);
 
+  function precalentarKokoro() {
+    // La descarga inicial del modelo se realiza en segundo plano después
+    // de una acción del estudiante, nunca antes de entrar al chat.
+    void import("./KokoroBrowser")
+      .then(module => module.prepararKokoroEnNavegador())
+      .catch(() => {
+        // Si el dispositivo no soporta el modelo, el reproductor informa
+        // que se utilizará temporalmente la voz del navegador.
+      });
+  }
+
   async function comenzar() {
     setError("");
     if (!navigator.mediaDevices?.getDisplayMedia) {
@@ -185,6 +196,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
         }
       }, { once: true });
       setCompartiendo(true);
+      precalentarKokoro();
       setEstado("Vista conectada. Escribe o dicta una pregunta.");
     } catch (fallo) {
       if (fallo instanceof DOMException && (fallo.name === "NotAllowedError" || fallo.name === "AbortError")) {
@@ -390,6 +402,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
     }
     // Desbloquear WebAudio durante la interacción real del estudiante.
     habilitarAudioKokoro();
+    precalentarKokoro();
     setEstadoVoz("permiso");
     setError("");
     const escuchador = new VistaEscuchaContinua({
@@ -597,7 +610,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
             else if (lastAnswerRef.current) hablar(lastAnswerRef.current);
           }}
           aria-pressed={leerRespuestas} title="Leer respuestas en voz alta">
-          {leerRespuestas ? "🔊 Voz activada" : "🔇 Voz silenciada"}
+          {leerRespuestas ? "🔊 Kokoro: " + ({ ef_dora: "Dora", em_alex: "Alex", em_santa: "Santa" }[obtenerVozKokoro()]) : "🔇 Voz silenciada"}
         </button>
         {lastAnswerRef.current && (
           <button type="button" className="mt-pantalla-replay"
