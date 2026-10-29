@@ -409,7 +409,7 @@ export default function ConversacionVoz({
 
       setPhase('pensando')
       setNotice(
-        'CONAUTI está preparando su respuesta...',
+        'My Teacher IA está preparando su respuesta...',
       )
 
       const reply = await apiFetch(
@@ -487,7 +487,7 @@ export default function ConversacionVoz({
 
     setPhase('hablando')
     setNotice(
-      'CONAUTI te está respondiendo. Puedes pausarlo o interrumpirlo.',
+      'My Teacher IA te está respondiendo. Puedes pausarlo o interrumpirlo.',
     )
 
     const normalized = text
@@ -831,7 +831,7 @@ export default function ConversacionVoz({
 
       {answered && (
         <p>
-          <strong>CONAUTI:</strong> {answered}
+          <strong>My Teacher IA:</strong> {answered}
         </p>
       )}
 
