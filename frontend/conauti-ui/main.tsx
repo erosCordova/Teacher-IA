@@ -1,5 +1,6 @@
 import { apiFetch } from './apiFetch'
 import PantallaCompartida from "./PantallaCompartida";
+import AventuraEducativa from "./AventuraEducativa";
 import { validarImagen } from "./ImagenEducativa";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
 import { useEffect, useRef, useState } from 'react'
@@ -32,7 +33,7 @@ type Message = {
   created_at: string
 }
 
-type Page = 'chat' | 'progress' | 'settings' | 'privacy'
+type Page = 'chat' | 'progress' | 'settings' | 'privacy' | 'games' | 'facts' | 'achievements'
 
 type GoogleAccountAPI = {
   accounts: { id: {
@@ -1053,6 +1054,12 @@ function App() {
         </button>
 
         <div className="mtc-side-nav" role="navigation" aria-label="Secciones">
+          <button type="button" className={'av-nav-juegos '+(page === 'games' ? 'active' : '')}
+            onClick={() => openPage('games')}><span className="av-side-emoji" aria-hidden="true">🎮</span> <span>Aprende jugando</span></button>
+          <button type="button" className={'av-nav-sabias '+(page === 'facts' ? 'active' : '')}
+            onClick={() => openPage('facts')}><span className="av-side-emoji" aria-hidden="true">💡</span> <span>¿Sabías que…?</span></button>
+          <button type="button" className={'av-nav-logros '+(page === 'achievements' ? 'active' : '')}
+            onClick={() => openPage('achievements')}><span className="av-side-emoji" aria-hidden="true">🏆</span> <span>Mis logros</span></button>
           <button type="button" className={page === 'progress' ? 'active' : ''}
             onClick={() => openPage('progress')}>▤ <span>Mi aprendizaje</span></button>
         </div>
@@ -1290,6 +1297,18 @@ function App() {
               <p className="mtc-guidance">Aprende con pistas y explicaciones. Tu tutor te acompaña paso a paso.</p>
             </div>
           </main>
+        )}
+
+        {(page === 'games' || page === 'facts' || page === 'achievements') && (
+          <AventuraEducativa seccion={page === 'games' ? 'juegos' : page === 'facts' ? 'sabias' : 'logros'}
+            usuarioId={user.id}
+            onAskTutor={texto => {
+              retryId.current = null
+              setDraft(texto)
+              setPage('chat')
+              setToolsOpen(false)
+              window.setTimeout(() => editor.current?.focus(), 0)
+            }} />
         )}
 
         {page === 'progress' && (
