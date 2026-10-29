@@ -956,3 +956,54 @@ html[data-myteacher-theme] #root .mtc-app .mtc-welcome-symbol svg {
   #root .mtc-app .mtc-live-voice-panel {padding:15px 18px 23px;border-radius:22px}
   #root .mtc-app .mtc-live-voice-orb {width:126px;height:126px}
 }
+
+/* MYTEACHER_VOICE_INLINE_V2: el micrófono funciona dentro del chat, sin ventana. */
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer button.mtc-voice-button.mtc-voice-button-active {
+  color: #fff!important;
+  background: linear-gradient(140deg,#0da5b8,#2463eb)!important;
+  box-shadow: 0 0 0 3px rgba(14,165,183,.17);
+  border-radius: 50%!important;
+}
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer button.mtc-voice-button.mtc-voice-button-active:hover {
+  background: linear-gradient(140deg,#0b91a1,#1d4ed8)!important;
+}
+#root .mtc-app .mtc-voice-inline-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 5px auto 0;
+  max-width: 100%;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--mtc-muted);
+  text-align: center;
+}
+#root .mtc-app .mtc-voice-status-dot {
+  display: inline-block;
+  flex: 0 0 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #5c88a3;
+}
+#root .mtc-app .mtc-voice-status-dot.phase-escuchando {
+  background: #11b89b;
+  box-shadow: 0 0 0 4px rgba(17,184,155,.13);
+  animation: mtc-voice-dot-pulse 1.7s ease-in-out infinite;
+}
+#root .mtc-app .mtc-voice-status-dot.phase-transcribiendo,
+#root .mtc-app .mtc-voice-status-dot.phase-pensando {
+  background: #d99a2c;
+}
+#root .mtc-app .mtc-voice-status-dot.phase-hablando {
+  background: #2563eb;
+  animation: mtc-voice-dot-pulse 2s ease-in-out infinite;
+}
+@keyframes mtc-voice-dot-pulse {
+  0%,100% { opacity:1;transform:scale(1) }
+  50% { opacity:.55;transform:scale(.75) }
+}
+@media(prefers-reduced-motion:reduce) {
+  #root .mtc-app .mtc-voice-status-dot { animation:none!important }
+}
