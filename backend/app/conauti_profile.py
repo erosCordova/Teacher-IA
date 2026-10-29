@@ -48,6 +48,8 @@ class DisplayNameInput(BaseModel):
     @field_validator("display_name")
     @classmethod
     def check_name(cls, value: str) -> str:
+        if any(char in "\\n\\r\\t" or unicodedata.category(char) in ("Cc", "Cf") for char in value):
+            raise ValueError("El nombre no puede incluir saltos de línea ni caracteres invisibles.")
         name = unicodedata.normalize("NFC", value).strip()
         name = " ".join(name.split())
         if not 2 <= len(name) <= 60:
