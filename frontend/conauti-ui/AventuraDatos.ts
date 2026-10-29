@@ -76,12 +76,12 @@ export type Pieza = {id:string;nombre:string;descripcion:string;x:number;y:numbe
 export type Rompecabezas = {id:string;materia:MateriaId;nombre:string;subtitulo:string;tipo:'cuerpo'|'celula'|'sistema'|'mapa'|'diagrama';piezas:Pieza[]};
 export const ROMPECABEZAS: Rompecabezas[] = [
   {id:'anatomia',materia:'biologia',nombre:'Arma el cuerpo humano',subtitulo:'Coloca los órganos en su posición aproximada.',tipo:'cuerpo',piezas:[
-    {id:'cerebro',nombre:'Cerebro',descripcion:'Coordina el pensamiento, los movimientos y otras funciones del cuerpo.',x:50,y:12,forma:'🧠'},
-    {id:'pulmones',nombre:'Pulmones',descripcion:'Permiten intercambiar oxígeno y dióxido de carbono.',x:50,y:38,forma:'🫁'},
-    {id:'corazon',nombre:'Corazón',descripcion:'Bombea sangre por el sistema circulatorio.',x:55,y:45,forma:'❤️'},
-    {id:'higado',nombre:'Hígado',descripcion:'Procesa nutrientes y ayuda a eliminar sustancias.',x:41,y:55,forma:'🟤'},
-    {id:'estomago',nombre:'Estómago',descripcion:'Mezcla los alimentos con los jugos gástricos.',x:59,y:58,forma:'🫙'},
-    {id:'intestinos',nombre:'Intestinos',descripcion:'Participan en la absorción de nutrientes y agua.',x:50,y:69,forma:'🌀'},
+    {id:'cerebro',nombre:'Cerebro',descripcion:'Coordina el pensamiento, los movimientos y otras funciones del cuerpo.',x:50,y:19,forma:'🧠'},
+    {id:'pulmones',nombre:'Pulmones',descripcion:'Permiten intercambiar oxígeno y dióxido de carbono.',x:38,y:41,forma:'🫁'},
+    {id:'corazon',nombre:'Corazón',descripcion:'Bombea sangre por el sistema circulatorio.',x:62,y:41,forma:'❤️'},
+    {id:'higado',nombre:'Hígado',descripcion:'Procesa nutrientes y ayuda a eliminar sustancias.',x:38,y:57,forma:'🟤'},
+    {id:'estomago',nombre:'Estómago',descripcion:'Mezcla los alimentos con los jugos gástricos.',x:62,y:57,forma:'🫙'},
+    {id:'intestinos',nombre:'Intestinos',descripcion:'Participan en la absorción de nutrientes y agua.',x:50,y:74,forma:'🌀'},
   ]},
   {id:'celula',materia:'biologia',nombre:'Construye una célula',subtitulo:'Ubica los componentes de una célula animal.',tipo:'celula',piezas:[
     {id:'membrana',nombre:'Membrana plasmática',descripcion:'Delimita la célula y regula el intercambio de sustancias.',x:17,y:50,forma:'🟢'},
