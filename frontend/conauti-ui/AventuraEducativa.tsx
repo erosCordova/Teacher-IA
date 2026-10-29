@@ -122,9 +122,11 @@ function PanelRompecabezas({tema,onComplete,onHint}:{tema:Rompecabezas;onComplet
 function PanelPreguntas({materia,nivel,modo,onComplete,onAskTutor}:{materia:MateriaId|'todas';nivel:1|2|3;modo:JuegoId;onComplete:(id:string,materia:MateriaId,puntos:number)=>void;onAskTutor:(s:string)=>void}){
   const pool=useMemo(()=>PREGUNTAS.filter(q=>(materia==='todas'||q.materia===materia)&&(modo==='ingles'?q.materia==='ingles':modo==='mapa'?['peru','geografia','universal','cultura'].includes(q.materia):true)),[materia,modo])
   const seleccion=useMemo(()=>{
-    const nivelFiltrado=pool.filter(q=>q.nivel===nivel)
-    const candidatos=nivelFiltrado.length?nivelFiltrado:pool
-    return mezclar(candidatos).slice(0,modo==='mision'?Math.min(5,candidatos.length):Math.min(5,candidatos.length))
+    // Prioriza el grado elegido y agrega variedad de otros niveles para
+    // que cada partida incluya varias preguntas, incluso con una sola materia.
+    return mezclar(pool).sort((a,b)=>
+      Math.abs(a.nivel-nivel)-Math.abs(b.nivel-nivel)
+    ).slice(0,Math.min(5,pool.length))
   },[pool,nivel,modo])
   const [indice,setIndice]=useState(0),[elegida,setElegida]=useState<number|null>(null)
   const [correctas,setCorrectas]=useState(0),[terminado,setTerminado]=useState(false)
@@ -153,7 +155,7 @@ function PanelPreguntas({materia,nivel,modo,onComplete,onAskTutor}:{materia:Mate
     <div className="av-progress-track"><span style={{width:(indice/seleccion.length*100)+'%'}}/></div>
     <span className="av-quiz-topic">{MATERIAS.find(m=>m.id===pregunta.materia)?.titulo} · Nivel {nivel}</span>
     <h2>{pregunta.titulo}</h2>
-    {modo==='error'&&<p className="av-quiz-help">🔎 Identifica qué opción es correcta y descubre por qué las demás no encajan.</p>}
+    {modo==='error'&&<p className="av-quiz-help">🔎 Un compañero marcó «{pregunta.opciones.find((_,i)=>i!==pregunta.respuesta)}». Detecta su error y elige la opción correcta.</p>}
     {pregunta.materia==='ingles'&&<button type="button" className="av-audio-btn" onClick={hablar}>🔊 Escuchar en inglés</button>}
     {vozError&&<small role="alert">{vozError}</small>}
     <div className="av-options">
