@@ -1143,19 +1143,6 @@ function App() {
                   <div className="mtc-welcome-symbol" aria-hidden="true">✦</div>
                   <h1>¿Qué quieres aprender hoy?</h1>
                   <p>Haz una pregunta. Te ayudaré a descubrir la respuesta paso a paso.</p>
-                  <div className="mtc-suggestions">
-                    {([
-                      ['Entender un tema', 'Explícame la fotosíntesis de manera sencilla.'],
-                      ['Practicar un ejercicio', 'Ayúdame a practicar ecuaciones paso a paso.'],
-                      ['Preparar una evaluación', 'Ayúdame a repasar ciencias para un examen.'],
-                      ['Aprender con ejemplos', 'Enséñame fracciones con ejemplos de la vida diaria.'],
-                    ] as const).map(([label, content]) => (
-                      <button type="button" key={label}
-                        onClick={() => {retryId.current=null;setDraft(content);editor.current?.focus()}}>
-                        {label}
-                      </button>
-                    ))}
-                  </div>
                 </section>
               ) : (
                 <div className="mtc-messages" aria-live="polite">
