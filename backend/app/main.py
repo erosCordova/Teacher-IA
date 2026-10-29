@@ -77,6 +77,10 @@ app.include_router(google_auth_router)
 from app.conauti_auth import router as conauti_auth_router
 app.include_router(conauti_auth_router)
 
+# Nombre visible editable, sin cambiar identidades OAuth.
+from app.conauti_profile import router as conauti_profile_router
+app.include_router(conauti_profile_router)
+
 
 from app.conauti_privacy import router as conauti_privacy_router
 app.include_router(conauti_privacy_router)
