@@ -384,3 +384,21 @@ html[data-myteacher-theme] #root .mtc-auth-shell .mtc-auth-form-panel h2 {
   padding:10px;margin:3px 0 0;font-size:11px;color:var(--auth-text)!important;
   background:var(--auth-soft);border-radius:9px;
 }
+
+
+/* Logotipo propio adaptable: acceso de escritorio y móvil. */
+#root .mtc-auth-shell .mtc-auth-brand-icon {
+  background:transparent!important;border:0!important;box-shadow:none!important;
+}
+#root .mtc-auth-shell .mtc-auth-brand-icon svg {
+  display:block;width:43px;height:43px;max-width:none;
+}
+#root .mtc-auth-shell .mtc-auth-mobile-brand {
+  align-items:center;gap:6px;
+}
+#root .mtc-auth-shell .mtc-auth-mobile-brand svg {
+  display:inline-block;width:28px;height:28px;vertical-align:middle;
+}
+@media(max-width:520px) {
+  #root .mtc-auth-shell .mtc-auth-brand-icon svg {width:37px;height:37px}
+}
