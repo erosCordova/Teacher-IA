@@ -142,9 +142,18 @@ function dividirTexto(texto: string): string[] {
   return resultado
 }
 
+export type OpcionesKokoro = {
+  /** Evitar el intento de conexión a un servidor Kokoro inexistente. */
+  omitirServidor?: boolean
+  /** Tiempo máximo del primer intento de Kokoro local antes de responder con la voz del navegador. */
+  esperaLocalMs?: number
+  onFallback?: () => void
+}
+
 export function hablarConKokoro(
   mensaje: SpeechSynthesisUtterance,
   sintetizador: SpeechSynthesis,
+  opciones: OpcionesKokoro = {},
 ): void {
   version += 1
   limpiarAudio()
@@ -185,6 +194,7 @@ export function hablarConKokoro(
     }
 
     limpiarAudio()
+    opciones.onFallback?.()
     try {
       sintetizador.speak(mensaje)
     } catch (error) {
@@ -227,7 +237,7 @@ export function hablarConKokoro(
 
         let blob: Blob | null = null
 
-        if (!motorLocal) {
+        if (!motorLocal && !opciones.omitirServidor) {
           try {
             const respuesta = await apiFetch(
               '/api/conauti/kokoro/speech',
@@ -261,7 +271,7 @@ export function hablarConKokoro(
           }
         }
 
-        if (motorLocal) {
+        if (motorLocal || opciones.omitirServidor) {
           // Se carga bajo demanda, sin aumentar el paquete de inicio.
           const { sintetizarKokoroEnNavegador } =
             await import('./KokoroBrowser')
@@ -285,7 +295,7 @@ export function hablarConKokoro(
                       'Kokoro aun se esta descargando.',
                     ),
                   )
-                }, 12000)
+                }, opciones.esperaLocalMs ?? 12000)
               }),
             ])
           } finally {
