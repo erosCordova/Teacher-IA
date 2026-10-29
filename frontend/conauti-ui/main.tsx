@@ -1,6 +1,7 @@
 import { apiFetch } from './apiFetch'
 import PantallaCompartida from "./PantallaCompartida";
 import AventuraEducativa from "./AventuraEducativa";
+import MarcaMyTeacher from "./MarcaMyTeacher";
 import { validarImagen } from "./ImagenEducativa";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
 import { useEffect, useRef, useState } from 'react'
@@ -846,7 +847,7 @@ function App() {
           <div className="mtc-auth-decoration mtc-auth-decoration-one" aria-hidden="true" />
           <div className="mtc-auth-decoration mtc-auth-decoration-two" aria-hidden="true" />
           <header className="mtc-auth-brand">
-            <span className="mtc-auth-brand-icon" aria-hidden="true">✦</span>
+            <span className="mtc-auth-brand-icon" aria-hidden="true"><MarcaMyTeacher /></span>
             <span><strong>My Teacher IA</strong><small>Tu tutor educativo</small></span>
             <span className="mtc-auth-brand-tag">EDUCACIÓN CON IA</span>
           </header>
@@ -887,7 +888,7 @@ function App() {
             </button>
           </div>
           <div className="mtc-auth-form-panel">
-            <div className="mtc-auth-mobile-brand"><span aria-hidden="true">✦</span> My Teacher IA</div>
+            <div className="mtc-auth-mobile-brand"><MarcaMyTeacher /> My Teacher IA</div>
             <span className="mtc-auth-form-kicker">{register ? 'TU AVENTURA EMPIEZA AQUÍ' : 'CONTINÚA DONDE LO DEJASTE'}</span>
             <h2>{register ? 'Crea tu espacio de aprendizaje' : '¡Qué bueno verte de nuevo!'}</h2>
             <p className="mtc-auth-subtitle">
@@ -1042,7 +1043,7 @@ function App() {
         <header className="mtc-side-head">
           <button type="button" className="mtc-brand" onClick={returnToChat}
             title="Volver a la conversación actual" aria-label="Ir a mi conversación actual">
-            <span className="mtc-mark" aria-hidden="true">✦</span>
+            <span className="mtc-mark" aria-hidden="true"><MarcaMyTeacher /></span>
             <strong>My Teacher IA</strong>
           </button>
           <button type="button" className="mtc-icon-button mtc-close-mobile"
