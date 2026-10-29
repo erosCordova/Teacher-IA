@@ -402,3 +402,12 @@ html[data-myteacher-theme] #root .mtc-auth-shell .mtc-auth-form-panel h2 {
 @media(max-width:520px) {
   #root .mtc-auth-shell .mtc-auth-brand-icon svg {width:37px;height:37px}
 }
+
+
+/* Marca original también en la vista previa del asistente. */
+#root .mtc-auth-shell .mtc-auth-preview-spark {
+  background:transparent!important;border:0!important;box-shadow:none!important;
+}
+#root .mtc-auth-shell .mtc-auth-preview-spark svg {
+  display:block;width:35px;height:35px;max-width:none;
+}
