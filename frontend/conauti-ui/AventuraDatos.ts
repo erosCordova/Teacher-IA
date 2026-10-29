@@ -131,6 +131,21 @@ export const ROMPECABEZAS: Rompecabezas[] = [
     {id:'neutron',nombre:'Neutrón',descripcion:'Tiene carga eléctrica neutra.',x:57,y:53,forma:'⚪'},
     {id:'electron',nombre:'Electrón',descripcion:'Tiene carga eléctrica negativa.',x:79,y:22,forma:'🔵'},
   ]},
+  {id:'respiracion',materia:'biologia',nombre:'El viaje del oxígeno',subtitulo:'Ordena etapas simplificadas de la respiración.',tipo:'diagrama',piezas:[
+    {id:'inspirar',nombre:'Inspiración',descripcion:'El aire entra por las vías respiratorias.',x:19,y:52,forma:'👃'},
+    {id:'pulmones',nombre:'Intercambio gaseoso',descripcion:'En los alvéolos se intercambian oxígeno y dióxido de carbono.',x:50,y:52,forma:'🫁'},
+    {id:'sangre',nombre:'Transporte de oxígeno',descripcion:'La sangre transporta oxígeno a los tejidos.',x:81,y:52,forma:'🩸'},
+  ]},
+  {id:'reaccion',materia:'quimica',nombre:'Etapas de una reacción',subtitulo:'Ordena un esquema científico sencillo.',tipo:'diagrama',piezas:[
+    {id:'reactivos',nombre:'Reactivos',descripcion:'Son las sustancias presentes antes de la reacción.',x:19,y:52,forma:'🧪'},
+    {id:'cambio',nombre:'Transformación',descripcion:'Durante la reacción se reorganizan átomos y enlaces.',x:50,y:52,forma:'⚗️'},
+    {id:'productos',nombre:'Productos',descripcion:'Son las sustancias resultantes de la reacción.',x:81,y:52,forma:'🔬'},
+  ]},
+  {id:'investigacion',materia:'cultura',nombre:'Cómo investigar',subtitulo:'Organiza los pasos iniciales del pensamiento científico.',tipo:'diagrama',piezas:[
+    {id:'preguntar',nombre:'Hacer preguntas',descripcion:'Plantea una duda sobre lo que observas.',x:19,y:52,forma:'❓'},
+    {id:'investigar',nombre:'Investigar',descripcion:'Recoge información y comprueba evidencias.',x:50,y:52,forma:'🔍'},
+    {id:'explicar',nombre:'Explicar',descripcion:'Comunica una conclusión basada en los datos.',x:81,y:52,forma:'💡'},
+  ]},
   {id:'regiones',materia:'geografia',nombre:'Las regiones naturales del Perú',subtitulo:'Organiza costa, sierra y selva de oeste a este (esquema simplificado).',tipo:'diagrama',piezas:[
     {id:'costa',nombre:'Costa',descripcion:'Zona próxima al océano Pacífico, con extensas áreas desérticas.',x:20,y:52,forma:'🌊'},
     {id:'sierra',nombre:'Sierra',descripcion:'Región andina de montañas, valles y altiplanos.',x:50,y:52,forma:'🏔️'},
