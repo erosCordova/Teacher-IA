@@ -131,6 +131,31 @@ export const ROMPECABEZAS: Rompecabezas[] = [
     {id:'neutron',nombre:'Neutrón',descripcion:'Tiene carga eléctrica neutra.',x:57,y:53,forma:'⚪'},
     {id:'electron',nombre:'Electrón',descripcion:'Tiene carga eléctrica negativa.',x:79,y:22,forma:'🔵'},
   ]},
+  {id:'regiones',materia:'geografia',nombre:'Las regiones naturales del Perú',subtitulo:'Organiza costa, sierra y selva de oeste a este (esquema simplificado).',tipo:'diagrama',piezas:[
+    {id:'costa',nombre:'Costa',descripcion:'Zona próxima al océano Pacífico, con extensas áreas desérticas.',x:20,y:52,forma:'🌊'},
+    {id:'sierra',nombre:'Sierra',descripcion:'Región andina de montañas, valles y altiplanos.',x:50,y:52,forma:'🏔️'},
+    {id:'selva',nombre:'Selva',descripcion:'Región amazónica de bosques tropicales.',x:80,y:52,forma:'🌿'},
+  ]},
+  {id:'computador',materia:'tecnologia',nombre:'Arma una computadora',subtitulo:'Relaciona los componentes con un esquema funcional simplificado.',tipo:'diagrama',piezas:[
+    {id:'entrada',nombre:'Dispositivo de entrada',descripcion:'Permite ingresar datos, como el teclado.',x:19,y:52,forma:'⌨️'},
+    {id:'cpu',nombre:'Procesador',descripcion:'Procesa instrucciones y operaciones.',x:50,y:52,forma:'💻'},
+    {id:'salida',nombre:'Dispositivo de salida',descripcion:'Muestra resultados, como el monitor.',x:81,y:52,forma:'🖥️'},
+  ]},
+  {id:'convivencia',materia:'ciudadania',nombre:'Construye un buen diálogo',subtitulo:'Ordena pasos para resolver un desacuerdo de forma respetuosa.',tipo:'diagrama',piezas:[
+    {id:'escuchar',nombre:'Escuchar',descripcion:'Presta atención a los argumentos sin interrumpir.',x:19,y:52,forma:'👂'},
+    {id:'expresar',nombre:'Expresarse',descripcion:'Comunica tu opinión de manera clara y respetuosa.',x:50,y:52,forma:'💬'},
+    {id:'acordar',nombre:'Llegar a acuerdos',descripcion:'Busca soluciones que consideren a las personas implicadas.',x:81,y:52,forma:'🤝'},
+  ]},
+  {id:'artes',materia:'arte',nombre:'Construye una obra',subtitulo:'Organiza etapas habituales de un proyecto artístico.',tipo:'diagrama',piezas:[
+    {id:'idea',nombre:'Idea',descripcion:'Piensa qué deseas expresar.',x:19,y:52,forma:'💡'},
+    {id:'boceto',nombre:'Boceto',descripcion:'Planifica la composición mediante un dibujo previo.',x:50,y:52,forma:'✏️'},
+    {id:'obra',nombre:'Obra final',descripcion:'Elabora tu creación aplicando materiales y técnicas.',x:81,y:52,forma:'🎨'},
+  ]},
+  {id:'agua',materia:'ambiente',nombre:'Arma el ciclo del agua',subtitulo:'Ordena etapas principales del ciclo del agua.',tipo:'diagrama',piezas:[
+    {id:'evaporacion',nombre:'Evaporación',descripcion:'El agua líquida pasa a vapor por efecto de la energía térmica.',x:19,y:52,forma:'☀️'},
+    {id:'condensacion',nombre:'Condensación',descripcion:'El vapor se enfría y forma pequeñas gotas que pueden constituir nubes.',x:50,y:52,forma:'☁️'},
+    {id:'precipitacion',nombre:'Precipitación',descripcion:'El agua regresa a la superficie en forma de lluvia, nieve u otras precipitaciones.',x:81,y:52,forma:'🌧️'},
+  ]},
 ];
 export type Curiosidad={id:string;materia:MateriaId;titulo:string;dato:string;pregunta:string;respuesta:string;ilustracion:string};
 export const CURIOSIDADES:Curiosidad[]=[
