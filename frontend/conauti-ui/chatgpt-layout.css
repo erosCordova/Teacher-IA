@@ -766,3 +766,13 @@ html[data-myteacher-theme] #root .mtc-app .mtc-side-footer .mtc-account span:las
 @media(max-width:480px) {
   html[data-myteacher-theme] #root .mtc-app .mtc-profile-form {padding:18px}
 }
+
+
+/* Logo propio de My Teacher IA: SVG nítido y sin iconografía ajena. */
+html[data-myteacher-theme] #root .mtc-app .mtc-mark {
+  background:transparent!important;box-shadow:none!important;
+  overflow:visible;border-radius:0;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-mark svg {
+  width:36px;height:36px;max-width:none;display:block;
+}
