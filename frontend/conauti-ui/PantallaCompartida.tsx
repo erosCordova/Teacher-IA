@@ -1,4 +1,7 @@
 import { apiFetch } from './apiFetch'
+import { VistaEscuchaContinua } from './VistaEscuchaContinua'
+import { obtenerVozKokoro, cancelarVozKokoro, hablarConKokoro } from './KokoroPlayer'
+import { habilitarAudioKokoro } from './KokoroAudio'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { validarImagen, dimensionesImagen, LIMITE_ENVIO } from "./ImagenEducativa";
@@ -39,6 +42,8 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
   const speechEnabledRef = useRef(true);
   const speechTurnRef = useRef(0);
   const speechUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const speechPlayingRef = useRef(false);
+  const continuousRef = useRef<VistaEscuchaContinua | null>(null);
   const dialogIdRef = useRef(0);
   const lastAnswerRef = useRef("");
   const lastQuestionRef = useRef("");
@@ -50,6 +55,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
   const [estadoVoz, setEstadoVoz] = useState<"listo" | "permiso" | "grabando" | "transcribiendo">("listo");
   const [leerRespuestas, setLeerRespuestas] = useState(true);
   const [hablando, setHablando] = useState(false);
+  const [escuchaContinua, setEscuchaContinua] = useState(false);
   const [archivo, setArchivo] = useState<File | null>(archivoInicial);
   const [vistaArchivo, setVistaArchivo] = useState("");
   const [pregunta, setPregunta] = useState("");
@@ -84,8 +90,18 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
   const detenerLectura = useCallback(() => {
     speechTurnRef.current += 1;
     speechUtteranceRef.current = null;
-    window.speechSynthesis?.cancel();
+    speechPlayingRef.current = false;
+    if ("speechSynthesis" in window) cancelarVozKokoro(window.speechSynthesis);
     if (mountedRef.current) setHablando(false);
+  }, []);
+
+  const detenerEscuchaContinua = useCallback(() => {
+    continuousRef.current?.stop();
+    continuousRef.current = null;
+    if (mountedRef.current) {
+      setEscuchaContinua(false);
+      setEstadoVoz("listo");
+    }
   }, []);
 
   const detenerVoz = useCallback(() => {
@@ -117,6 +133,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
   }, []);
 
   const cerrar = useCallback(() => {
+    detenerEscuchaContinua();
     detenerVoz();
     detener();
     imageRequestRef.current?.abort();
@@ -124,12 +141,14 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
     if (popoutRef.current && !popoutRef.current.closed) popoutRef.current.close();
     popoutRef.current = null;
     onClose();
-  }, [detener, detenerVoz, detenerLectura, onClose]);
+  }, [detener, detenerVoz, detenerEscuchaContinua, detenerLectura, onClose]);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      continuousRef.current?.stop();
+      continuousRef.current = null;
       streamRef.current?.getTracks().forEach(track => track.stop());
       audioStreamRef.current?.getTracks().forEach(track => track.stop());
       if (audioTimerRef.current) clearTimeout(audioTimerRef.current);
@@ -205,14 +224,17 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
     try {
       if (ancho * alto > 40_000_000) throw new Error("La resolución de la imagen es demasiado grande.");
       const medidas = dimensionesImagen(ancho, alto);
+      // Captura ligera, no vídeo continuo: menor latencia sin exceder límites.
+      const escala = Math.min(1, 1024 / medidas.ancho, 700 / medidas.alto);
       const canvas = document.createElement("canvas");
-      canvas.width = medidas.ancho; canvas.height = medidas.alto;
+      canvas.width = Math.max(1, Math.round(medidas.ancho * escala));
+      canvas.height = Math.max(1, Math.round(medidas.alto * escala));
       const context = canvas.getContext("2d");
       if (!context) throw new Error("No se pudo obtener la captura.");
       context.fillStyle = "#fff";
       context.fillRect(0, 0, canvas.width, canvas.height);
       context.drawImage(fuente, 0, 0, canvas.width, canvas.height);
-      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", 0.72));
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", 0.64));
       if (!blob) throw new Error("No se pudo generar una captura.");
       if (blob.size > LIMITE_ENVIO) throw new Error("La captura supera el tamaño permitido.");
       return blob;
@@ -222,85 +244,55 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
   function hablar(texto: string) {
     if (!speechEnabledRef.current || !mountedRef.current) return;
     if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
-      setError("Este navegador no ofrece lectura en voz alta. Prueba Chrome o Edge.");
+      setError("Este navegador no admite reproducción de voz.");
       return;
     }
-
-    // Se utiliza la voz española disponible en el dispositivo para no depender
-    // del servidor Kokoro: el audio empieza sin descargar modelos ni usar cuotas.
-    const limpio = texto
-      .replace(/https?:\/\/\S+/g, "un enlace")
-      .replace(/[`*_#]/g, " ")
-      .replace(/\s+/g, " ")
-      .trim().slice(0, 2600);
+    const limpio = texto.replace(/https?:\/\/\S+/g, "un enlace")
+      .replace(/[`*_#]/g, " ").replace(/\s+/g, " ").trim().slice(0, 1800);
     if (!limpio) return;
-
-    const partes: string[] = [];
-    let restante = limpio;
-    while (restante.length > 0) {
-      let corte = Math.min(180, restante.length);
-      if (corte < restante.length) {
-        const espacio = restante.lastIndexOf(" ", corte);
-        if (espacio > 70) corte = espacio;
-      }
-      partes.push(restante.slice(0, corte).trim());
-      restante = restante.slice(corte).trim();
-    }
-
     detenerLectura();
     const turno = speechTurnRef.current;
-    const sintetizador = window.speechSynthesis;
-    const voces = sintetizador.getVoices();
-    const voz = voces.find(v => v.lang.toLowerCase() === "es-pe")
-      || voces.find(v => v.lang.toLowerCase().startsWith("es"))
-      || null;
-    let indice = 0;
-
-    const siguiente = () => {
-      if (!mountedRef.current || !speechEnabledRef.current || speechTurnRef.current !== turno) return;
-      if (indice >= partes.length) {
-        speechUtteranceRef.current = null;
-        setHablando(false);
-        setEstado("Respuesta terminada. Puedes seguir preguntando.");
-        return;
-      }
-      const mensaje = new SpeechSynthesisUtterance(partes[indice++]);
-      mensaje.lang = voz?.lang || "es-PE";
-      mensaje.voice = voz;
-      mensaje.rate = 1;
-      mensaje.volume = 1;
-      // Conservar la referencia evita que algunos navegadores interrumpan la lectura.
-      speechUtteranceRef.current = mensaje;
-      mensaje.onstart = () => {
-        if (speechTurnRef.current === turno) {
-          setHablando(true);
-          setEstado("My Teacher IA está respondiendo con voz...");
-        }
-      };
-      mensaje.onend = siguiente;
-      mensaje.onerror = evento => {
-        if (speechTurnRef.current !== turno) return;
-        speechUtteranceRef.current = null;
-        setHablando(false);
-        if (evento.error !== "canceled" && evento.error !== "interrupted") {
-          setError("No se pudo reproducir la voz. Comprueba el volumen o pulsa «Escuchar de nuevo».");
-        }
-      };
-      try {
-        sintetizador.speak(mensaje);
-        if (sintetizador.paused) sintetizador.resume();
-      } catch {
-        speechUtteranceRef.current = null;
-        setHablando(false);
-        setError("El navegador bloqueó el audio. Pulsa «Escuchar de nuevo» para activarlo.");
-      }
+    const mensaje = new SpeechSynthesisUtterance(limpio);
+    mensaje.lang = "es-PE";
+    mensaje.rate = 1;
+    speechUtteranceRef.current = mensaje;
+    speechPlayingRef.current = true;
+    setEstado("Preparando la voz Kokoro seleccionada...");
+    mensaje.onstart = () => {
+      if (speechTurnRef.current !== turno || !mountedRef.current) return;
+      setHablando(true);
+      setEstado("My Teacher IA está respondiendo. Puedes interrumpirla hablando.");
     };
-    siguiente();
+    mensaje.onend = () => {
+      if (speechTurnRef.current !== turno || !mountedRef.current) return;
+      speechPlayingRef.current = false;
+      speechUtteranceRef.current = null;
+      setHablando(false);
+      setEstado("Puedes hacer otra pregunta; el micrófono sigue escuchando.");
+    };
+    mensaje.onerror = () => {
+      if (speechTurnRef.current !== turno || !mountedRef.current) return;
+      speechPlayingRef.current = false;
+      speechUtteranceRef.current = null;
+      setHablando(false);
+      setError("No se pudo reproducir la respuesta. Comprueba el volumen o pulsa Escuchar de nuevo.");
+    };
+    // Respeta ef_dora / em_alex / em_santa y la velocidad configurada.
+    // En Render no hay servidor Kokoro local, por eso se prefiere Kokoro WASM
+    // y se limita la espera inicial para no bloquear la conversación.
+    hablarConKokoro(mensaje, window.speechSynthesis, {
+      omitirServidor: true,
+      esperaLocalMs: 3200,
+      onFallback: () => {
+        if (speechTurnRef.current !== turno || !mountedRef.current) return;
+        setEstado("Kokoro todavía se está preparando; usando temporalmente la voz del navegador.");
+      },
+    });
   }
 
   async function consultar(texto?: string) {
     const consulta = (texto ?? pregunta).trim().slice(0, MAX_QUESTION);
-    if (analizando || (!compartiendo && !archivo)) {
+    if (imageRequestRef.current || (!compartiendo && !archivo)) {
       setError("Comparte una vista o selecciona una imagen antes de preguntar.");
       return;
     }
@@ -310,6 +302,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
     }
     const token = sessionStorage.getItem("conauti_token");
     if (!token) { setError("Inicia sesión para consultar la vista."); return; }
+    detenerLectura();
     setAnalizando(true);
     setError("");
     setPregunta("");
@@ -384,60 +377,56 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
     }
   }
 
-  function terminarGrabacion() {
-    if (audioTimerRef.current !== null) clearTimeout(audioTimerRef.current);
-    audioTimerRef.current = null;
-    const recorder = recorderRef.current;
-    if (recorder?.state === "recording") recorder.stop();
-  }
-
   async function alternarMicrofono() {
-    if (estadoVoz === "grabando") { terminarGrabacion(); return; }
-    if (estadoVoz !== "listo" || analizando) return;
+    if (continuousRef.current) {
+      detenerEscuchaContinua();
+      detenerLectura();
+      setEstado("Escucha desactivada. Vuelve a pulsar el micrófono para conversar.");
+      return;
+    }
     if (!compartiendo && !archivo) {
-      setError("Primero comparte una vista o selecciona una imagen.");
+      setError("Comparte una vista o selecciona una imagen antes de hablar.");
       return;
     }
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-      setError("Tu navegador no permite grabar audio. Puedes escribir tu pregunta.");
-      return;
-    }
-    detenerLectura();
-    // Interacción explícita del estudiante: despierta las voces disponibles
-    // antes de recibir de forma asíncrona la respuesta de la IA.
-    window.speechSynthesis?.getVoices();
+    // Desbloquear WebAudio durante la interacción real del estudiante.
+    habilitarAudioKokoro();
     setEstadoVoz("permiso");
     setError("");
+    const escuchador = new VistaEscuchaContinua({
+      isPlaying: () => speechPlayingRef.current,
+      onSpeechStart: () => {
+        // Barge-in: callar inmediatamente tanto Kokoro como speechSynthesis.
+        detenerLectura();
+        imageRequestRef.current?.abort();
+        transcriptRequestRef.current?.abort();
+        imageRequestRef.current = null;
+        transcriptRequestRef.current = null;
+        setAnalizando(false);
+        setEstado("Te escucho: continúa hablando, enviaré tu pregunta tras una pausa.");
+      },
+      onAudio: async audio => {
+        await transcribir(audio);
+      },
+      onState: value => {
+        if (!mountedRef.current) return;
+        setEstadoVoz(value === "grabando" ? "grabando"
+          : value === "procesando" ? "transcribiendo" : "escuchando");
+      },
+      onError: message => { if (mountedRef.current) setError(message); },
+    });
+    continuousRef.current = escuchador;
     try {
-      const media = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true },
-      });
-      if (!mountedRef.current) { media.getTracks().forEach(track => track.stop()); return; }
-      audioStreamRef.current = media;
-      audioChunksRef.current = [];
-      const format = elegirAudio();
-      const recorder = new MediaRecorder(media, format ? { mimeType: format } : undefined);
-      recorderRef.current = recorder;
-      recorder.ondataavailable = event => {
-        if (event.data.size > 0) audioChunksRef.current.push(event.data);
-      };
-      recorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType || "audio/webm" });
-        audioChunksRef.current = [];
-        audioStreamRef.current?.getTracks().forEach(track => track.stop());
-        audioStreamRef.current = null;
-        recorderRef.current = null;
-        if (mountedRef.current) void transcribir(blob);
-      };
-      recorder.start();
-      setEstadoVoz("grabando");
-      setEstado("Escuchando tu pregunta. Pulsa el micrófono para enviar.");
-      audioTimerRef.current = setTimeout(terminarGrabacion, MAX_AUDIO_SECONDS * 1000);
+      await escuchador.start();
+      if (!mountedRef.current) { escuchador.stop(); return; }
+      setEscuchaContinua(true);
+      setEstado("Escucha continua activa. Habla y haz una pausa para enviar.");
+      // El modelo se prepara al hablar; nunca se solicita audio sin permiso.
     } catch (fallo) {
-      audioStreamRef.current?.getTracks().forEach(track => track.stop());
-      audioStreamRef.current = null;
+      if (continuousRef.current === escuchador) continuousRef.current = null;
+      escuchador.stop();
+      setEscuchaContinua(false);
       setEstadoVoz("listo");
-      setError(mensajeError(fallo, "No se pudo activar el micrófono."));
+      setError(mensajeError(fallo, "No se pudo activar la escucha continua."));
     }
   }
 
@@ -474,7 +463,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
   }
 
   const disponible = compartiendo || Boolean(archivo);
-  const activo = estadoVoz !== "listo" || analizando;
+  const activo = analizando || estadoVoz === "transcribiendo" || estadoVoz === "permiso";
   const ventanaFlotanteCompatible =
     typeof window !== "undefined" &&
     Boolean((window as Window & { documentPictureInPicture?: DocumentPiP }).documentPictureInPicture);
@@ -568,7 +557,8 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
           <p className="mt-pantalla-privacy">
             La pantalla no se transmite continuamente: se envía una imagen a Gemini
             cuando haces una pregunta. El audio del micrófono se envía a transcripción
-            solo cuando grabas. No se guardan capturas. Oculta datos personales.
+            únicamente si detecta una pregunta y deja de escuchar al desactivarlo.
+            No se guardan capturas. Oculta datos personales; usa auriculares para reducir el eco.
           </p>
         </>
       )}
@@ -587,11 +577,11 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
           aria-label="Pregunta sobre la vista compartida"
           placeholder="Pregunta sobre lo que estoy viendo..." />
         <button type="button" className={"mt-pantalla-mic " + (estadoVoz === "grabando" ? "grabando" : "")}
-          title={estadoVoz === "grabando" ? "Detener y preguntar" : "Hablar con la IA"}
-          aria-label={estadoVoz === "grabando" ? "Detener grabación y enviar" : "Hablar sobre la vista"}
-          disabled={analizando || estadoVoz === "transcribiendo" || estadoVoz === "permiso"}
+          title={escuchaContinua ? "Detener conversación y micrófono" : "Activar conversación continua por voz"}
+          aria-label={escuchaContinua ? "Apagar escucha y detener la voz" : "Activar escucha continua"}
+          disabled={estadoVoz === "permiso"}
           onClick={() => void alternarMicrofono()}>
-          {estadoVoz === "grabando" ? "■" : "🎙"}
+          {escuchaContinua ? "■" : "🎙"}
         </button>
         <button type="submit" className="mt-pantalla-send" disabled={!disponible || !pregunta.trim() || activo}
           title="Enviar pregunta" aria-label="Enviar pregunta sobre la vista">➤</button>
@@ -621,7 +611,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
             {hablando ? "■ Detener voz" : "↻ Escuchar de nuevo"}
           </button>
         )}
-        <span>{estadoVoz === "grabando" ? "Escuchando..." : estadoVoz === "transcribiendo" ? "Transcribiendo..." : analizando ? "Analizando..." : hablando ? "Respondiendo con voz..." : estado}</span>
+        <span>{estadoVoz === "grabando" ? "Escuchando tu pregunta..." : estadoVoz === "escuchando" ? "🎙 Micrófono activo" : estadoVoz === "transcribiendo" ? "Procesando pregunta..." : analizando ? "Analizando la vista..." : hablando ? "Respondiendo con voz..." : estado}</span>
       </div>
       {error && <div className="mt-pantalla-error" role="alert">{error}</div>}
     </section>
