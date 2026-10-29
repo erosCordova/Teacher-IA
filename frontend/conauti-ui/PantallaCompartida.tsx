@@ -358,34 +358,81 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
     }
   }
 
+  /** Una única inferencia de Gemini comprende voz + captura del momento. */
   async function transcribir(blob: Blob) {
     if (!mountedRef.current) return;
-    setEstadoVoz("transcribiendo");
-    setEstado("Reconociendo lo que dijiste...");
     const token = sessionStorage.getItem("conauti_token");
-    if (!token) { setError("Tu sesión ha expirado."); setEstadoVoz("listo"); return; }
+    if (!token) { setError("Tu sesión ha expirado."); return; }
+
     const request = new AbortController();
     transcriptRequestRef.current = request;
+    setEstadoVoz("transcribiendo");
+    setAnalizando(true);
+    setEstado("Escuchando tu pregunta y analizando la vista...");
+    setError("");
+
+    const aBase64 = async (file: Blob): Promise<string> => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("No se pudo preparar la consulta."));
+      reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+      reader.readAsDataURL(file);
+    });
+
     try {
-      if (blob.size < 900) throw new Error("Habla un poco más antes de detener la grabación.");
-      const response = await apiFetch("/api/conauti/voice/transcribe", {
-        method: "POST", cache: "no-store", headers: {
-          Authorization: "Bearer " + token, "Content-Type": blob.type || "audio/webm",
+      const image = await capturar();
+      if (request.signal.aborted) return;
+
+      const contexto = lastAnswerRef.current
+        ? ("Pregunta anterior: " + lastQuestionRef.current.slice(0, 90) +
+           ". Orientación anterior: " + lastAnswerRef.current.slice(0, 330)).slice(0, 500)
+        : "";
+      const [imageBase64, audioBase64] = await Promise.all([
+        aBase64(image), aBase64(blob),
+      ]);
+      if (request.signal.aborted) return;
+
+      const response = await apiFetch("/api/conauti/screen/ask-voice", {
+        method: "POST",
+        cache: "no-store",
+        signal: request.signal,
+        headers: {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json",
         },
-        body: blob, signal: request.signal,
+        body: JSON.stringify({
+          image_base64: imageBase64,
+          audio_base64: audioBase64,
+          audio_type: (blob.type || "audio/webm").split(";")[0],
+          context: contexto,
+        }),
       });
-      const result: { text?: string; detail?: string } = await response.json();
-      if (!response.ok) throw new Error(result.detail || "No se pudo transcribir la pregunta.");
-      const texto = String(result.text || "").trim();
-      if (!texto) throw new Error("No se reconocieron palabras. Inténtalo otra vez.");
-      setPregunta(texto.slice(0, MAX_QUESTION));
-      setEstadoVoz("listo");
-      await consultar(texto);
+      const result: { question?: string; analysis?: string; detail?: string } =
+        await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.detail || "No se pudo interpretar la consulta por voz.");
+      if (!result.analysis?.trim()) throw new Error("Gemini no devolvió una orientación.");
+      if (request.signal.aborted || !mountedRef.current) return;
+
+      const question = String(result.question || "Pregunta oral sobre la pantalla").trim().slice(0, 240);
+      lastQuestionRef.current = question;
+      lastAnswerRef.current = result.analysis;
+      setPregunta("");
+      setHistorial(previous => [...previous,
+        { id: ++dialogIdRef.current, role: "alumno" as const, text: question },
+        { id: ++dialogIdRef.current, role: "tutor" as const, text: result.analysis! },
+      ].slice(-16));
+      setEstado("Respuesta lista. Escucha o habla para interrumpir.");
+      hablar(result.analysis);
     } catch (fallo) {
-      if (!request.signal.aborted) setError(mensajeError(fallo, "Error de reconocimiento de voz."));
+      if (!request.signal.aborted && mountedRef.current) {
+        setError(mensajeError(fallo, "No se pudo analizar la pregunta hablada."));
+        setEstado("No se pudo procesar la pregunta; puedes volver a intentarlo.");
+      }
     } finally {
       if (transcriptRequestRef.current === request) transcriptRequestRef.current = null;
-      if (mountedRef.current) setEstadoVoz("listo");
+      if (mountedRef.current) {
+        setAnalizando(false);
+        setEstadoVoz(continuousRef.current ? "escuchando" : "listo");
+      }
     }
   }
 
