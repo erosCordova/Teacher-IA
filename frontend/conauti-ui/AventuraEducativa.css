@@ -262,3 +262,34 @@ html[data-myteacher-theme="dark"] #root .mtc-app button.av-puzzle-choice.active{
  #root .mtc-app button.av-order-slot{font-size:11px;padding:8px}
 }
 @media(prefers-reduced-motion:reduce){#root .mtc-app .av-float,#root .mtc-app .av-hero-ball{animation:none}#root .mtc-app .av-root *{transition:none!important}}
+
+
+/* Identidad cromática sutil también en la experiencia de chat original. */
+html[data-myteacher-theme] #root .mtc-app .mtc-mark{
+  background:linear-gradient(135deg,#548cff,#9874ed 58%,#f582b3)!important;
+  box-shadow:0 5px 15px rgba(109,95,229,.2);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-welcome-symbol{
+  display:inline-grid;place-items:center;width:72px;height:72px;
+  border-radius:23px;background:linear-gradient(140deg,rgba(94,112,250,.18),rgba(163,96,214,.16),rgba(54,202,175,.1));
+  color:#9582f3!important;font-size:34px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-suggestions button:nth-child(1){
+  border-color:color-mix(in srgb,#6b7cf7 34%,var(--mtc-border))!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-suggestions button:nth-child(2){
+  border-color:color-mix(in srgb,#2bc3a7 38%,var(--mtc-border))!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-suggestions button:nth-child(3){
+  border-color:color-mix(in srgb,#e8a34f 36%,var(--mtc-border))!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-suggestions button:nth-child(4){
+  border-color:color-mix(in srgb,#c978d9 36%,var(--mtc-border))!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-nav .av-side-emoji{
+  display:inline-grid;place-items:center;width:26px;height:26px;
+  border-radius:8px;background:color-mix(in srgb,var(--av-nav) 17%,var(--mtc-side));
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-topbar{
+  background:linear-gradient(90deg,#fafbff,#f9fffc)!important;
+}
