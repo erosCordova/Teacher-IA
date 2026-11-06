@@ -6,6 +6,7 @@ from typing import Any, TypedDict
 from app.conauti_prompting import (TutorPlan, adapt_instructions, lesson_plan, make_chain, safe_model_name, trim_history)
 from app.conauti_resilience import call_with_recovery
 from app.conauti_tools import verificar_operacion, planificar_refuerzo
+from app.conauti_specialists import specialist_instructions
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, START, StateGraph
 
@@ -29,6 +30,8 @@ class TutorState(TypedDict, total=False):
     messages: list[Any]
     instructions: str
     plan: dict[str, Any]
+    subject: str
+    specialist_rules: str
     tool_context: str
     answer: str
     usage: dict[str, int]
@@ -78,6 +81,12 @@ def plan_learning(state: TutorState):
     return result
 
 
+def assign_specialist(state: TutorState):
+    """Elige estrategia docente sin otra llamada al modelo."""
+    subject, instructions = specialist_instructions(state["question"])
+    return {"subject": subject, "specialist_rules": instructions}
+
+
 def select_route(state: TutorState):
     if state["intent"] in (
         "full_solution",
@@ -86,7 +95,7 @@ def select_route(state: TutorState):
     ):
         return "proteger"
 
-    return "preparar"
+    return "especialista"
 
 
 def protect_student(state: TutorState):
@@ -127,6 +136,7 @@ def prepare_context(state: TutorState):
         state["system_prompt"] + "\n\n" + state["rules"],
         state["intent"], plan=TutorPlan.model_validate(state["plan"]),
     ) + ("\n" + state.get("tool_context", "") if state.get("tool_context") else "")
+    instructions += "\nESTRATEGIA ESPECIALIZADA: " + state.get("specialist_rules", "")
     return {
         "instructions": instructions,
         "messages": trim_history(state["history"], max_messages=12, max_chars=10500),
@@ -229,6 +239,7 @@ def create_graph(checkpointer=None):
         identify_intent,
     )
     builder.add_node("planificar", plan_learning)
+    builder.add_node("especialista", assign_specialist)
     builder.add_node(
         "proteger",
         protect_student,
@@ -257,7 +268,7 @@ def create_graph(checkpointer=None):
         select_route,
         {
             "proteger": "proteger",
-            "preparar": "preparar",
+            "especialista": "especialista",
         },
     )
 
@@ -265,6 +276,7 @@ def create_graph(checkpointer=None):
         "proteger",
         END,
     )
+    builder.add_edge("especialista", "preparar")
 
     builder.add_edge(
         "preparar",
