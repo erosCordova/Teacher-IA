@@ -1,11 +1,11 @@
+import os
 import re
+from contextvars import ContextVar
 from typing import Any, TypedDict
 
-from langchain_core.messages import (
-    AIMessage,
-    HumanMessage,
-    SystemMessage,
-)
+from app.conauti_prompting import (TutorPlan, adapt_instructions, lesson_plan, make_chain, safe_model_name, trim_history)
+from app.conauti_resilience import call_with_recovery
+from app.conauti_tools import verificar_operacion, planificar_refuerzo
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, START, StateGraph
 
@@ -13,6 +13,9 @@ from app.conauti_pedagogy import (
     classify,
     review_output,
 )
+
+
+_RUN_API_KEY: ContextVar[str] = ContextVar("myteacher_api_key", default="")
 
 
 class TutorState(TypedDict, total=False):
@@ -24,6 +27,9 @@ class TutorState(TypedDict, total=False):
     question: str
     intent: str
     messages: list[Any]
+    instructions: str
+    plan: dict[str, Any]
+    tool_context: str
     answer: str
     usage: dict[str, int]
 
@@ -45,6 +51,31 @@ def identify_intent(state: TutorState):
         "question": question,
         "intent": classify(question),
     }
+
+
+def plan_learning(state: TutorState):
+    """Planificador con herramientas verificadas, sin llamadas adicionales a Gemini."""
+    intent = state["intent"]
+    result = {"plan": lesson_plan(intent).model_dump(), "tool_context": ""}
+    if intent == "review":
+        match = re.search(r"(?<!\w)(\d{1,6}\s*[+\-*/]\s*\d{1,6})(?!\w)", state["question"])
+        if match:
+            try:
+                checked = verificar_operacion.invoke({"expresion": match.group(1)})
+                result["tool_context"] = (
+                    "Comprobación interna de una operación del intento: "
+                    + str(checked["resultado_de_comprobacion"])
+                    + ". No reveles la respuesta. Pregunta al estudiante "
+                      "cómo podría verificar su resultado."
+                )
+            except (ValueError, KeyError, TypeError):
+                pass
+    elif intent == "simpler":
+        plan = planificar_refuerzo.invoke({"tema": state["question"][:100]})
+        result["tool_context"] = (
+            "Protocolo de apoyo: " + "; ".join(plan["pasos"])
+        )
+    return result
 
 
 def select_route(state: TutorState):
@@ -91,43 +122,43 @@ def protect_student(state: TutorState):
 
 
 def prepare_context(state: TutorState):
-    system = (
-        state["system_prompt"]
-        + "\n\n"
-        + state["rules"]
-    )
-
-    messages = [
-        SystemMessage(content=system)
-    ]
-
-    for item in state["history"][-12:]:
-        content = str(item["body"])[:4000]
-
-        if item["role"] == "assistant":
-            messages.append(
-                AIMessage(content=content)
-            )
-        else:
-            messages.append(
-                HumanMessage(content=content)
-            )
-
-    return {"messages": messages}
+    """Trimming + Prompt Templates + ejemplo Few-Shot del plan pedagógico."""
+    instructions = adapt_instructions(
+        state["system_prompt"] + "\n\n" + state["rules"],
+        state["intent"], plan=TutorPlan.model_validate(state["plan"]),
+    ) + ("\n" + state.get("tool_context", "") if state.get("tool_context") else "")
+    return {
+        "instructions": instructions,
+        "messages": trim_history(state["history"], max_messages=12, max_chars=10500),
+    }
 
 
 def generate_with_langchain(state: TutorState):
-    model = ChatGoogleGenerativeAI(
-        model=state["model_name"],
-        google_api_key=state["api_key"],
-        vertexai=False,
-        temperature=0.6,
-        max_tokens=700,
-        timeout=35,
-        max_retries=0,
-    )
+    def invoke(model_name: str):
+        model = ChatGoogleGenerativeAI(
+            model=model_name,
+            google_api_key=state.get("api_key") or _RUN_API_KEY.get(),
+            vertexai=False,
+            temperature=0.6,
+            max_tokens=700,
+            timeout=35,
+            max_retries=0,
+        )
+        # LCEL: ChatPromptTemplate | ChatGoogleGenerativeAI
+        chain = make_chain(model)
+        return chain.invoke({
+            "instructions": state["instructions"],
+            "conversation": state["messages"],
+        })
 
-    response = model.invoke(state["messages"])
+    backup = os.getenv("GEMINI_FALLBACK_MODEL", "").strip()
+    alternative = (lambda: invoke(backup)) if (
+        safe_model_name(backup) and backup != state["model_name"]
+    ) else None
+    response = call_with_recovery(
+        lambda: invoke(state["model_name"]),
+        fallback=alternative,
+    )
 
     content = response.content
 
@@ -190,13 +221,14 @@ def validate_answer(state: TutorState):
     return {"answer": answer}
 
 
-def create_graph():
+def create_graph(checkpointer=None):
     builder = StateGraph(TutorState)
 
     builder.add_node(
         "clasificar",
         identify_intent,
     )
+    builder.add_node("planificar", plan_learning)
     builder.add_node(
         "proteger",
         protect_student,
@@ -219,8 +251,9 @@ def create_graph():
         "clasificar",
     )
 
+    builder.add_edge("clasificar", "planificar")
     builder.add_conditional_edges(
-        "clasificar",
+        "planificar",
         select_route,
         {
             "proteger": "proteger",
@@ -251,7 +284,7 @@ def create_graph():
     # La persistencia continúa en PostgreSQL.
     # No guardamos secretos ni mensajes en
     # puntos de control adicionales.
-    return builder.compile()
+    return builder.compile(checkpointer=checkpointer)
 
 
 GRAPH = create_graph()
@@ -263,26 +296,48 @@ def run_graph(
     system_prompt,
     api_key,
     model_name,
+    *,
+    student_id=None,
+    conversation_id=None,
 ):
     if not api_key:
-        raise ValueError(
-            "Gemini no está configurado."
-        )
+        raise ValueError("Gemini no está configurado.")
+    if not safe_model_name(model_name):
+        raise ValueError("Identificador de modelo inválido.")
 
-    if not re.fullmatch(
-        r"[a-zA-Z0-9_.-]+",
-        model_name,
-    ):
-        raise ValueError(
-            "Identificador de modelo inválido."
-        )
-
-    result = GRAPH.invoke({
+    state = {
         "history": history,
         "rules": pedagogical_instruction,
         "system_prompt": system_prompt,
-        "api_key": api_key,
         "model_name": model_name,
-    })
+    }
+
+    # Las credenciales NO se guardan en State, ni en los checkpoints.
+    secret_context = _RUN_API_KEY.set(api_key)
+    try:
+        if (
+            os.getenv("LANGGRAPH_CHECKPOINTS_ENABLED", "false").lower() == "true"
+            and student_id is not None
+            and conversation_id is not None
+        ):
+            # Checkpoints reales, con persistencia PostgreSQL. Durability='exit'
+            # limita el almacenamiento en la base gratuita.
+            os.environ.setdefault("LANGGRAPH_STRICT_MSGPACK", "true")
+            from langgraph.checkpoint.postgres import PostgresSaver
+            from app.conauti_auth import database_url
+
+            thread_id = f"teacher:{student_id}:{conversation_id}"
+            with PostgresSaver.from_conn_string(database_url()) as saver:
+                saver.setup()
+                graph = create_graph(checkpointer=saver)
+                result = graph.invoke(
+                    state,
+                    config={"configurable": {"thread_id": thread_id}},
+                    durability="exit",
+                )
+        else:
+            result = GRAPH.invoke(state)
+    finally:
+        _RUN_API_KEY.reset(secret_context)
 
     return result["answer"], result["usage"]
