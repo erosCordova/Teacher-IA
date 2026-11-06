@@ -168,6 +168,10 @@ app.include_router(conauti_files_router)
 from app.conauti_rag import router as conauti_rag_router
 app.include_router(conauti_rag_router)
 
+# Centro de estudio: recomendaciones, tarjetas, repasos y generación controlada.
+from app.conauti_study import router as conauti_study_router
+app.include_router(conauti_study_router)
+
 # MYTEACHER_ERROR_COACH_GRID_V3
 from app.conauti_error_coach import (
     router as conauti_error_coach_router,
