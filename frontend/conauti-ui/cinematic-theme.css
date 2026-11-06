@@ -704,3 +704,63 @@ nav button.active::before { opacity: 1; }
   .auth-card,
   .welcome { animation: none !important; }
 }
+
+
+/* Escena WebGL propia: volumen, reflejos y movimiento interactivo.
+   Unicamente en la portada. El aula y sus modulos no se modifican. */
+.cinematic-nature__portal {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  opacity: .98;
+}
+.cinematic-nature__portal[hidden] { display: none !important; }
+.cinematic-nature--auth .cinematic-nature__photo--ridge,
+.cinematic-nature--auth .cinematic-nature__photo--forest {
+  opacity: .16;
+  filter: grayscale(.4) brightness(.45) saturate(.75);
+}
+.cinematic-nature--auth .cinematic-nature__grid {
+  opacity: .12;
+  background-size: 108px 108px;
+}
+.cinematic-nature--auth .cinematic-nature__vignette {
+  background:
+    linear-gradient(90deg, rgba(2, 6, 13, .25), transparent 31%, rgba(2, 5, 13, .22) 66%, rgba(2, 6, 13, .55)),
+    linear-gradient(180deg, rgba(2, 5, 13, .26), transparent 30%, rgba(2, 6, 13, .66));
+}
+.cinematic-auth .auth-intro__brand {
+  align-self: flex-start;
+  padding: 11px 14px;
+  border: 1px solid rgba(181, 231, 255, .16);
+  border-radius: 999px;
+  background: rgba(7, 16, 29, .4);
+  backdrop-filter: blur(16px);
+}
+.cinematic-auth .auth-intro__kicker {
+  text-shadow: 0 2px 18px rgba(0,0,0,.7);
+}
+.cinematic-auth .auth-intro h1 {
+  text-shadow: 0 9px 50px rgba(0,0,0,.72);
+}
+.cinematic-auth .auth-intro__copy {
+  text-shadow: 0 3px 24px rgba(0,0,0,.8);
+}
+.cinematic-auth .auth-beacon { opacity: .20; }
+.cinematic-auth .auth-card {
+  border-color: rgba(215, 236, 255, .32) !important;
+  background: linear-gradient(145deg, rgba(9, 22, 39, .89), rgba(4, 10, 20, .84)) !important;
+  box-shadow: 0 32px 115px rgba(0, 0, 0, .62), inset 0 1px rgba(255,255,255,.1) !important;
+}
+
+@media (max-width: 680px) {
+  .cinematic-nature--auth .cinematic-nature__portal { opacity: .65; }
+  .cinematic-auth .auth-beacon { opacity: .10; }
+  .cinematic-auth .auth-card { backdrop-filter: blur(26px) saturate(110%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-nature--auth .cinematic-nature__portal { opacity: .75; }
+}

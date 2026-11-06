@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import CinematicPortal from './CinematicPortal'
 
 type Mode = 'auth' | 'workspace'
 
@@ -156,6 +157,7 @@ export default function CinematicNature({ mode }: CinematicNatureProps) {
       <div className="cinematic-nature__photo cinematic-nature__photo--forest" />
       <div className="cinematic-nature__halo cinematic-nature__halo--one" />
       <div className="cinematic-nature__halo cinematic-nature__halo--two" />
+      {mode === 'auth' && <CinematicPortal />}
       <canvas className="cinematic-nature__canvas" ref={canvasRef} />
       <div className="cinematic-nature__grid" />
       <div className="cinematic-nature__vignette" />
