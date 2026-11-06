@@ -34,6 +34,27 @@ type Message = {
 
 type Page = 'chat' | 'progress' | 'settings' | 'privacy'
 
+type GoogleAccountAPI = {
+  accounts: {
+    id: {
+      initialize: (data: {
+        client_id: string
+        callback: (answer: { credential: string }) => void
+      }) => void
+      renderButton: (element: HTMLElement, options: {
+        theme: string
+        size: string
+        width: number
+        text: string
+      }) => void
+    }
+  }
+}
+
+function googleIdentity(): GoogleAccountAPI | undefined {
+  return (window as Window & { google?: GoogleAccountAPI }).google
+}
+
 const BASE = '/api/conauti'
 
 async function api<T>(
@@ -90,6 +111,19 @@ function App() {
   const [register, setRegister] = useState(false)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [legacyLoginOpen, setLegacyLoginOpen] = useState(false)
+  const [googleConfig, setGoogleConfig] = useState<{
+    enabled: boolean
+    client_id: string | null
+  } | null>(null)
+  const [googleConfigurationError, setGoogleConfigurationError] = useState('')
+  const [emailMethodReady, setEmailMethodReady] = useState(false)
+  const [microsoftReady, setMicrosoftReady] = useState(false)
+  const [emailMethodOpen, setEmailMethodOpen] = useState(false)
+  const [emailAddress, setEmailAddress] = useState('')
+  const [emailCode, setEmailCode] = useState('')
+  const [emailStep, setEmailStep] = useState<'address' | 'code'>('address')
+  const [emailFeedback, setEmailFeedback] = useState('')
   const [page, setPage] = useState<Page>('chat')
   const [history, setHistory] = useState<Conversation[]>([])
   const [historyVersion, setHistoryVersion] = useState(0)
@@ -106,6 +140,9 @@ function App() {
   const editor = useRef<HTMLTextAreaElement>(null)
   const retryId = useRef<string | null>(null)
   const requestNumber = useRef(0)
+  const googleButton = useRef<HTMLDivElement>(null)
+  const googleInitialized = useRef(false)
+  const googleMode = useRef<'login' | 'register'>('login')
 
   useEffect(() => {
     let valid = true
@@ -151,6 +188,229 @@ function App() {
     setHistoryVersion(value => value + 1)
   }
 
+  function completeSignIn(tokenValue: string) {
+    sessionStorage.setItem('conauti_token', tokenValue)
+    setPassword('')
+    setChecking(true)
+    setToken(tokenValue)
+  }
+
+  async function handleGoogleIdentity(
+    credential: string,
+    mode: 'login' | 'register',
+  ) {
+    if (busy) return
+    setBusy(true)
+    setNotice('')
+
+    try {
+      const result = await api<{ access_token: string }>(
+        '/auth/google', null, 'POST', { credential, mode },
+      )
+      completeSignIn(result.access_token)
+    } catch (error) {
+      setNotice(errorText(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  useEffect(() => {
+    if (token) return
+    let active = true
+
+    api<{ enabled: boolean; client_id: string | null }>('/auth/google/config')
+      .then(configuration => {
+        if (!active) return
+        setGoogleConfig(configuration)
+        setGoogleConfigurationError(
+          configuration.enabled
+            ? ''
+            : 'El acceso con Google todavía no está configurado.',
+        )
+      })
+      .catch(() => {
+        if (active) {
+          setGoogleConfigurationError(
+            'Google todavía no está disponible en este servidor.',
+          )
+        }
+      })
+
+    return () => { active = false }
+  }, [token])
+
+  useEffect(() => {
+    if (token) return
+    let active = true
+
+    api<{ enabled: boolean }>('/auth/email/config')
+      .then(result => { if (active) setEmailMethodReady(result.enabled) })
+      .catch(() => { if (active) setEmailMethodReady(false) })
+
+    return () => { active = false }
+  }, [token])
+
+  useEffect(() => {
+    if (token) return
+    let active = true
+
+    api<{ enabled: boolean }>('/auth/microsoft/config')
+      .then(result => { if (active) setMicrosoftReady(result.enabled) })
+      .catch(() => { if (active) setMicrosoftReady(false) })
+
+    return () => { active = false }
+  }, [token])
+
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const ticket = url.searchParams.get('ms_ticket')
+    const error = url.searchParams.get('login_error')
+
+    if (!ticket && !error) return
+
+    url.searchParams.delete('ms_ticket')
+    url.searchParams.delete('login_error')
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash)
+
+    if (error) {
+      setNotice(
+        'No se pudo completar el acceso con Microsoft. Comprueba tu cuenta y vuelve a intentarlo.',
+      )
+      return
+    }
+
+    if (ticket) {
+      setChecking(true)
+      api<{ access_token: string }>(
+        '/auth/microsoft/complete?ticket=' + encodeURIComponent(ticket),
+        null,
+        'POST',
+      )
+        .then(result => completeSignIn(result.access_token))
+        .catch(reason => {
+          setNotice(errorText(reason))
+          setChecking(false)
+        })
+    }
+  }, [])
+
+  function startMicrosoft() {
+    if (!microsoftReady || busy) return
+    const mode = register ? 'register' : 'login'
+    window.location.assign(
+      'https://my-teacher-ia-api.onrender.com/api/conauti/auth/microsoft/start?mode='
+      + mode,
+    )
+  }
+
+  async function requestEmailCode(event: FormEvent) {
+    event.preventDefault()
+    if (busy || !emailMethodReady) return
+    setBusy(true)
+    setEmailFeedback('')
+
+    try {
+      const result = await api<{ sent: boolean; message: string }>(
+        '/auth/email/start',
+        null,
+        'POST',
+        { email: emailAddress.trim(), mode: register ? 'register' : 'login' },
+      )
+      setEmailStep('code')
+      setEmailFeedback(result.message)
+      setEmailCode('')
+    } catch (error) {
+      setEmailFeedback(errorText(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function confirmEmailCode(event: FormEvent) {
+    event.preventDefault()
+    if (busy || !emailMethodReady || !/^[0-9]{8}$/.test(emailCode)) return
+    setBusy(true)
+    setEmailFeedback('')
+
+    try {
+      const result = await api<{ access_token: string }>(
+        '/auth/email/verify',
+        null,
+        'POST',
+        {
+          email: emailAddress.trim(),
+          code: emailCode,
+          mode: register ? 'register' : 'login',
+        },
+      )
+      setEmailCode('')
+      completeSignIn(result.access_token)
+    } catch (error) {
+      setEmailFeedback(errorText(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  useEffect(() => {
+    googleMode.current = register ? 'register' : 'login'
+    if (token || checking || !googleConfig?.enabled || !googleConfig.client_id) {
+      return
+    }
+
+    let cancelled = false
+    const holder = googleButton.current
+    if (!holder) return
+
+    function renderGoogle() {
+      const google = googleIdentity()
+      if (cancelled || !google || !holder || !googleConfig?.client_id) return
+
+      holder.replaceChildren()
+      if (!googleInitialized.current) {
+        google.accounts.id.initialize({
+          client_id: googleConfig.client_id,
+          callback: result => {
+            if (result.credential) {
+              void handleGoogleIdentity(result.credential, googleMode.current)
+            }
+          },
+        })
+        googleInitialized.current = true
+      }
+
+      google.accounts.id.renderButton(holder, {
+        theme: 'filled_black',
+        size: 'large',
+        width: 340,
+        text: register ? 'signup_with' : 'signin_with',
+      })
+    }
+
+    const scriptId = 'myteacher-google-identity'
+    let script = document.getElementById(scriptId) as HTMLScriptElement | null
+    if (!script) {
+      script = document.createElement('script')
+      script.id = scriptId
+      script.async = true
+      script.defer = true
+      script.src = 'https://accounts.google.com/gsi/client'
+      script.onerror = () => setGoogleConfigurationError(
+        'No se pudo cargar el acceso de Google. Comprueba tu conexión y vuelve a intentarlo.',
+      )
+      document.head.appendChild(script)
+    }
+
+    if (googleIdentity()) renderGoogle()
+    else script.addEventListener('load', renderGoogle)
+
+    return () => {
+      cancelled = true
+      script?.removeEventListener('load', renderGoogle)
+    }
+  }, [token, checking, googleConfig, register])
+
   async function authenticate(e: FormEvent) {
     e.preventDefault()
     if (busy) return
@@ -158,24 +418,11 @@ function App() {
     setNotice('')
 
     try {
-      if (register) {
-        await api(
-          '/auth/register', null, 'POST',
-          { username, password }
-        )
-      }
-
       const result = await api<{ access_token: string }>(
         '/auth/login', null, 'POST',
         { username, password }
       )
-
-      sessionStorage.setItem(
-        'conauti_token', result.access_token
-      )
-      setPassword('')
-      setChecking(true)
-      setToken(result.access_token)
+      completeSignIn(result.access_token)
     } catch (error) {
       setNotice(errorText(error))
     } finally {
@@ -474,7 +721,7 @@ function App() {
             <div className="auth-beacon__core"><MarcaMyTeacher /></div>
           </div>
         </section>
-        <section className="auth-card">
+        <section className="auth-card auth-card--professional">
           <div className="auth-card__line">
             <span>ACCESO AL AULA</span>
             <span>● EN LÍNEA</span>
@@ -483,58 +730,244 @@ function App() {
             <MarcaMyTeacher />
             <span className="eyebrow">MY TEACHER IA</span>
           </div>
-          <h2>Tu próxima idea empieza aquí.</h2>
-          <p>Ingresa y continúa aprendiendo con tu guía personal.</p>
+          <h2>{
+            register
+              ? 'Crea tu espacio de aprendizaje.'
+              : '¡Qué bueno verte de nuevo!'
+          }</h2>
+          <p>
+            {register
+              ? 'Elige un método seguro y empieza a aprender a tu manera.'
+              : 'Vuelve a tus conversaciones, prácticas y descubrimientos.'}
+          </p>
 
-          <div className="tabs">
+          <div className="tabs" role="group" aria-label="Tipo de acceso">
             <button
+              type="button"
               className={!register ? 'selected' : ''}
-              onClick={() => setRegister(false)}
+              aria-pressed={!register}
+              onClick={() => {
+                setRegister(false)
+                setLegacyLoginOpen(false)
+                setEmailMethodOpen(false)
+                setEmailStep('address')
+                setEmailFeedback('')
+                setNotice('')
+              }}
             >
-              Ingresar
+              Iniciar sesión
             </button>
             <button
+              type="button"
               className={register ? 'selected' : ''}
-              onClick={() => setRegister(true)}
+              aria-pressed={register}
+              onClick={() => {
+                setRegister(true)
+                setLegacyLoginOpen(false)
+                setEmailMethodOpen(false)
+                setEmailStep('address')
+                setEmailFeedback('')
+                setNotice('')
+              }}
             >
-              Registrarse
+              Crear cuenta
             </button>
           </div>
 
-          <form onSubmit={authenticate}>
-            <label htmlFor="username">Usuario</label>
-            <input
-              id="username"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              minLength={3}
-              maxLength={32}
-              pattern="[a-zA-Z0-9_]+"
-              autoComplete="username"
-              placeholder="Nombre de usuario"
-              required
-            />
+          <div className="auth-provider">
+            <div className="auth-provider__head">
+              <span className="auth-provider__google" aria-hidden="true">G</span>
+              <span>
+                <strong>Accede con tu cuenta Google</strong>
+                <small>Una forma rápida y segura de entrar</small>
+              </span>
+            </div>
 
-            <label htmlFor="password">Contraseña</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              minLength={12}
-              maxLength={128}
-              autoComplete={
-                register ? 'new-password' : 'current-password'
+            {googleConfig?.enabled && !googleConfigurationError ? (
+              <div
+                ref={googleButton}
+                className="auth-google-button"
+                aria-label="Iniciar con Google"
+              />
+            ) : (
+              <p role="status" className="auth-provider__unavailable">
+                {googleConfigurationError
+                  || 'Conectando con Google de forma segura...'}
+              </p>
+            )}
+
+            <div className="auth-divider"><span>O utiliza otro método</span></div>
+
+            <button
+              type="button"
+              className="auth-method"
+              aria-expanded={emailMethodOpen}
+              onClick={() => {
+                setEmailMethodOpen(value => !value)
+                setEmailFeedback('')
+              }}
+              disabled={!emailMethodReady}
+              title={
+                emailMethodReady
+                  ? 'Continuar con código enviado al correo'
+                  : 'Pendiente de configurar el envío seguro de correos'
               }
-              placeholder="Mínimo 12 caracteres"
-              required
-            />
-
-            <button className="primary full" disabled={busy}>
-              {busy ? 'Procesando...' :
-                register ? 'Crear cuenta' : 'Iniciar sesión'}
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"
+                strokeLinejoin="round">
+                <rect x="3" y="5" width="18" height="14" rx="3" />
+                <path d="m4 7 8 6 8-6" />
+              </svg>
+              <span>Continuar con correo electrónico</span>
+              <b aria-hidden="true">›</b>
             </button>
-          </form>
+            {!emailMethodReady && (
+              <p className="auth-method__pending" role="status">
+                El acceso por código está preparado, pero falta activar el envío seguro de correos.
+              </p>
+            )}
+
+            <button
+              type="button"
+              className="auth-method auth-method--microsoft"
+              disabled={!microsoftReady}
+              onClick={startMicrosoft}
+              title={
+                microsoftReady
+                  ? 'Continuar con Microsoft'
+                  : 'Pendiente de registrar la aplicación en Microsoft Entra'
+              }
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2 2h9.3v9.3H2zm10.7 0H22v9.3h-9.3zM2 12.7h9.3V22H2zm10.7 0H22V22h-9.3z" />
+              </svg>
+              <span>Continuar con Microsoft</span>
+              <b aria-hidden="true">›</b>
+            </button>
+            {!microsoftReady && (
+              <p className="auth-method__pending">
+                Microsoft estará disponible cuando se complete la configuración de Entra.
+              </p>
+            )}
+
+            {emailMethodOpen && emailMethodReady && (
+              <form
+                className="auth-email-form"
+                onSubmit={emailStep === 'address'
+                  ? requestEmailCode
+                  : confirmEmailCode}
+              >
+                <label htmlFor="mtc-email-address">Tu correo electrónico</label>
+                <input
+                  id="mtc-email-address"
+                  type="email"
+                  required
+                  maxLength={254}
+                  value={emailAddress}
+                  disabled={emailStep === 'code'}
+                  onChange={event => setEmailAddress(event.target.value)}
+                  autoComplete="email"
+                  placeholder="tu-correo@ejemplo.com"
+                />
+                {emailStep === 'code' && (
+                  <>
+                    <label htmlFor="mtc-email-code">Código de 8 dígitos</label>
+                    <input
+                      id="mtc-email-code"
+                      inputMode="numeric"
+                      required
+                      autoComplete="one-time-code"
+                      minLength={8}
+                      maxLength={8}
+                      pattern="[0-9]{8}"
+                      placeholder="00000000"
+                      value={emailCode}
+                      onChange={event => setEmailCode(
+                        event.target.value.replace(/[^0-9]/g, '').slice(0, 8),
+                      )}
+                    />
+                  </>
+                )}
+                <button type="submit" className="primary" disabled={busy}>
+                  {busy
+                    ? 'Procesando...'
+                    : emailStep === 'code'
+                      ? 'Verificar e ingresar'
+                      : 'Enviar código seguro'}
+                </button>
+                {emailStep === 'code' && (
+                  <button
+                    type="button"
+                    className="auth-email-form__back"
+                    onClick={() => {
+                      setEmailStep('address')
+                      setEmailCode('')
+                      setEmailFeedback('')
+                    }}
+                  >
+                    Cambiar correo
+                  </button>
+                )}
+                {emailFeedback && (
+                  <p role="status" className="auth-email-form__feedback">
+                    {emailFeedback}
+                  </p>
+                )}
+              </form>
+            )}
+          </div>
+
+          <p className="auth-security">
+            <span aria-hidden="true">♧</span>
+            {register
+              ? 'Solo correos verificados · No se permiten cuentas duplicadas.'
+              : 'Tu historial y progreso están asociados a tu cuenta.'}
+          </p>
+
+          {!register && (
+            <div className="auth-legacy">
+              <button
+                type="button"
+                className="auth-legacy__toggle"
+                aria-expanded={legacyLoginOpen}
+                onClick={() => setLegacyLoginOpen(value => !value)}
+              >
+                <span>Tengo una cuenta anterior con usuario</span>
+                <span aria-hidden="true">{legacyLoginOpen ? '−' : '+'}</span>
+              </button>
+              {legacyLoginOpen && (
+                <form className="auth-legacy__form" onSubmit={authenticate}>
+                  <label htmlFor="username">Nombre de usuario</label>
+                  <input
+                    id="username"
+                    value={username}
+                    onChange={event => setUsername(event.target.value)}
+                    minLength={3}
+                    maxLength={32}
+                    autoComplete="username"
+                    placeholder="Tu usuario anterior"
+                    required
+                  />
+                  <label htmlFor="password">Contraseña</label>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={event => setPassword(event.target.value)}
+                    minLength={12}
+                    maxLength={128}
+                    autoComplete="current-password"
+                    placeholder="Tu contraseña"
+                    required
+                  />
+                  <button className="primary full" disabled={busy}>
+                    {busy ? 'Ingresando...' : 'Ingresar a mi cuenta anterior'}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
 
           <small>Tu información está protegida. No necesitas DNI.</small>
           {notice && <p role="status" className="notice">{notice}</p>}
