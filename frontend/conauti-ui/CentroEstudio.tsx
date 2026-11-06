@@ -286,7 +286,10 @@ export default function CentroEstudio({
               </div>
             </div>
           </section>}
-          {section==='evaluaciones'&&<EvaluacionDinamica token={token} cards={cards} onAskTutor={onAskTutor}/>}
+          {section==='evaluaciones'&&<EvaluacionDinamica
+            token={token} cards={cards} onAskTutor={onAskTutor}
+            onExamCompleted={reload}
+          />}
           {section==='pizarra'&&<PizarraEducativa
             onSend={file=>onAttachDrawing(file)}
             onError={message=>{setError(message);setNotice('')}} />}
