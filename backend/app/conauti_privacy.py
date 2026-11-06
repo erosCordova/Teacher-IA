@@ -126,6 +126,20 @@ def export_personal_data(user=Depends(current_user)):
             (uid,),
         ).fetchall()
 
+        # Exportar tarjetas de estudio y repeticiones cuando existan.
+        study_cards = []
+        stored_study = conn.execute(
+            "SELECT to_regclass('public.conauti_study_cards') AS exists"
+        ).fetchone()
+        if stored_study["exists"] is not None:
+            study_cards = conn.execute(
+                "SELECT topic,question,answer,source_name,source_page,due_at,"
+                "repetitions,reviews,created_at "
+                "FROM public.conauti_study_cards "
+                "WHERE user_id=%s ORDER BY created_at DESC",
+                (uid,),
+            ).fetchall()
+
         # Exportar también los textos guardados voluntariamente en RAG.
         materials = []
         exists = conn.execute(
@@ -152,6 +166,7 @@ def export_personal_data(user=Depends(current_user)):
         "messages": messages,
         "memories": memories,
         "materials": materials,
+        "study_cards": study_cards,
         "progress": progress,
     }
 
