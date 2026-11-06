@@ -1,6 +1,7 @@
 import { apiFetch } from './apiFetch'
 import PantallaCompartida from "./PantallaCompartida";
 import AventuraEducativa from "./AventuraEducativa";
+import MaterialesEstudio from "./MaterialesEstudio";
 import MarcaMyTeacher from "./MarcaMyTeacher";
 import { validarImagen, dimensionesImagen, LIMITE_ENVIO } from "./ImagenEducativa";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
@@ -36,7 +37,7 @@ type Message = {
   created_at: string
 }
 
-type Page = 'chat' | 'progress' | 'settings' | 'privacy' | 'games' | 'facts' | 'achievements'
+type Page = 'chat' | 'progress' | 'settings' | 'privacy' | 'games' | 'facts' | 'achievements' | 'materials'
 
 type GoogleAccountAPI = {
   accounts: { id: {
@@ -728,7 +729,7 @@ function App() {
       } else if (fileToSend) {
         setNotice('Analizando el archivo y buscando los apartados relevantes...')
         const response = await apiFetch(
-          BASE + '/files/inspect?filename=' + encodeURIComponent(fileToSend.name)
+          BASE + '/rag/inspect?filename=' + encodeURIComponent(fileToSend.name)
           + '&question=' + encodeURIComponent(draft.trim().slice(0, 240)),
           {
             method: 'POST',
@@ -1151,6 +1152,8 @@ function App() {
             onClick={() => openPage('achievements')}><span className="av-side-emoji" aria-hidden="true">🏆</span> <span>Mis logros</span></button>
           <button type="button" className={page === 'progress' ? 'active' : ''}
             onClick={() => openPage('progress')}>▤ <span>Mi aprendizaje</span></button>
+          <button type="button" className={page === 'materials' ? 'active' : ''}
+            onClick={() => openPage('materials')}>📚 <span>Mis materiales</span></button>
         </div>
 
         <div className="mtc-history">
@@ -1415,6 +1418,16 @@ function App() {
               )}
             </div>
           </main>
+        )}
+
+        {page === 'materials' && (
+          <MaterialesEstudio token={token} onAskTutor={texto => {
+            retryId.current = null
+            setDraft(texto)
+            setPage('chat')
+            setToolsOpen(false)
+            window.setTimeout(() => editor.current?.focus(), 0)
+          }} />
         )}
 
         {(page === 'games' || page === 'facts' || page === 'achievements') && (
