@@ -150,7 +150,7 @@ def _myteacher_with_learning_memory(
     )
 
 
-def generate_reply(history, pedagogical_instruction=''):
+def generate_reply(history, pedagogical_instruction='', *, student_id=None, conversation_id=None):
     # CONAUTI_ORCHESTRATOR: LangGraph activo.
     if config(
         "CONAUTI_ORCHESTRATOR",
@@ -174,6 +174,8 @@ def generate_reply(history, pedagogical_instruction=''):
                 SYSTEM_PROMPT,
                 api_key,
                 current_model(),
+                student_id=student_id,
+                conversation_id=conversation_id,
             )
 
         except HTTPException:
@@ -540,6 +542,8 @@ def respond(
             answer, usage = generate_reply(
                 history,
                 _myteacher_with_learning_memory(uid, (decision["instructions"])),
+                student_id=uid,
+                conversation_id=conversation_id,
             )
             answer = review_output(answer, decision, question)
 
