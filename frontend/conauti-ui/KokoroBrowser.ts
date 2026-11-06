@@ -16,10 +16,24 @@ let fonemizadorPromise: ReturnType<typeof createEspeak> | null = null
 
 async function fonemizarEspanol(texto: string): Promise<string> {
   if (!fonemizadorPromise) {
-    const tarea = createEspeak({
-      cdn: 'jsdelivr',
-      languages: ['es'],
-    })
+    const tarea = (async () => {
+      const opciones = {
+        languages: ['es'],
+        // Si la política del navegador bloquea WebAssembly, usar la
+        // implementación JavaScript del mismo fonemizador.
+        fallback: () => import('@spelling-creator/spellophone/wasm2js'),
+      }
+      try {
+        return await createEspeak({ ...opciones, cdn: 'jsdelivr' })
+      } catch (error) {
+        console.info('No se pudo cargar el diccionario principal.', error)
+        // Fuente libre alternativa; no cambia el modelo ni la voz Kokoro.
+        return createEspeak({
+          ...opciones,
+          dataUrl: 'https://unpkg.com/@spelling-creator/spellophone@0.2.1/espeak-ng-data/',
+        })
+      }
+    })()
     fonemizadorPromise = tarea
     void tarea.catch(() => {
       if (fonemizadorPromise === tarea) fonemizadorPromise = null

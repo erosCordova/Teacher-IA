@@ -496,7 +496,7 @@ export default function ConversacionVoz({
 
     setPhase('hablando')
     setNotice(
-      'My Teacher IA te está respondiendo. Puedes pausarlo o interrumpirlo.',
+      'Preparando la respuesta con la voz Kokoro...',
     )
 
     const normalized = text
@@ -572,7 +572,24 @@ export default function ConversacionVoz({
         }
       }
 
-      hablarConKokoro(utterance, synth, { priorizarRapidez: true })
+      hablarConKokoro(utterance, synth, {
+        priorizarRapidez: true,
+        onPreparando: () => {
+          if (running.current && id === session.current && seq === speechTurn.current) {
+            setNotice('Preparando Kokoro. La primera vez descarga el modelo de voz.')
+          }
+        },
+        onKokoroIniciado: () => {
+          if (running.current && id === session.current && seq === speechTurn.current) {
+            setNotice('My Teacher IA está hablando con la voz Kokoro seleccionada.')
+          }
+        },
+        onFallback: () => {
+          if (running.current && id === session.current && seq === speechTurn.current) {
+            setNotice('Kokoro no pudo iniciar todavía; usando temporalmente la voz del navegador.')
+          }
+        },
+      })
     }
 
     next()

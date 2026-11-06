@@ -1,4 +1,3 @@
-import { apiFetch } from './apiFetch'
 import {
   reproducirBlobKokoro,
 } from './KokoroAudio'
@@ -86,46 +85,37 @@ export function obtenerVolumenKokoro(): number {
 
 
 /**
- * Camino rápido de voz: comprobar una sola vez si existe Kokoro remoto.
- * Si no existe, la primera respuesta sale inmediatamente con la voz
- * española del navegador mientras Kokoro local se prepara en segundo plano.
+ * Prepara el modelo Kokoro REAL en el navegador al activar la voz.
+ * Render no incluye un servidor local TTS: evitamos bloquear el inicio
+ * en una consulta HTTP a un motor que no existe.
+ * Modelo y fonemizador comparten una promesa, sin descargas duplicadas.
  */
-let servidorKokoro: 'desconocido' | 'disponible' | 'no_disponible' = 'desconocido'
-let comprobacionKokoro: Promise<void> | null = null
 let motorLocalListo = false
 let preparandoLocal: Promise<void> | null = null
 
-function prepararMotorLocal(): void {
-  if (motorLocalListo || preparandoLocal) return
+function prepararMotorLocal(): Promise<void> {
+  if (motorLocalListo) return Promise.resolve()
+  if (preparandoLocal) return preparandoLocal
+
   const tarea = import('./KokoroBrowser')
     .then(modulo => modulo.prepararKokoroEnNavegador())
     .then(() => { motorLocalListo = true })
-    .catch(() => {
-      // No detener la conversación. Se puede intentar otra vez más adelante.
-    })
-    .finally(() => { preparandoLocal = null })
+
   preparandoLocal = tarea
+  // No se almacena indefinidamente un fallo de descarga; permitir reintentar.
+  void tarea.then(
+    () => { if (preparandoLocal === tarea) preparandoLocal = null },
+    error => {
+      if (preparandoLocal === tarea) preparandoLocal = null
+      console.warn('No se pudo preparar Kokoro local.', error)
+    },
+  )
+  return tarea
 }
 
 export function prepararVozKokoroRapida(): void {
-  if (comprobacionKokoro || servidorKokoro !== 'desconocido') return
-  const tarea = (async () => {
-    const cancelacion = new AbortController()
-    const limite = setTimeout(() => cancelacion.abort(), 1600)
-    try {
-      const respuesta = await apiFetch('/api/conauti/kokoro/status', {
-        signal: cancelacion.signal,
-      })
-      if (!respuesta.ok) throw new Error('Kokoro remoto no disponible')
-      const estado: { available?: boolean } = await respuesta.json()
-      servidorKokoro = estado.available === true ? 'disponible' : 'no_disponible'
-    } catch {
-      servidorKokoro = 'no_disponible'
-    } finally {
-      clearTimeout(limite)
-    }
-  })()
-  comprobacionKokoro = tarea
+  // Llamado en el clic del micrófono; STT e IA avanzan mientras carga Kokoro.
+  void prepararMotorLocal().catch(() => {})
 }
 
 let version = 0
@@ -187,12 +177,14 @@ function dividirTexto(texto: string): string[] {
 }
 
 export type OpcionesKokoro = {
-  /** Evitar el intento de conexión a un servidor Kokoro inexistente. */
+  /** Compatibilidad con integraciones anteriores; siempre se usa el motor real local. */
   omitirServidor?: boolean
-  /** Tiempo máximo del primer intento de Kokoro local antes de responder con la voz del navegador. */
+  /** Límite solo para el arranque inicial, no para el tiempo de reproducción. */
   esperaLocalMs?: number
-  /** Responder ya con TTS del navegador si Kokoro todavía no está listo. */
+  /** Espera acotada mientras se precarga Kokoro en paralelo con la IA. */
   priorizarRapidez?: boolean
+  onPreparando?: () => void
+  onKokoroIniciado?: () => void
   onFallback?: () => void
 }
 
@@ -252,31 +244,62 @@ export function hablarConKokoro(
     }
   }
 
-  if (opciones.priorizarRapidez) {
-    prepararVozKokoroRapida()
-    if (servidorKokoro !== 'disponible' && !motorLocalListo) {
-      // No esperar la descarga del modelo: la frase se escucha inmediatamente.
-      if (servidorKokoro === 'no_disponible') prepararMotorLocal()
-      respaldo()
-      return
-    }
-  }
+
+  /** Un fallo o descarga lenta no debe dejar el chat bloqueado indefinidamente. */
+  const esperarConLimite = <T,>(tarea: Promise<T>, ms: number): Promise<T> =>
+    new Promise<T>((resolve, reject) => {
+      if (abort.signal.aborted) {
+        reject(new Error('Reproducción cancelada.'))
+        return
+      }
+
+      let completado = false
+      const limpiar = () => {
+        clearTimeout(temporizador)
+        abort.signal.removeEventListener('abort', cancelar)
+      }
+      const cancelar = () => {
+        if (completado) return
+        completado = true
+        limpiar()
+        reject(new Error('Reproducción cancelada.'))
+      }
+      const temporizador = setTimeout(() => {
+        if (completado) return
+        completado = true
+        limpiar()
+        reject(new Error('El motor Kokoro está tardando en prepararse.'))
+      }, ms)
+
+      abort.signal.addEventListener('abort', cancelar, { once: true })
+      tarea.then(
+        valor => {
+          if (completado) return
+          completado = true
+          limpiar()
+          resolve(valor)
+        },
+        error => {
+          if (completado) return
+          completado = true
+          limpiar()
+          reject(error)
+        },
+      )
+    })
 
   const reproducir = async (blob: Blob) => {
     if (!vigente()) return
-
-    // Avisar al componente ANTES de empezar a reproducir.
-    // La implementación anterior emitía onstart al terminar TODO el primer
-    // fragmento y no permitía detener a tiempo una respuesta Kokoro larga.
-    if (!iniciado) {
+    // Emitir "hablando" cuando COMIENZA el audio, no durante la descarga.
+    await reproducirBlobKokoro(blob, volumen, abort.signal, () => {
+      if (!vigente() || iniciado) return
       iniciado = true
+      opciones.onKokoroIniciado?.()
       mensaje.onstart?.call(
         mensaje,
         new Event('start') as SpeechSynthesisEvent,
       )
-    }
-    if (!vigente()) return
-    await reproducirBlobKokoro(blob, volumen, abort.signal)
+    })
   }
 
   const ejecutar = async () => {
@@ -286,107 +309,37 @@ export function hablarConKokoro(
       return
     }
 
-    let motorLocal = Boolean(opciones.omitirServidor) || (
-      Boolean(opciones.priorizarRapidez) && servidorKokoro !== 'disponible'
-    )
-
     try {
+      if (!motorLocalListo) opciones.onPreparando?.()
+      const limiteCarga = opciones.esperaLocalMs ??
+        (opciones.priorizarRapidez ? 35000 : 60000)
+
+      // El primer modelo pesa cerca de 92 MB y se conserva en la caché.
+      // No usar una voz falsa inmediatamente: dar oportunidad real a Kokoro.
+      await esperarConLimite(prepararMotorLocal(), limiteCarga)
+      if (!vigente()) return
+
+      const { sintetizarKokoroEnNavegador } = await import('./KokoroBrowser')
       for (const fragmento of fragmentos) {
         if (!vigente()) return
 
-        let blob: Blob | null = null
-
-        if (!motorLocal && !opciones.omitirServidor) {
-          try {
-            const remoto = new AbortController()
-            const cancelarRemoto = () => remoto.abort()
-            abort.signal.addEventListener('abort', cancelarRemoto, { once: true })
-            const limiteRemoto = setTimeout(
-              cancelarRemoto, opciones.priorizarRapidez ? 3500 : 12000,
-            )
-            let respuesta: Response
-            try {
-              respuesta = await apiFetch('/api/conauti/kokoro/speech', {
-                method: 'POST',
-                credentials: 'same-origin',
-                signal: remoto.signal,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: fragmento, voice: voz, speed: velocidad }),
-              })
-            } finally {
-              clearTimeout(limiteRemoto)
-              abort.signal.removeEventListener('abort', cancelarRemoto)
-            }
-
-            if (!respuesta.ok) {
-              throw new Error(`Kokoro remoto: HTTP ${respuesta.status}`)
-            }
-            blob = await respuesta.blob()
-            if (!blob.type.startsWith('audio/')) {
-              throw new Error('Audio remoto inválido.')
-            }
-          } catch (error) {
-            if (!vigente()) return
-            console.info(
-              'Kokoro remoto no disponible; iniciando Kokoro local.',
-              error,
-            )
-            motorLocal = true
-            if (opciones.priorizarRapidez && !motorLocalListo) {
-              servidorKokoro = 'no_disponible'
-              prepararMotorLocal()
-              respaldo()
-              return
-            }
-          }
-        }
-
-        if (motorLocal || opciones.omitirServidor) {
-          // Se carga bajo demanda, sin aumentar el paquete de inicio.
-          const { sintetizarKokoroEnNavegador } =
-            await import('./KokoroBrowser')
-          if (!vigente()) return
-
-          // Una primera descarga larga no debe dejar al estudiante
-          // esperando en silencio indefinidamente. El modelo sigue
-          // cargandose y queda listo para el siguiente turno.
-          let temporizador: ReturnType<typeof setTimeout> | null = null
-          try {
-            blob = await Promise.race([
-              sintetizarKokoroEnNavegador(
-                fragmento,
-                voz,
-                velocidad,
-              ),
-              new Promise<never>((_, reject) => {
-                temporizador = setTimeout(() => {
-                  reject(
-                    new Error(
-                      'Kokoro aun se esta descargando.',
-                    ),
-                  )
-                }, opciones.esperaLocalMs ?? (opciones.priorizarRapidez ? 3000 : 12000))
-              }),
-            ])
-          } finally {
-            if (temporizador !== null) {
-              clearTimeout(temporizador)
-            }
-          }
-        }
-
+        // Cada fragmento tiene su propio límite de seguridad. Kokoro
+        // tiene prioridad; la voz del navegador solo es contingencia.
+        const blob = await esperarConLimite(
+          sintetizarKokoroEnNavegador(fragmento, voz, velocidad),
+          30000,
+        )
         if (!vigente()) return
-        if (!blob) throw new Error('No se generó audio.')
+        if (!blob.size || !blob.type.startsWith('audio/')) {
+          throw new Error('Kokoro no generó audio válido.')
+        }
         await reproducir(blob)
       }
 
       finalizar()
     } catch (error) {
       if (!vigente()) return
-      console.warn(
-        'Kokoro no pudo sintetizar en este dispositivo.',
-        error,
-      )
+      console.warn('Kokoro no pudo generar o reproducir el audio.', error)
       respaldo()
     }
   }

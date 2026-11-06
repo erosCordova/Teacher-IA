@@ -1,4 +1,3 @@
-import { apiFetch } from './apiFetch'
 import {
   recuperarPreferenciasRemotas,
   programarGuardadoRemoto,
@@ -13,6 +12,7 @@ import {
   obtenerVelocidadKokoro,
   obtenerVolumenKokoro,
   obtenerVozKokoro,
+  prepararVozKokoroRapida,
   type KokoroVoice,
 } from './KokoroPlayer'
 import {
@@ -76,6 +76,7 @@ export default function VocesKokoro() {
 
   useEffect(() => {
     const abrir = () => {
+      prepararVozKokoroRapida()
       setError('')
       setAbierto(true)
     }
@@ -168,142 +169,49 @@ export default function VocesKokoro() {
 
   async function escuchar(voz: KokoroVoice) {
     detener()
+    // Desbloquear el audio con el clic real del estudiante.
     habilitarAudioKokoro()
 
     if (volumen <= 0) {
-      setError('El volumen esta en 0 %. Sube el volumen para escuchar.')
+      setError('El volumen está en cero. Sube el volumen para escuchar.')
       return
     }
 
     const abort = new AbortController()
     controller.current = abort
-    const texto =
-      'Hola, soy tu asistente educativo. ' +
-      'Aprenderemos juntos, paso a paso.'
+    const texto = 'Hola, soy tu asistente educativo. Aprenderemos juntos, paso a paso.'
 
-    setError('')
-    setCargando(true)
     setActiva(voz)
+    setCargando(true)
+    setError('Preparando la muestra Kokoro. La primera descarga del modelo puede tardar.')
 
     try {
-      let blob: Blob | null = null
+      // Render gratuito no dispone de un proceso Kokoro independiente.
+      // Utilizar siempre la voz seleccionada y el motor Kokoro real del navegador.
+      const { sintetizarKokoroEnNavegador } = await import('./KokoroBrowser')
+      if (abort.signal.aborted) return
 
-      try {
-        const response = await apiFetch(
-          '/api/conauti/kokoro/speech',
-          {
-            method: 'POST',
-            credentials: 'same-origin',
-            signal: abort.signal,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              text: texto,
-              voice: voz,
-              speed: velocidad,
-            }),
-          },
-        )
-
-        if (!response.ok) {
-          throw new Error('Kokoro remoto no disponible.')
-        }
-
-        blob = await response.blob()
-        if (!blob.size || !blob.type.startsWith('audio/')) {
-          throw new Error('La respuesta remota no contiene audio.')
-        }
-      } catch {
-        if (abort.signal.aborted) return
-
-        // La instalacion en Render no tiene Kokoro local.
-        // La muestra utiliza el mismo modelo que la conversacion.
-        setError(
-          'Preparando Kokoro en tu navegador. ' +
-          'La primera descarga puede tardar; ' +
-          'no cierres esta ventana.',
-        )
-
-        const { sintetizarKokoroEnNavegador } =
-          await import('./KokoroBrowser')
-
-        if (abort.signal.aborted) return
-        // La primera carga necesita descargar un modelo neuronal.
-        // Mantener el indicador visible hasta completar el audio;
-        // no descartar la voz a los 15 segundos.
-        blob = await sintetizarKokoroEnNavegador(
-          texto,
-          voz,
-          velocidad,
-        )
+      const blob = await sintetizarKokoroEnNavegador(texto, voz, velocidad)
+      if (abort.signal.aborted) return
+      if (!blob.size || !blob.type.startsWith('audio/')) {
+        throw new Error('Kokoro no generó un archivo de audio válido.')
       }
-
-      if (abort.signal.aborted || !blob) return
 
       setCargando(false)
       setError('')
-      await reproducirBlobKokoro(
-        blob,
-        volumen,
-        abort.signal,
-      )
-
+      await reproducirBlobKokoro(blob, volumen, abort.signal)
       if (!abort.signal.aborted) detener()
     } catch (error) {
       if (abort.signal.aborted) return
-
-      // Mostrar claramente que el respaldo NO es una voz Kokoro.
-      setCargando(false)
-
-      if (!('speechSynthesis' in window)) {
-        detener()
-        setError(
-          'Kokoro no pudo generar audio y este navegador ' +
-          'no dispone de una voz alternativa.',
-        )
-        return
-      }
-
+      console.warn('Error en la muestra Kokoro:', error)
+      detener()
+      // No fingir que Dora, Alex o Santa se han reproducido con una
+      // voz diferente: informar al estudiante del fallo verdadero.
       setError(
-        'Kokoro todavia no esta listo. ' +
-        (error instanceof Error ? error.message + ' ' : '') +
-        'La muestra actual utiliza temporalmente la voz ' +
-        'del navegador; vuelve a pulsar Escuchar cuando ' +
-        'termine la descarga para probar Dora, Alex o Santa.',
+        'No se pudo generar la muestra con Kokoro. ' +
+        'Comprueba tu conexión a internet y vuelve a intentarlo. ' +
+        'El modelo de voz debe descargarse al utilizarlo por primera vez.'
       )
-
-      try {
-        const muestra = new SpeechSynthesisUtterance(texto)
-        muestra.lang = 'es-PE'
-        muestra.rate = velocidad
-        muestra.volume = volumen
-
-        const voces = window.speechSynthesis.getVoices()
-        muestra.voice =
-          voces.find(v => v.lang.toLowerCase() === 'es-pe') ||
-          voces.find(v => v.lang.toLowerCase().startsWith('es')) ||
-          null
-
-        muestra.onend = () => {
-          if (controller.current === abort) detener()
-        }
-        muestra.onerror = () => {
-          if (controller.current !== abort) return
-          detener()
-          setError(
-            'El navegador tambien bloqueo la salida de audio. ' +
-            'Comprueba volumen y permisos de sonido.',
-          )
-        }
-
-        window.speechSynthesis.cancel()
-        window.speechSynthesis.speak(muestra)
-      } catch {
-        detener()
-        setError(
-          'El navegador no permitio reproducir sonido. ' +
-          'Comprueba el volumen y los permisos de audio.',
-        )
-      }
     }
   }
 

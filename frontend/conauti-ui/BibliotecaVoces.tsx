@@ -5,6 +5,7 @@ import {
   obtenerVozKokoro,
   obtenerVelocidadKokoro,
   obtenerVolumenKokoro,
+  prepararVozKokoroRapida,
   type KokoroVoice,
 } from './KokoroPlayer'
 import {
@@ -87,6 +88,7 @@ export default function BibliotecaVoces() {
 
   useEffect(() => {
     const abrir = () => {
+      prepararVozKokoroRapida()
       setSelected(readSelected())
       setError('')
       setOpen(true)

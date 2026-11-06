@@ -28,6 +28,7 @@ export async function reproducirBlobKokoro(
   blob: Blob,
   volumen: number,
   signal: AbortSignal,
+  onIniciar?: () => void,
 ): Promise<void> {
   if (signal.aborted) return
   if (!blob.size) throw new Error('Audio Kokoro vacio.')
@@ -78,6 +79,7 @@ export async function reproducirBlobKokoro(
 
         try {
           fuente.start()
+          onIniciar?.()
         } catch (error) {
           terminado = true
           limpiar()
@@ -124,7 +126,7 @@ export async function reproducirBlobKokoro(
       signal.addEventListener('abort', cancelar, { once: true })
       audio.onended = completar
       audio.onerror = fallar
-      void audio.play().catch(fallar)
+      void audio.play().then(() => onIniciar?.(), fallar)
     })
   } finally {
     audio.pause()
