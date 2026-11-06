@@ -1,7 +1,8 @@
 """Biblioteca RAG por estudiante: extracción, fragmentación y recuperación híbrida.
 
-Los archivos no se guardan. La indexación persistente requiere una acción
-explícita en /documents. PostgreSQL guarda solo fragmentos de texto.
+La indexación requiere una acción explícita en /documents. Los archivos
+nuevos también se conservan de forma privada para visualización y descarga.
+Los materiales antiguos sin archivo mantienen el texto indexado.
 Embeddings Gemini opcionales: activar RAG_EMBEDDINGS_ENABLED=true, por cuota.
 """
 from __future__ import annotations
@@ -15,11 +16,13 @@ import threading
 import unicodedata
 from collections import Counter
 from pathlib import PurePath
+from urllib.parse import quote
 from uuid import UUID
 
 import httpx
 import psycopg
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import Response
 from pypdf import PdfReader
 
 from app.conauti_auth import current_user, database_url
@@ -30,6 +33,7 @@ MAX_BYTES = 6_000_000
 MAX_TEXT = 48_000
 MAX_CHUNKS = 48
 MAX_DOCUMENTS = 12
+MAX_STORAGE_BYTES = 24_000_000
 CHUNK_SIZE = 950
 CHUNK_OVERLAP = 130
 _EMBED_MODEL = "gemini-embedding-001"
@@ -62,6 +66,13 @@ CREATE TABLE IF NOT EXISTS public.conauti_rag_chunks (
 );
 CREATE INDEX IF NOT EXISTS idx_conauti_rag_chunks_document
  ON public.conauti_rag_chunks(document_id);
+CREATE TABLE IF NOT EXISTS public.conauti_rag_files (
+ document_id uuid PRIMARY KEY REFERENCES public.conauti_rag_documents(id) ON DELETE CASCADE,
+ file_content bytea NOT NULL,
+ content_type varchar(100) NOT NULL,
+ size_bytes integer NOT NULL CHECK (size_bytes >= 1 AND size_bytes <= 6000000),
+ stored_at timestamptz NOT NULL DEFAULT now()
+);
 """
 
 
@@ -225,6 +236,52 @@ def make_excerpt(rows: list[dict], filename: str, limit: int = 3150) -> str:
     return "\n\n".join(parts)[:limit]
 
 
+_MIME_TYPES = {
+    ".pdf": "application/pdf",
+    ".txt": "text/plain; charset=utf-8",
+    ".md": "text/plain; charset=utf-8",
+    ".csv": "text/plain; charset=utf-8",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ".odt": "application/vnd.oasis.opendocument.text",
+    ".ods": "application/vnd.oasis.opendocument.spreadsheet",
+    ".odp": "application/vnd.oasis.opendocument.presentation",
+}
+
+
+def media_type(filename: str) -> str:
+    """No se confía en MIME enviado por el cliente."""
+    return _MIME_TYPES.get(PurePath(filename.lower()).suffix, "application/octet-stream")
+
+
+def private_headers(filename: str, download: bool) -> dict[str, str]:
+    """Cabeceras seguras: únicamente contenido autorizado, sin caché compartida."""
+    kind = "attachment" if download else "inline"
+    safe = quote(filename, safe="")
+    return {
+        "Content-Disposition": f"{kind}; filename*=UTF-8''{safe}",
+        "Cache-Control": "private, no-store, max-age=0",
+        "X-Content-Type-Options": "nosniff",
+        "Pragma": "no-cache",
+    }
+
+
+def reserve_storage(conn, user_id: UUID, additional: int):
+    """Cuota conservadora para bases gratuitas, serializada por estudiante."""
+    conn.execute("SELECT pg_advisory_xact_lock(76129, hashtext(%s))", (str(user_id),))
+    used = conn.execute(
+        "SELECT COALESCE(SUM(f.size_bytes),0) "
+        "FROM public.conauti_rag_files f JOIN public.conauti_rag_documents d "
+        "ON d.id=f.document_id WHERE d.user_id=%s",
+        (user_id,),
+    ).fetchone()[0]
+    if used + additional > MAX_STORAGE_BYTES:
+        raise HTTPException(
+            409, "Tu biblioteca alcanzó el límite de 24 MB. Elimina un archivo antes de guardar otro."
+        )
+
+
 @router.post("/inspect")
 async def inspect_with_retrieval(
     request: Request,
@@ -258,7 +315,7 @@ async def save_document(
     filename: str = Query(..., min_length=1, max_length=150),
     user=Depends(current_user),
 ):
-    """La biblioteca solo guarda texto si el estudiante solicita guardarlo."""
+    """Guarda fragmentos y original solo tras elegir Guardar material."""
     try:
         name = validate_filename(filename)
         raw = await read_file(request)
@@ -273,23 +330,45 @@ async def save_document(
     with psycopg.connect(database_url(), connect_timeout=10) as conn:
         ensure_schema(conn)
         with conn.cursor() as cursor:
+            # Evita carreras al subir dos documentos simultáneamente.
+            conn.execute("SELECT pg_advisory_xact_lock(76129, hashtext(%s))", (str(uid),))
             cursor.execute(
-                "SELECT id FROM public.conauti_rag_documents WHERE user_id=%s AND checksum=%s",
+                "SELECT d.id, f.document_id AS stored_id "
+                "FROM public.conauti_rag_documents d "
+                "LEFT JOIN public.conauti_rag_files f ON f.document_id=d.id "
+                "WHERE d.user_id=%s AND d.checksum=%s",
                 (uid, checksum),
             )
             existing = cursor.fetchone()
             if existing:
-                return {"id": str(existing[0]), "filename": name, "duplicate": True,
-                        "chunks": len(chunks), "stored": True}
+                if existing[1] is None:
+                    reserve_storage(conn, uid, len(raw))
+                    cursor.execute(
+                        "INSERT INTO public.conauti_rag_files "
+                        "(document_id,file_content,content_type,size_bytes) "
+                        "VALUES (%s,%s,%s,%s)",
+                        (existing[0], raw, media_type(name), len(raw)),
+                    )
+                return {
+                    "id": str(existing[0]), "filename": name, "duplicate": True,
+                    "restored": existing[1] is None, "chunks": len(chunks),
+                    "stored": True, "has_original": True,
+                }
             cursor.execute("SELECT count(*) FROM public.conauti_rag_documents WHERE user_id=%s", (uid,))
             if cursor.fetchone()[0] >= MAX_DOCUMENTS:
                 raise HTTPException(409, "La biblioteca alcanzó el máximo de 12 documentos. Puedes eliminar alguno.")
+            reserve_storage(conn, uid, len(raw))
             cursor.execute(
                 "INSERT INTO public.conauti_rag_documents(user_id,filename,checksum,pages) "
                 "VALUES (%s,%s,%s,%s) RETURNING id",
                 (uid, name, checksum, max(p for p,_ in pages)),
             )
             doc_id = cursor.fetchone()[0]
+            cursor.execute(
+                "INSERT INTO public.conauti_rag_files "
+                "(document_id,file_content,content_type,size_bytes) VALUES (%s,%s,%s,%s)",
+                (doc_id, raw, media_type(name), len(raw)),
+            )
             embedded = 0
             for chunk in chunks:
                 # Límite preventivo de coste: máximo 12 embeddings por documento.
@@ -304,7 +383,8 @@ async def save_document(
                      vector, _EMBED_MODEL if vector else None),
                 )
     return {"id": str(doc_id), "filename": name, "duplicate": False,
-            "chunks": len(chunks), "embedded": embedded, "stored": True}
+            "chunks": len(chunks), "embedded": embedded, "stored": True,
+            "has_original": True, "size_bytes": len(raw)}
 
 
 @router.get("/documents")
@@ -312,13 +392,91 @@ def documents(user=Depends(current_user)):
     with psycopg.connect(database_url(), connect_timeout=10) as conn:
         ensure_schema(conn)
         rows = conn.execute(
-            "SELECT id,filename,pages,created_at FROM public.conauti_rag_documents "
-            "WHERE user_id=%s ORDER BY created_at DESC", (user["id"],),
+            "SELECT d.id,d.filename,d.pages,d.created_at, "
+            "f.size_bytes FROM public.conauti_rag_documents d "
+            "LEFT JOIN public.conauti_rag_files f ON f.document_id=d.id "
+            "WHERE d.user_id=%s ORDER BY d.created_at DESC", (user["id"],),
         ).fetchall()
     return {"documents": [
-        {"id": str(r[0]), "filename":r[1], "pages":r[2], "created_at":r[3].isoformat()}
+        {"id": str(r[0]), "filename":r[1], "pages":r[2],
+         "created_at":r[3].isoformat(), "has_original":r[4] is not None,
+         "size_bytes":r[4] or 0}
         for r in rows
     ]}
+
+
+@router.get("/documents/{document_id}/file")
+def get_saved_file(
+    document_id: UUID,
+    download: bool = Query(default=False),
+    user=Depends(current_user),
+):
+    """Recupera el original, exclusivamente para el dueño autenticado."""
+    with psycopg.connect(database_url(), connect_timeout=10) as conn:
+        ensure_schema(conn)
+        row = conn.execute(
+            "SELECT d.filename,f.file_content,f.content_type "
+            "FROM public.conauti_rag_documents d "
+            "LEFT JOIN public.conauti_rag_files f ON f.document_id=d.id "
+            "WHERE d.id=%s AND d.user_id=%s",
+            (document_id, user["id"]),
+        ).fetchone()
+    if row is None:
+        raise HTTPException(404, "Documento no encontrado.")
+    if row[1] is None:
+        raise HTTPException(
+            409, "El original no se conservó al guardarlo. Vuelve a subir ese documento para recuperarlo."
+        )
+    name, binary, mime = row
+    # El navegador abre únicamente PDF o texto; Office siempre se descarga.
+    inline = mime.startswith("application/pdf") or mime.startswith("text/plain")
+    return Response(
+        content=bytes(binary),
+        media_type=mime,
+        headers=private_headers(name, download or not inline),
+    )
+
+
+def extracted_document_text(filename: str, rows: list[tuple[int, str]]) -> str:
+    """Únicamente texto de fragmentos indexados; NO reconstruye el documento."""
+    header = (
+        f"Texto indexado de: {filename}\n"
+        "Esta copia contiene únicamente fragmentos recuperables, "
+        "no el archivo original ni necesariamente todas sus páginas.\n\n"
+    )
+    return header + "\n\n".join(
+        f"[Página {page}]\n{body}" for page, body in rows
+    )
+
+
+@router.get("/documents/{document_id}/text")
+def get_indexed_text(
+    document_id: UUID,
+    download: bool = Query(default=False),
+    user=Depends(current_user),
+):
+    """Vista legible y copia del índice para documentos antiguos sin original."""
+    with psycopg.connect(database_url(), connect_timeout=10) as conn:
+        ensure_schema(conn)
+        record = conn.execute(
+            "SELECT filename FROM public.conauti_rag_documents "
+            "WHERE id=%s AND user_id=%s",
+            (document_id, user["id"]),
+        ).fetchone()
+        if record is None:
+            raise HTTPException(404, "Documento no encontrado.")
+        rows = conn.execute(
+            "SELECT c.page_number,c.body FROM public.conauti_rag_chunks c "
+            "JOIN public.conauti_rag_documents d ON d.id=c.document_id "
+            "WHERE d.id=%s AND d.user_id=%s ORDER BY c.ordinal LIMIT %s",
+            (document_id, user["id"], MAX_CHUNKS),
+        ).fetchall()
+    filename = record[0].rsplit(".", 1)[0] + "-texto-indexado.txt"
+    return Response(
+        content=extracted_document_text(record[0], rows),
+        media_type="text/plain; charset=utf-8",
+        headers=private_headers(filename, download),
+    )
 
 
 @router.delete("/documents/{document_id}")
