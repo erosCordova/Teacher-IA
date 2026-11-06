@@ -1,6 +1,7 @@
 import MarcaMyTeacher from "./MarcaMyTeacher";
 import PantallaCompartida from "./PantallaCompartida";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
+import CinematicNature from './CinematicNature'
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, KeyboardEvent } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -11,6 +12,7 @@ import ConversacionVoz from './ConversacionVoz'
 import './composerGlobal'
 import './style.css'
 import './ConfiguracionGlobal'
+import './cinematic-theme.css'
 
 type User = {
   id: string
@@ -449,12 +451,40 @@ function App() {
 
   if (!token || !user) {
     return (
-      <main className="auth">
+      <main className="auth cinematic-auth">
+        <CinematicNature mode="auth" />
+        <section className="auth-intro" aria-label="Presentación de My Teacher IA">
+          <div className="auth-intro__brand">
+            <MarcaMyTeacher />
+            <span>MY TEACHER IA</span>
+          </div>
+          <p className="auth-intro__kicker">EDUCACIÓN QUE SE SIENTE VIVA</p>
+          <h1>Explora.<br />Comprende.<br /><em>Avanza.</em></h1>
+          <p className="auth-intro__copy">
+            Un espacio inmersivo para aprender con una IA que guía tu proceso,
+            respeta tu ritmo y convierte cada duda en un nuevo camino.
+          </p>
+          <div className="auth-intro__meta">
+            <span><i /> APRENDE A TU MANERA</span>
+            <span>01 — AULA DIGITAL</span>
+          </div>
+          <div className="auth-beacon">
+            <div className="auth-beacon__ring auth-beacon__ring--outer" />
+            <div className="auth-beacon__ring auth-beacon__ring--inner" />
+            <div className="auth-beacon__core"><MarcaMyTeacher /></div>
+          </div>
+        </section>
         <section className="auth-card">
-          <div className="logo">C</div>
-          <span className="eyebrow">CONAUTI · EDUCACIÓN CON IA</span>
-          <h1>Aprender es descubrir</h1>
-          <p>Tu espacio para practicar, preguntar y avanzar.</p>
+          <div className="auth-card__line">
+            <span>ACCESO AL AULA</span>
+            <span>● EN LÍNEA</span>
+          </div>
+          <div className="auth-card__brand">
+            <MarcaMyTeacher />
+            <span className="eyebrow">MY TEACHER IA</span>
+          </div>
+          <h2>Tu próxima idea empieza aquí.</h2>
+          <p>Ingresa y continúa aprendiendo con tu guía personal.</p>
 
           <div className="tabs">
             <button
@@ -506,7 +536,7 @@ function App() {
             </button>
           </form>
 
-          <small>No necesitas DNI para registrarte.</small>
+          <small>Tu información está protegida. No necesitas DNI.</small>
           {notice && <p role="status" className="notice">{notice}</p>}
         </section>
       </main>
@@ -514,12 +544,13 @@ function App() {
   }
 
   return (
-    <div className="app">
+    <div className="app cinematic-app">
+      <CinematicNature mode="workspace" />
       <aside className="sidebar">
         <div className="brand">
-          <div className="logo compact">C</div>
+          <div className="brand-orb"><MarcaMyTeacher /></div>
           <div>
-            <strong>CONAUTI</strong>
+            <strong>MY TEACHER<br />IA</strong>
             <small>Aprende a tu manera</small>
           </div>
         </div>
@@ -564,7 +595,7 @@ function App() {
       <main className="main">
         <header className="topbar">
           <div>
-            <span className="eyebrow">ASISTENTE EDUCATIVO</span>
+          <span className="eyebrow">AULA VIVA · ASISTENTE EDUCATIVO</span>
             <h1>{
               page === 'chat'
                 ? history.find(c => c.id === active)?.title
@@ -574,7 +605,7 @@ function App() {
                 : 'Privacidad'
             }</h1>
           </div>
-          <span className="phase">Fase 04</span>
+          <span className="phase"><i /> IA CONECTADA</span>
         </header>
 
         {notice && (
@@ -656,7 +687,12 @@ function App() {
                 <p>Cargando...</p>
               ) : messages.length === 0 ? (
                 <div className="welcome">
-                  <div className="star" aria-label="Logotipo My Teacher IA"><MarcaMyTeacher /></div>
+                  <div className="welcome-orbit" aria-label="Logotipo My Teacher IA">
+                    <span className="welcome-orbit__ring" />
+                    <span className="welcome-orbit__ring welcome-orbit__ring--small" />
+                    <MarcaMyTeacher />
+                  </div>
+                  <span className="welcome-kicker">ELIGE UNA RUTA</span>
                   <h2>¿Qué quieres aprender hoy?</h2>
                   <p>
                     Pregunta, explora y descubre
