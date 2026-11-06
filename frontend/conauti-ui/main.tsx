@@ -19,6 +19,7 @@ import './chatgpt-layout.css'
 import './auth-premium.css'
 import './ConfiguracionGlobal'
 import './active-theory-skin.css'
+import './mecha-interface.css'
 
 type User = {
   id: string

@@ -1,0 +1,563 @@
+/*
+ * MY TEACHER IA — MECHA / CYBERNETIC UI
+ * A cinematic machine-inspired design system. Original visual language:
+ * armored panel seams, luminous conduits, engraved metadata, HUD geometry.
+ * Presentation-only: no authentication, state, voice, drawing or game logic.
+ * Loaded after active-theory-skin.css to cover all functional modules.
+ */
+
+/* UNIFIED MATERIALS */
+html[data-myteacher-theme="dark"] {
+  --mtc-bg:#03070d; --mtc-side:#080e18; --mtc-surface:#101c2c;
+  --mtc-surface-hover:#152b3e; --mtc-field:#0d1927;
+  --mtc-text:#edf7ff; --mtc-muted:#a5b9cd;
+  --mtc-border:rgba(119,189,234,.26);
+  --mtc-accent:#79deff; --mtc-action:#83e1ff; --mtc-action-text:#061320;
+  --mtc-blue:#66a4ff; --mtc-cyan:#7de2ff; --mtc-green:#63d2ed;
+  --mtc-soft-cyan:rgba(58,141,209,.16);
+  --mecha-steel:#15243a; --mecha-carbon:#060c14;
+  --mecha-edge:rgba(133,211,255,.33); --mecha-shine:rgba(181,232,255,.74);
+  --mecha-shadow:0 19px 58px rgba(0,0,0,.42);
+}
+html[data-myteacher-theme="light"] {
+  --mecha-steel:#d9e9f7; --mecha-carbon:#f2f7fc;
+  --mecha-edge:rgba(31,103,168,.25);
+  --mecha-shine:rgba(31,103,168,.42);
+  --mecha-shadow:0 16px 38px rgba(35,78,122,.10);
+}
+
+/* Continuous circuits run behind every authenticated module. */
+html[data-myteacher-theme="dark"] #root .mtc-app .mtc-content {
+  background:
+    radial-gradient(ellipse at 60% -5%,rgba(51,107,173,.16),transparent 48%),
+    repeating-linear-gradient(90deg,transparent 0 111px,rgba(101,169,221,.025) 112px 113px,transparent 114px 226px),
+    linear-gradient(143deg,#060d18,#03060c 67%,#07101b)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app :is(.mtc-secondary,.av-root,.study-center,.mtc-materials,.mtc-chat) {
+  background:
+    radial-gradient(ellipse at 51% 1%,rgba(34,112,171,.14),transparent 50%),
+    linear-gradient(120deg,transparent 49.89%,rgba(111,190,240,.018) 49.95%,rgba(111,190,240,.018) 50.05%,transparent 50.11%),
+    repeating-linear-gradient(90deg,transparent 0 89px,rgba(100,175,223,.017) 90px,transparent 91px),
+    linear-gradient(165deg,#050c15,#03060c 68%,#07101a)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .mtc-sidebar {
+  background:
+    linear-gradient(90deg,rgba(70,152,209,.04),transparent 23%),
+    repeating-linear-gradient(180deg,transparent 0 49px,rgba(123,200,242,.028) 50px,transparent 51px),
+    linear-gradient(160deg,#101b2b,#060b12 80%)!important;
+  border-right:1px solid var(--mecha-edge)!important;
+  box-shadow:inset -2px 0 rgba(86,164,230,.07),13px 0 45px rgba(0,0,0,.17)!important;
+}
+#root .mtc-app .mtc-side-head {
+  position:relative;
+  border-bottom:1px solid var(--mecha-edge)!important;
+}
+#root .mtc-app .mtc-side-head::after {
+  content:"";position:absolute;right:0;bottom:-2px;width:46px;height:3px;
+  background:linear-gradient(90deg,transparent,#73c8ff,#e0f8ff);
+  box-shadow:0 0 12px rgba(101,200,255,.6);
+  pointer-events:none;
+}
+#root .mtc-app .mtc-brand .mtc-mark {
+  border-radius:7px!important; transform:skew(-4deg);
+  border:1px solid var(--mecha-edge)!important;
+  background:linear-gradient(145deg,#1f496f,#0a1829 64%,#35628a)!important;
+  box-shadow:inset 0 1px rgba(233,250,255,.22),0 0 22px rgba(46,147,238,.2)!important;
+}
+#root .mtc-app .mtc-brand strong {letter-spacing:.19em!important;}
+#root .mtc-app .mtc-new-chat {
+  position:relative;
+  background:linear-gradient(118deg,rgba(68,120,165,.19),rgba(14,31,48,.58))!important;
+  border:1px solid var(--mecha-edge)!important;
+  border-radius:7px!important;
+  box-shadow:inset 0 1px rgba(226,245,255,.09),0 9px 22px rgba(0,0,0,.12)!important;
+  letter-spacing:.13em!important;
+}
+#root .mtc-app .mtc-new-chat::after {
+  content:"";position:absolute;right:0;top:0;border-top:10px solid var(--mtc-side);
+  border-left:10px solid transparent;pointer-events:none;
+}
+#root .mtc-app .mtc-side-nav button {
+  position:relative;
+  border:1px solid transparent!important;
+  border-radius:6px!important;
+  transition:transform .23s ease,background .23s ease,border-color .23s ease!important;
+}
+#root .mtc-app .mtc-side-nav button:hover {
+  border-color:var(--mecha-edge)!important;
+  transform:translateX(3px)!important;
+}
+#root .mtc-app .mtc-side-nav button.active {
+  background:linear-gradient(90deg,rgba(54,133,189,.29),rgba(28,52,83,.11))!important;
+  border-color:rgba(103,189,250,.3)!important;
+  box-shadow:inset 3px 0 #80deff,0 0 18px rgba(28,148,224,.08)!important;
+}
+#root .mtc-app .mtc-side-nav button.active::after {
+  content:"";width:5px;height:5px;border-radius:50%;margin-left:auto;
+  background:#a2f3ff;box-shadow:0 0 12px #5bcfff;flex:0 0 auto;
+}
+#root .mtc-app .mtc-history .historial-fila.elegida {
+  border:1px solid rgba(99,184,238,.19);
+  background:rgba(48,112,163,.16)!important;
+}
+#root .mtc-app .mtc-topbar {
+  position:relative;
+  background:linear-gradient(90deg,rgba(8,16,28,.98),rgba(5,10,19,.94))!important;
+  border-bottom:1px solid var(--mecha-edge)!important;
+  box-shadow:0 9px 25px rgba(0,0,0,.13);
+}
+#root .mtc-app .mtc-topbar::after {
+  content:"";position:absolute;left:26px;bottom:-2px;height:2px;width:min(25vw,225px);
+  background:linear-gradient(90deg,#73d8ff,rgba(80,146,219,.16),transparent);
+  box-shadow:0 0 16px rgba(71,192,255,.46);pointer-events:none;
+}
+#root .mtc-app .mtc-title strong {letter-spacing:.17em!important;font-weight:740!important;}
+#root .mtc-app .mtc-title small {letter-spacing:.08em!important;}
+#root .mtc-app .mtc-icon-button:hover {box-shadow:inset 0 0 0 1px var(--mecha-edge);}
+
+/* Conversation: display, not logic. */
+#root .mtc-app .mtc-welcome {
+  background:
+    radial-gradient(circle at 50% 19%,rgba(68,157,234,.08),transparent 37%);
+}
+#root .mtc-app .mtc-welcome::before {
+  content:"";position:absolute;inset:7% 9% auto;height:176px;
+  border:1px solid rgba(107,193,249,.1);
+  border-radius:50%;transform:perspective(540px) rotateX(72deg);
+  box-shadow:0 0 0 19px rgba(101,181,246,.02),0 0 38px rgba(43,158,246,.06);
+  pointer-events:none;z-index:0;
+}
+#root .mtc-app .mtc-welcome h1 {
+  text-shadow:0 0 40px rgba(121,206,255,.18);
+}
+#root .mtc-app .mtc-message-assistant .mtc-message-body {
+  border-left:2px solid rgba(112,206,255,.42)!important;
+  background:linear-gradient(90deg,rgba(24,52,81,.10),transparent 22%);
+}
+#root .mtc-app .mtc-message-user .mtc-message-body {
+  background:linear-gradient(140deg,rgba(30,54,78,.94),rgba(12,25,43,.93))!important;
+  border-color:rgba(122,196,249,.31)!important;
+  border-radius:12px 12px 4px 12px!important;
+  box-shadow:inset 0 1px rgba(234,249,255,.07),0 12px 31px rgba(0,0,0,.22)!important;
+}
+#root .mtc-app .mtc-ai-mark {
+  background:linear-gradient(138deg,#1d527b,#09182a 64%,#32649a)!important;
+  border:1px solid rgba(167,226,255,.56)!important;
+  box-shadow:0 0 20px rgba(65,172,240,.23);
+}
+html[data-myteacher-theme="dark"] #root .mtc-app form.mtc-composer {
+  position:relative;
+  background:
+    linear-gradient(130deg,rgba(47,93,130,.22),transparent 28%),
+    linear-gradient(145deg,#13243a,#08121e)!important;
+  border:1px solid rgba(130,202,253,.38)!important;
+  border-radius:9px!important;
+  box-shadow:0 18px 52px rgba(0,0,0,.34),inset 0 1px rgba(223,244,255,.09)!important;
+}
+#root .mtc-app form.mtc-composer::before {
+  content:"";position:absolute;left:22px;top:-2px;width:96px;height:2px;
+  background:linear-gradient(90deg,#cbf6ff,#4dbeff,transparent);
+  box-shadow:0 0 11px rgba(73,187,255,.38);
+  pointer-events:none;
+}
+#root .mtc-app form.mtc-composer:focus-within {
+  box-shadow:0 0 0 1px rgba(95,196,255,.26),0 24px 57px rgba(0,0,0,.38)!important;
+}
+#root .mtc-app .mtc-tools-menu {
+  border:1px solid rgba(120,193,246,.39)!important;border-radius:8px!important;
+  background:linear-gradient(155deg,#15263a,#08111f)!important;
+  box-shadow:0 27px 64px rgba(0,0,0,.55)!important;
+}
+#root .mtc-app .mtc-tools-menu button {border-radius:4px!important;}
+#root .mtc-app .mtc-inline-tool {
+  border:1px solid var(--mecha-edge);
+  background:linear-gradient(155deg,#16263a,#0d1624);
+  border-radius:9px;
+}
+
+/* Shared object material — angular corners are decorative, not clipped hit targets */
+html[data-myteacher-theme="dark"] #root .mtc-app :is(
+ .mtc-settings-card,.av-header,.av-game-card,.av-quiz-panel,.av-curiosity-panel,
+ .av-puzzle-experience,.av-board-wrap,.av-pieces-panel,.av-achievement-card,
+ .study-hero,.study-route-panel,.study-route-card,.study-flashcards,
+ .study-flashcard,.study-create-box,.study-board,.study-lab,.study-exam,
+ .mtc-materials-heading,.mtc-materials-card,.mtc-materials-file,.mtc-materials-upload,
+ .myt-evaluaciones,.myt-estadistica,.myt-bienvenida,.myt-area-practica,.myt-pregunta
+) {
+  border-color:rgba(113,185,236,.26)!important;
+  box-shadow:0 14px 44px rgba(0,0,0,.25),inset 0 1px rgba(219,243,255,.065)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app :is(
+ .av-game-card,.av-quiz-panel,.av-curiosity-panel,.av-puzzle-experience,.av-achievement-card,
+ .study-route-panel,.study-route-card,.study-flashcards,.study-create-box,
+ .mtc-materials-card,.mtc-materials-file,.mtc-materials-upload,.myt-estadistica,
+ .myt-bienvenida,.myt-area-practica,.myt-pregunta
+) {
+  background:
+    linear-gradient(128deg,rgba(74,145,202,.08),transparent 26%),
+    linear-gradient(145deg,#152438,#091421 85%)!important;
+  color:#eff7ff!important;border-radius:10px!important;
+}
+
+/* Strong industrial header modules */
+html[data-myteacher-theme="dark"] #root .mtc-app :is(.av-header,.study-hero,.mtc-materials-heading) {
+  position:relative;isolation:isolate;
+  background:
+    repeating-linear-gradient(135deg,transparent 0 15px,rgba(115,203,250,.018) 16px 17px,transparent 18px 32px),
+    radial-gradient(ellipse at 90% 50%,rgba(65,152,229,.28),transparent 42%),
+    linear-gradient(116deg,#101d2d 0%,#16334f 53%,#060d19 100%)!important;
+  border:1px solid rgba(126,200,255,.34)!important;
+  border-radius:11px!important;overflow:hidden;
+  box-shadow:inset 0 1px rgba(223,244,255,.13),0 21px 54px rgba(0,0,0,.31)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app :is(.av-header,.study-hero,.mtc-materials-heading)::before {
+  content:"";position:absolute;z-index:0;inset:0;pointer-events:none;
+  background:
+    linear-gradient(135deg,rgba(176,228,255,.25) 0 1.5px,transparent 2px 65px),
+    linear-gradient(-45deg,rgba(107,201,253,.33) 0 2px,transparent 2px 66px),
+    repeating-linear-gradient(90deg,transparent 0 68px,rgba(107,201,253,.025) 69px,transparent 70px);
+}
+html[data-myteacher-theme="dark"] #root .mtc-app :is(.av-header,.study-hero,.mtc-materials-heading)::after {
+  content:"";position:absolute;z-index:0;pointer-events:none;
+  right:-55px;top:-78px;width:340px;height:340px;
+  border:2px solid rgba(115,220,255,.29);border-radius:50%;
+  box-shadow:0 0 0 20px rgba(102,179,239,.025),0 0 0 67px rgba(96,159,230,.018),
+             0 0 46px rgba(59,168,239,.14);
+  transform:rotateX(52deg) rotateZ(-26deg);
+}
+#root .mtc-app :is(.av-header-copy,.study-hero-copy,.mtc-materials-heading > *) {
+  position:relative;z-index:2;
+}
+#root .mtc-app .av-header h1 {
+  font-size:clamp(34px,3.6vw,53px)!important;letter-spacing:-.05em!important;
+  text-shadow:0 8px 26px rgba(0,0,0,.54);
+}
+#root .mtc-app .av-header h1 em {color:#89e4ff!important;}
+#root .mtc-app .av-header p,#root .mtc-app .study-hero p,
+#root .mtc-app .mtc-materials-heading p {color:#d6e8f8!important;}
+#root .mtc-app .av-eyebrow,#root .mtc-app .study-eyebrow,
+#root .mtc-app .mtc-materials-kicker {
+  color:#9deaff!important;letter-spacing:.22em!important;
+}
+#root .mtc-app .av-header-actions button {
+  border-radius:6px!important;
+  box-shadow:0 12px 29px rgba(0,0,0,.22)!important;
+}
+#root .mtc-app .av-header-actions button:first-child {
+  background:linear-gradient(105deg,#d7f5ff,#87dcff)!important;
+  color:#0b1e32!important;
+}
+#root .mtc-app .av-header-actions .av-header-secondary {
+  background:rgba(52,91,135,.26)!important;color:#e5faff!important;
+  border-color:rgba(167,218,249,.41)!important;
+}
+
+/* Adventure: retain educational artwork and puzzle correctness states. */
+#root .mtc-app .av-root .av-heading h2,
+#root .mtc-app .av-root .av-heading h3 {
+  letter-spacing:-.035em!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .av-root :is(
+ .av-tabs,.av-subject-grid,.av-game-grid,.av-curiosity-question
+) {color:var(--mtc-text);}
+#root .mtc-app .av-game-card {
+  position:relative;overflow:hidden;border-radius:9px!important;
+  transition:transform .26s ease,box-shadow .26s ease,border-color .26s ease!important;
+}
+#root .mtc-app .av-game-card::after {
+  content:"";position:absolute;inset:auto 0 0;width:100%;height:3px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--av-color,#63c7ff),transparent);
+  opacity:.42;transition:opacity .26s;
+}
+#root .mtc-app .av-game-card:hover {
+  transform:translateY(-5px)!important;
+  border-color:rgba(128,223,255,.66)!important;
+  box-shadow:0 19px 43px rgba(0,0,0,.28),0 0 24px rgba(64,177,244,.15)!important;
+}
+#root .mtc-app .av-game-card:hover::after {opacity:1;}
+#root .mtc-app :is(.av-puzzle-board,.av-board-viewport,.av-board-wrap,.av-pieces-panel) {
+  border:1px solid rgba(140,199,241,.3)!important;border-radius:9px!important;
+  box-shadow:inset 0 0 33px rgba(46,113,171,.10);
+}
+html[data-myteacher-theme="dark"] #root .mtc-app :is(.av-board-wrap,.av-pieces-panel) {
+  background:linear-gradient(145deg,#132339,#0a1624)!important;
+}
+#root .mtc-app .av-progress-track {
+  background:rgba(91,149,203,.18)!important;
+  box-shadow:inset 0 0 0 1px rgba(116,187,238,.17);
+}
+#root .mtc-app .av-puzzle-help {border:1px solid rgba(223,176,102,.24);border-radius:7px!important;}
+#root .mtc-app .av-quiz-panel {border-radius:9px!important;}
+html[data-myteacher-theme="dark"] #root .mtc-app .av-curiosity-art {
+  background:radial-gradient(circle at 60% 35%,#275f92,#081526 76%)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .av-curiosity-badge {
+  background:rgba(79,169,220,.17)!important;color:#b8ecff!important;
+  border:1px solid rgba(128,204,245,.27);
+}
+#root .mtc-app .av-curiosity-buttons button {border-radius:6px!important;}
+#root .mtc-app .av-curiosity-buttons button:first-child {
+  background:linear-gradient(120deg,#1d648e,#387cae)!important;
+}
+
+/* Study Center: mission-control surfaces and intact laboratory canvas. */
+#root .mtc-app .study-hero h1 {
+  font-size:clamp(30px,3vw,46px)!important;
+  letter-spacing:-.055em!important;
+  text-shadow:0 9px 27px rgba(0,0,0,.45);
+}
+#root .mtc-app .study-hero-decoration {position:relative;z-index:2;}
+#root .mtc-app .study-ring {border-color:rgba(139,224,255,.4)!important;}
+html[data-myteacher-theme="dark"] #root .mtc-app :is(
+ .study-route-panel,.study-flashcards,.study-board,.study-exam,.study-lab
+) {border-radius:10px!important;border:1px solid rgba(107,185,241,.29)!important;
+   background:linear-gradient(150deg,#0f1d2e,#091421)!important;}
+#root .mtc-app .study-metrics > * {
+  border:1px solid rgba(123,201,247,.24)!important;
+  box-shadow:inset 0 1px rgba(197,237,255,.07);
+}
+#root .mtc-app .study-route-card {border-radius:8px!important;}
+#root .mtc-app .study-route-card:hover {border-color:rgba(115,204,253,.7)!important;}
+html[data-myteacher-theme="dark"] #root .mtc-app :is(
+ .study-route-next,.study-route-note,.study-exam-question,.study-empty-cards
+) {
+  background:rgba(64,117,169,.12)!important;
+  border-color:rgba(120,197,245,.22)!important;
+  color:#ecf7ff!important;
+}
+#root .mtc-app :is(.study-tabs,.study-review-controls) button {
+  border-radius:5px!important;
+}
+#root .mtc-app :is(.study-primary-button,.study-hero-actions button:first-child) {
+  background:linear-gradient(110deg,#d2f2ff,#7ecfff)!important;
+  color:#071c30!important;
+  border:1px solid rgba(229,250,255,.52)!important;
+}
+#root .mtc-app .study-lab-stage {
+  border:1px solid rgba(132,205,249,.3)!important;
+  box-shadow:inset 0 0 37px rgba(38,91,158,.16)!important;
+}
+/* Never overlay interactive drawings or canvases. */
+#root .mtc-app .study-board canvas,
+#root .mtc-app .study-lab-stage canvas {position:relative;z-index:1;}
+
+/* Materials: same machine style, readable filenames and native viewers. */
+html[data-myteacher-theme="dark"] #root .mtc-app .mtc-materials-mark {
+  background:linear-gradient(130deg,#204a6a,#0c2034)!important;
+  color:#b9edff!important;border:1px solid rgba(147,218,251,.3);
+  border-radius:9px!important;
+}
+#root .mtc-app .mtc-materials h2 {
+  letter-spacing:-.025em!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app :is(
+ .mtc-materials-viewer,.mtc-materials-form,.mtc-materials-result
+) {
+  background:linear-gradient(145deg,#122237,#081421)!important;
+  color:#ecf7ff!important;
+  border-color:rgba(121,199,243,.29)!important;
+}
+#root .mtc-app .mtc-materials-file {
+  transition:transform .24s ease,border-color .24s ease!important;
+}
+#root .mtc-app .mtc-materials-file:hover {transform:translateY(-3px);}
+#root .mtc-app .mtc-materials-primary {
+  border-radius:6px!important;
+  background:linear-gradient(120deg,#c3f1ff,#70cefa)!important;
+  color:#082037!important;
+}
+#root .mtc-app .mtc-materials-file-actions button {
+  border-radius:5px!important;
+}
+
+/* Evaluations: remove the bright default white dashboard from dark mode. */
+html[data-myteacher-theme="dark"] #root .mtc-app .myt-evaluaciones {
+  --mt-bg:#0b1726;--mt-panel:#13253a;--mt-text:#edf7ff;
+  --mt-muted:#adc3d6;--mt-border:rgba(119,193,240,.28);--mt-accent:#7cdbff;
+  background:linear-gradient(145deg,#13253a,#07121f)!important;
+  color:var(--mt-text)!important;
+  border:1px solid rgba(128,198,241,.31)!important;
+  border-radius:11px!important;
+  box-shadow:0 23px 53px rgba(0,0,0,.29)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .myt-evaluaciones :is(h1,h2,h3,li,label,p,strong) {
+  color:var(--mt-text);
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .myt-evaluaciones :is(
+ .myt-evaluaciones-header,.myt-temas,.myt-tabpanel,.myt-estadistica,
+ .myt-bienvenida,.myt-area-practica,.myt-pregunta,.myt-ayudas
+) {
+  background:linear-gradient(145deg,#15283e,#0b1929)!important;
+  border-color:rgba(116,190,241,.29)!important;
+  color:#eef7ff!important;
+}
+#root .mtc-app .myt-evaluaciones :is(.myt-pestana,.myt-tema,.myt-opcion) {
+  border-radius:7px!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .myt-evaluaciones :is(.myt-pestana,.myt-tema,.myt-opcion) {
+  background:linear-gradient(145deg,#1a2d46,#101e31)!important;
+  color:#e9f6ff!important;
+  border-color:rgba(118,194,247,.29)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .myt-evaluaciones :is(
+ .myt-pestana-activa,.myt-activo,.myt-opcion-activa
+) {
+  background:linear-gradient(145deg,#24557c,#15364d)!important;
+  color:#f5fcff!important;
+  border-color:#8bdeff!important;
+  box-shadow:inset 0 0 0 1px rgba(129,216,255,.25)!important;
+}
+#root .mtc-app .myt-evaluaciones :is(.myt-boton-primario,.myt-boton-pista) {
+  border-radius:6px!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .myt-evaluaciones .myt-boton-primario {
+  color:#092034!important;background:linear-gradient(105deg,#d4f5ff,#85dbff)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .myt-evaluaciones :is(.myt-progreso-evidencias,.myt-distintivo,.myt-resultado) {
+  background:rgba(44,103,144,.19)!important;
+  border-color:rgba(124,201,247,.28)!important;
+}
+
+/* Academic analytics modules all use their original components and state. */
+html[data-myteacher-theme="dark"] #root .mtc-app :is(.ma-academica,.mt-memoria,.mt-plan,.mt-simulacro,.mt-logros) {
+  --ma-fondo:#0c1929;--ma-panel:#16263b;--ma-texto:#eaf6ff;--ma-muted:#b1c5d8;--ma-borde:rgba(117,194,243,.29);--ma-acento:#84dfff;
+  --mm-fondo:#0c1929;--mm-suave:#16263b;--mm-texto:#eaf6ff;--mm-secundario:#b1c5d8;--mm-borde:rgba(117,194,243,.29);
+  --mp-bg:#0c1929;--mp-soft:#16263b;--mp-text:#eaf6ff;--mp-muted:#b1c5d8;--mp-line:rgba(117,194,243,.29);--mp-accent:#84dfff;
+  --ms-bg:#0c1929;--ms-panel:#16263b;--ms-text:#eaf6ff;--ms-muted:#b1c5d8;--ms-border:rgba(117,194,243,.29);--ms-accent:#84dfff;
+  --ml-fondo:#0c1929;--ml-suave:#16263b;--ml-texto:#eaf6ff;--ml-muted:#b1c5d8;--ml-borde:rgba(117,194,243,.29);--ml-acento:#84dfff;
+  color:#eaf6ff!important;
+  border:1px solid rgba(117,194,243,.29)!important;
+  border-radius:10px!important;
+  background:linear-gradient(145deg,#112034,#091521)!important;
+  box-shadow:0 17px 42px rgba(0,0,0,.24)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app :is(.ma-academica,.mt-memoria,.mt-plan,.mt-simulacro,.mt-logros) :is(input,select,textarea) {
+  background:#101e30;color:#edf7ff;border-color:rgba(129,200,244,.29);
+}
+#root .mtc-app :is(.ma-academica,.mt-memoria,.mt-plan,.mt-simulacro,.mt-logros) :is(button,select) {
+  border-radius:6px!important;
+}
+
+/* Voice configuration, screen sharing, modals — consistent steel HUD */
+html[data-myteacher-theme="dark"] .mt-pantalla {
+  --mp-bg:#081321;--mp-soft:#14263a;--mp-text:#eef8ff;
+  --mp-muted:#a6bfd2;--mp-line:rgba(118,198,244,.31);
+  --mp-accent:#8ce9ff;--mp-bubble:#173a52;
+  border:1px solid rgba(136,211,255,.5)!important;
+  border-radius:9px!important;
+  background:linear-gradient(147deg,#101e2d,#080e18)!important;
+  box-shadow:0 25px 90px rgba(0,0,0,.62),inset 0 1px rgba(255,255,255,.06)!important;
+}
+html[data-myteacher-theme="dark"] .mt-pantalla .mt-pantalla-top {
+  background:linear-gradient(90deg,#173750,#0b1b29)!important;
+  border-bottom:1px solid rgba(143,210,249,.29)!important;
+}
+html[data-myteacher-theme="dark"] .mt-pantalla .mt-pantalla-symbol,
+html[data-myteacher-theme="dark"] .mt-pantalla button.mt-pantalla-send {
+  background:linear-gradient(120deg,#d4f7ff,#7fd5fa)!important;color:#081d2e!important;
+}
+html[data-myteacher-theme="dark"] .mt-pantalla :is(.mt-pantalla-message,.mt-pantalla-start,.mt-pantalla-hint,.mt-pantalla-conversation) {
+  background:rgba(30,58,84,.27)!important;
+  border-color:rgba(132,203,250,.24)!important;color:#eaf8ff!important;
+}
+html[data-myteacher-theme="dark"] :is(.cv-modal,.myteacher-voices-dialog,.conauti-ajustes-ventana) {
+  background:linear-gradient(150deg,#15263a,#070e18)!important;
+  color:#edf7ff!important;
+  border:1px solid rgba(145,209,252,.44)!important;
+  border-radius:10px!important;
+  box-shadow:0 32px 94px rgba(0,0,0,.61),inset 0 1px rgba(255,255,255,.075)!important;
+}
+html[data-myteacher-theme="dark"] :is(.cv-header,.myteacher-voices-heading,.conauti-ajustes-header) {
+  background:linear-gradient(100deg,#1c3856,#0e1b2e)!important;
+  color:#f0f8ff!important;
+  border-bottom:1px solid rgba(117,197,255,.33)!important;
+}
+html[data-myteacher-theme="dark"] :is(.cv-modal,.myteacher-voices-dialog,.conauti-ajustes-ventana) :is(
+  input,select,textarea
+) {
+  background:#0d1a2b!important;color:#eff8ff!important;
+  border-color:rgba(115,193,243,.33)!important;
+}
+html[data-myteacher-theme="dark"] :is(.cv-modal,.myteacher-voices-dialog,.conauti-ajustes-ventana) :is(
+ .cv-voice,.cv-detail,.myteacher-voices-card,.myteacher-voices-adjustments,.conauti-ajustes-opcion
+) {
+  background:linear-gradient(143deg,#1b3046,#0d1b2e)!important;
+  color:#eaf7ff!important;
+  border-color:rgba(116,192,245,.28)!important;
+  border-radius:7px!important;
+}
+
+/* Interface buttons: crisp energy rather than generic rounded pills. */
+#root .mtc-app :is(.mtc-settings-row button,.mtc-profile-action button,.study-hero-actions button,
+  .mtc-materials-primary,.myt-boton-primario,.av-curiosity-buttons button) {
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,filter .22s ease!important;
+}
+#root .mtc-app :is(.mtc-settings-row button,.mtc-profile-action button,.study-hero-actions button,
+  .mtc-materials-primary,.myt-boton-primario,.av-curiosity-buttons button):not(:disabled):hover {
+  transform:translateY(-2px);
+  filter:brightness(1.09);
+  box-shadow:0 10px 27px rgba(58,161,241,.16)!important;
+}
+#root .mtc-app .mtc-settings-row {
+  border-bottom:1px solid rgba(111,180,233,.22)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .mtc-settings-card :is(input,textarea) {
+  color:#edf6ff!important;background:#0d1b2d!important;
+  border:1px solid rgba(119,193,238,.33)!important;
+}
+#root .mtc-app .mtc-profile-avatar {
+  background:linear-gradient(120deg,#1d4970,#35638e)!important;
+  box-shadow:0 0 23px rgba(70,175,239,.19);
+}
+
+/* The original light-theme workflow remains usable. */
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-topbar {
+  background:linear-gradient(110deg,#f8fbff,#eaf2fb)!important;
+  border-color:var(--mecha-edge)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-content {
+  background:linear-gradient(145deg,#fbfdff,#f0f6fc)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-sidebar {
+  background:linear-gradient(160deg,#eff5fc,#e3edf8)!important;
+  border-right-color:var(--mecha-edge)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-side-nav button.active {
+  background:#d8e9fa!important;
+  color:#0b3366!important;
+}
+
+/* Motion and screen constraints */
+@keyframes mecha-energy {
+  from{filter:drop-shadow(0 0 3px rgba(95,202,255,.24));opacity:.69}
+  to{filter:drop-shadow(0 0 12px rgba(95,202,255,.47));opacity:1}
+}
+@keyframes mecha-entrance {
+  from{opacity:.55;translate:0 13px}
+  to{opacity:1;translate:0 0}
+}
+#root .mtc-app :is(.av-header,.study-hero,.mtc-materials-heading) {
+  animation:mecha-entrance .53s cubic-bezier(.16,.79,.2,1) both;
+}
+#root .mtc-app :is(.av-header,.study-hero,.mtc-materials-heading)::after {
+  animation:mecha-energy 3.5s ease-in-out infinite alternate;
+}
+@media(max-width:900px){
+  #root .mtc-app :is(.av-header,.study-hero,.mtc-materials-heading)::after {
+    width:220px;height:220px;right:-50px;top:-75px;
+  }
+}
+@media(max-width:680px) {
+  #root .mtc-app :is(.av-header,.study-hero,.mtc-materials-heading)::after {opacity:.35;}
+  #root .mtc-app .mtc-topbar::after {left:17px;width:75px;}
+  #root .mtc-app .mtc-new-chat {min-height:42px;}
+  #root .mtc-app .mtc-side-nav button.active::after {display:none;}
+  #root .mtc-app .mtc-message-user .mtc-message-body {max-width:93%!important;}
+}
+@media(prefers-reduced-motion:reduce){
+  #root .mtc-app :is(.av-header,.study-hero,.mtc-materials-heading),
+  #root .mtc-app :is(.av-header,.study-hero,.mtc-materials-heading)::after,
+  #root .mtc-app :is(button,a,.av-game-card,.study-route-card) {
+    animation:none!important;transition:none!important;
+  }
+}
