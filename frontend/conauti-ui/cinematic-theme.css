@@ -183,10 +183,10 @@ textarea:focus-visible {
   font-weight: 750;
 }
 
-.auth-intro h1 {
+#root .auth-intro h1 {
   max-width: 700px;
   margin: 0;
-  color: #f6fbff;
+  color: #f6fbff !important;
   font-size: clamp(58px, 7vw, 118px);
   font-weight: 650;
   letter-spacing: -.07em;
@@ -194,8 +194,8 @@ textarea:focus-visible {
   text-wrap: balance;
 }
 
-.auth-intro h1 em {
-  color: #bcefff;
+#root .auth-intro h1 em {
+  color: #bcefff !important;
   font-family: Georgia, "Times New Roman", serif;
   font-weight: 400;
   letter-spacing: -.09em;
@@ -303,10 +303,10 @@ textarea:focus-visible {
 .auth-card__brand svg { width: 42px; height: 42px; }
 .auth-card__brand .eyebrow { color: #a4e9ff; }
 
-.auth-card h2 {
+#root .auth-card h2 {
   max-width: 330px;
   margin: 22px 0 9px;
-  color: #f4fbff;
+  color: #f4fbff !important;
   font-size: clamp(27px, 3vw, 34px) !important;
   line-height: 1.05;
   letter-spacing: -.045em;
@@ -396,8 +396,8 @@ nav button.active::before { opacity: 1; }
 .account button { color: #a5eaff !important; }
 
 .main { min-height: 100svh; background: linear-gradient(115deg, rgba(5, 14, 24, .42), rgba(9, 22, 35, .30)); overflow: auto; }
-.topbar { padding: 25px clamp(22px, 4vw, 56px) !important; border-bottom-color: rgba(171, 229, 250, .12) !important; background: rgba(5, 13, 22, .38) !important; backdrop-filter: blur(13px); }
-.topbar h1 { color: #f4fbff; font-size: clamp(25px, 2.4vw, 38px) !important; font-weight: 580; letter-spacing: -.045em; }
+#root .topbar { padding: 25px clamp(22px, 4vw, 56px) !important; border-bottom-color: rgba(171, 229, 250, .12) !important; background: rgba(5, 13, 22, .38) !important; backdrop-filter: blur(13px); }
+#root .topbar h1 { color: #f4fbff !important; font-size: clamp(25px, 2.4vw, 38px) !important; font-weight: 580; letter-spacing: -.045em; }
 .eyebrow { color: #9feaff !important; letter-spacing: .18em !important; font-size: 9px !important; }
 .phase { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(159, 233, 255, .20); background: rgba(22, 69, 79, .36); color: #b9ffe1 !important; padding: 8px 12px !important; font-size: 9px !important; letter-spacing: .09em; }
 
@@ -413,7 +413,7 @@ nav button.active::before { opacity: 1; }
 .welcome-orbit__ring::before { content: ''; position: absolute; width: 7px; height: 7px; top: 10px; left: 13px; border-radius: 50%; background: #bdedff; box-shadow: 0 0 13px #64d2ff; }
 .welcome-orbit__ring--small { inset: 16px; border-style: dashed; animation-duration: 11s; animation-direction: reverse; }
 .welcome-kicker { display: block; margin: 0 0 13px; color: #9eeaff; font-size: 9px; letter-spacing: .25em; }
-.welcome h2 { margin: 0; color: #f6fcff; font-size: clamp(32px, 4vw, 56px) !important; font-weight: 560; letter-spacing: -.065em; line-height: 1; }
+#root .welcome h2 { margin: 0; color: #f6fcff !important; font-size: clamp(32px, 4vw, 56px) !important; font-weight: 560; letter-spacing: -.065em; line-height: 1; }
 .welcome p { margin: 18px auto 0; color: rgba(215, 238, 248, .68) !important; max-width: 390px; font-size: 15px; }
 
 .subjects, .actions { gap: 8px !important; }
@@ -466,7 +466,7 @@ nav button.active::before { opacity: 1; }
   .auth.cinematic-auth { grid-template-columns: 1fr; gap: 24px; align-content: start; padding: 28px 22px 36px; overflow: auto; }
   .auth-intro { min-height: auto; padding: 2px 0 0; }
   .auth-intro__kicker { margin-top: 36px; }
-  .auth-intro h1 { font-size: clamp(54px, 13vw, 91px); }
+  #root .auth-intro h1 { font-size: clamp(54px, 13vw, 91px); }
   .auth-beacon { right: 2vw; bottom: -36px; opacity: .52; }
   .auth-card { justify-self: start; width: min(100%, 480px); }
   .app.cinematic-app { grid-template-columns: 250px minmax(0, 1fr); }
@@ -476,7 +476,7 @@ nav button.active::before { opacity: 1; }
   .auth-intro__copy { max-width: 340px; font-size: 13px; }
   .auth-intro__meta { gap: 12px; font-size: 8px; }
   .auth-card { padding: 23px 20px 24px !important; }
-  .auth-card h2 { font-size: 28px !important; }
+  #root .auth-card h2 { font-size: 28px !important; }
   .app.cinematic-app { display: block; overflow: visible; }
   .sidebar { padding: 17px 14px !important; border-right: 0 !important; border-bottom: 1px solid rgba(176, 232, 255, .12) !important; }
   .sidebar .historial-avanzado { max-height: 200px; }
