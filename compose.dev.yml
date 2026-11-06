@@ -1,5 +1,5 @@
 # Entorno Docker LOCAL y gratuito. No altera el despliegue de Render.
-# Requiere PostgreSQL inicializado con las migraciones del proyecto.
+# Inicialización de esquema y roles solo en un volumen nuevo.
 services:
   postgres:
     image: postgres:17-alpine
@@ -9,6 +9,8 @@ services:
       POSTGRES_DB: conauti
     volumes:
       - teacher_pgdata:/var/lib/postgresql/data
+      - ./backend/migrations/schema_produccion.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./backend/migrations/seed_roles_produccion.sql:/docker-entrypoint-initdb.d/02-roles.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U teacher -d conauti"]
       interval: 5s
