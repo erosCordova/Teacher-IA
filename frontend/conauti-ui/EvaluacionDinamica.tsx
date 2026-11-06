@@ -11,9 +11,13 @@ type Feedback={
 }
 type Result={score:number;total:number;percentage:number;feedback:Feedback[];recommendation:string}
 type Historical={id:string;topic:string;score:number;total:number;percentage:number;date:string}
-type Props={token:string;cards:CardSummary[];onAskTutor:(question:string)=>void}
+type Props={
+  token:string;cards:CardSummary[];
+  onAskTutor:(question:string)=>void;
+  onExamCompleted:()=>Promise<void>;
+}
 
-export default function EvaluacionDinamica({token,cards,onAskTutor}:Props){
+export default function EvaluacionDinamica({token,cards,onAskTutor,onExamCompleted}:Props){
   const [topic,setTopic]=useState('')
   const [exam,setExam]=useState<Exam|null>(null)
   const [answers,setAnswers]=useState<Record<string,string>>({})
@@ -68,6 +72,7 @@ export default function EvaluacionDinamica({token,cards,onAskTutor}:Props){
       const data=await request<Result>('/'+exam.id+'/submit','POST',{answers})
       setResult(data)
       await loadHistory()
+      await onExamCompleted()
     }catch(e){setError(e instanceof Error?e.message:'No se pudo registrar la evaluación.')}
     finally{setBusy(false)}
   }
