@@ -495,14 +495,36 @@ def delete_document(document_id: UUID, user=Depends(current_user)):
 # Recuperación automática del chat normal: sin nuevos servicios, cuotas ni
 # almacenamiento de preguntas o fragmentos dentro de mensajes del estudiante.
 _DOCUMENT_REFERENCE = re.compile(
-    r"\b(documento|documentos|material|materiales|archivo|archivos|"
-    r"pdf|libro|manual|apuntes|biblioteca|texto que subi|que guarde|"
-    r"que subi|que cargue)\b", re.IGNORECASE,
+    r"\b(?:mi|mis|el|los|este|esta|ese|esa|estos|esos|tus)\s+"
+    r"(?:documentos?|materiales?|archivos?|pdf|libros?|manuales?|apuntes|biblioteca)\b"
+    r"|\b(?:documento|material|archivo|pdf|manual|texto)\s+"
+    r"que\s+(?:subi|guarde|cargue|adjunte)\b"
+    r"|\b(?:mis\s+materiales|mi\s+biblioteca)\b",
+    re.IGNORECASE,
 )
 _SUMMARY_REFERENCE = re.compile(
     r"\b(resume|resumen|sintetiza|de que trata|que contiene|que dice|"
     r"ideas principales|explica el contenido|indice)\b", re.IGNORECASE,
 )
+
+
+def _material_question(question: str) -> bool:
+    normalized = unicodedata.normalize("NFKD", question.casefold())
+    normalized = "".join(c for c in normalized if not unicodedata.combining(c))
+    return bool(_DOCUMENT_REFERENCE.search(normalized))
+
+
+def _empty_chat_library(question: str) -> dict:
+    if _material_question(question):
+        return {
+            "context": (
+                "El estudiante pregunta sobre un material guardado, pero su biblioteca "
+                "no contiene documentos. No afirmes haberlos leído; explícale que debe "
+                "guardar el documento en «Mis materiales» antes de consultarlo."
+            ),
+            "sources": [], "status": "empty",
+        }
+    return {"context": "", "sources": [], "status": "empty"}
 
 
 def _filename_keywords(filename: str) -> set[str]:
@@ -530,10 +552,7 @@ def _document_target(question: str, documents: list[dict]) -> tuple[str | None, 
             matched.append(doc["id"])
     if len(matched) == 1:
         return matched[0], True
-    ref = bool(_DOCUMENT_REFERENCE.search(
-        unicodedata.normalize("NFKD", question.casefold())
-        .encode("ascii", "ignore").decode("ascii")
-    ))
+    ref = _material_question(question)
     if ref and len(documents) == 1:
         return documents[0]["id"], True
     return None, ref
@@ -552,7 +571,7 @@ def chat_references(conn, student_id, question: str) -> dict:
     if conn.execute(
         "SELECT to_regclass('public.conauti_rag_documents') AS found"
     ).fetchone()["found"] is None:
-        return {"context": "", "sources": [], "status": "empty"}
+        return _empty_chat_library(question)
 
     rows = conn.execute(
         "SELECT d.id AS doc_id,d.filename AS filename,c.page_number AS page,c.ordinal AS ordinal,c.body AS body "
@@ -564,7 +583,7 @@ def chat_references(conn, student_id, question: str) -> dict:
     ).fetchall()
 
     if not rows:
-        return {"context": "", "sources": [], "status": "empty"}
+        return _empty_chat_library(question)
 
     docs = []
     seen = set()
