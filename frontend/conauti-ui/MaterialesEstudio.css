@@ -68,6 +68,7 @@ html[data-myteacher-theme] #root .mtc-app .mtc-materials {
   white-space:nowrap;min-height:36px;
   border:1px solid var(--mtc-border);background:var(--mtc-surface);
 }
+#root .mtc-app .mtc-materials-file-actions .mtc-materials-recover {color:#966421;background:color-mix(in srgb,#dfab47 11%,var(--mtc-surface));}
 #root .mtc-app .mtc-materials-file-actions .mtc-materials-view {color:#176ca7;background:color-mix(in srgb,#249adf 10%,var(--mtc-surface));}
 #root .mtc-app .mtc-materials-file-actions .mtc-materials-download {color:#087e73;background:color-mix(in srgb,#11ae91 11%,var(--mtc-surface));}
 #root .mtc-app .mtc-materials-file-actions .mtc-materials-delete {color:#bf4458;}
