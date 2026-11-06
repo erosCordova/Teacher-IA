@@ -494,6 +494,19 @@ def delete_document(document_id: UUID, user=Depends(current_user)):
         cards_table = conn.execute(
             "SELECT to_regclass('public.conauti_study_cards')"
         ).fetchone()[0]
+        # Las evaluaciones generadas también pueden contener fragmentos
+        # de ese material. Su eliminación precede a la de las tarjetas.
+        exams_table = conn.execute(
+            "SELECT to_regclass('public.conauti_study_exams')"
+        ).fetchone()[0]
+        if exams_table is not None:
+            conn.execute(
+                "DELETE FROM public.conauti_study_exams e "
+                "WHERE e.user_id=%s AND EXISTS ("
+                "SELECT 1 FROM jsonb_array_elements(e.questions) q "
+                "WHERE q->>'source_document_id'=%s)",
+                (user["id"], str(document_id)),
+            )
         if cards_table is not None:
             conn.execute(
                 "DELETE FROM public.conauti_study_cards "
