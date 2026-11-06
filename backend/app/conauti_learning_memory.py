@@ -372,6 +372,17 @@ def clear_learning_memory(
                         (user_id,),
                     )
 
+                # Las evaluaciones dinámicas también forman parte
+                # de la memoria académica que el estudiante puede eliminar.
+                cursor.execute("SELECT to_regclass('public.conauti_study_exams')")
+                exams = 0
+                if cursor.fetchone()[0] is not None:
+                    cursor.execute(
+                        "DELETE FROM public.conauti_study_exams WHERE user_id=%s",
+                        (user_id,),
+                    )
+                    exams = cursor.rowcount
+
                 # La opción de borrar memoria también elimina materiales
                 # guardados voluntariamente en la biblioteca académica.
                 cursor.execute("SELECT to_regclass('public.conauti_rag_documents')")
@@ -396,6 +407,7 @@ def clear_learning_memory(
         "assessments_deleted": assessments,
         "documents_deleted": documents,
         "study_cards_deleted": cards,
+        "study_exams_deleted": exams,
         "conversations_deleted": False,
     }
 
