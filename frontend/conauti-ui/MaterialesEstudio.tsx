@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { apiFetch } from './apiFetch'
 import './MaterialesEstudio.css'
+import { MechaHeroArmor } from './CybertronArmor'
 
 type Documento = { id: string; filename: string; pages: number; created_at: string; has_original: boolean; size_bytes: number }
 type VistaMaterial = { tipo: 'pdf' | 'texto'; filename: string; url?: string; texto?: string; original: boolean }
@@ -141,6 +142,7 @@ export default function MaterialesEstudio({
   return <main className="mtc-materials" aria-label="Mis materiales de estudio">
     <div className="mtc-materials-shell">
       <header className="mtc-materials-heading">
+        <MechaHeroArmor variant="materials" />
         <div className="mtc-materials-mark" aria-hidden="true">📚</div>
         <div><span className="mtc-materials-kicker">TU BIBLIOTECA ACADÉMICA</span>
           <h1>Mis materiales de estudio</h1>

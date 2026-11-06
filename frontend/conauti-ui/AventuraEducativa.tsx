@@ -6,6 +6,7 @@ import {
 } from './AventuraDatos'
 import { PiezaIlustrada, EscenarioRompecabezas } from './IlustracionesPuzzle'
 import './AventuraEducativa.css'
+import { MechaHeroArmor } from './CybertronArmor'
 
 export type SeccionAventura = 'juegos' | 'sabias' | 'logros'
 type JuegoId = typeof JUEGOS[number]['id']
@@ -380,6 +381,7 @@ export default function AventuraEducativa({seccion,usuarioId,onAskTutor}:{seccio
   return <main className="av-root" aria-label="Academia interactiva My Teacher IA">
     <div className="av-shell">
       <div className="av-header">
+        <MechaHeroArmor variant="adventure" />
         <div className="av-header-copy"><span className="av-eyebrow">✦ TU AVENTURA DE APRENDIZAJE</span>
           <h1>¡Aprender puede ser <em>una aventura!</em></h1>
           <p>Descubre, experimenta y pon a prueba tus conocimientos. Cada pequeño avance merece celebrarse.</p>

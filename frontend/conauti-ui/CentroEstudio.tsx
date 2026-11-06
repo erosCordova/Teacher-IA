@@ -6,6 +6,7 @@ import EvaluacionDinamica from './EvaluacionDinamica'
 import MarcaMyTeacher from './MarcaMyTeacher'
 import type { FormEvent } from 'react'
 import './CentroEstudio.css'
+import { MechaHeroArmor } from './CybertronArmor'
 
 type Section = 'ruta'|'tarjetas'|'evaluaciones'|'pizarra'|'laboratorio'
 type Recommendation = {
@@ -153,6 +154,7 @@ export default function CentroEstudio({
   return <main className="study-center" aria-label="Centro de estudio inteligente">
     <div className="study-wrap">
       <header className="study-hero">
+        <MechaHeroArmor variant="study" />
         <div className="study-hero-copy">
           <span className="study-eyebrow">TU ESPACIO DE APRENDIZAJE</span>
           <h1>Aprende de forma más inteligente</h1>

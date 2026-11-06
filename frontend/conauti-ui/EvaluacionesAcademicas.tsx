@@ -2,6 +2,7 @@ import { apiFetch } from './apiFetch'
 import SimulacroAcademico from "./SimulacroAcademico";
 import { useEffect, useState } from "react";
 import "./EvaluacionesAcademicas.css";
+import { MechaHeroArmor } from "./CybertronArmor";
 import HistorialEvaluaciones from "./HistorialEvaluaciones";
 import AnaliticaAcademica from "./AnaliticaAcademica";
 import PlanAprendizaje from "./PlanAprendizaje";
@@ -272,6 +273,7 @@ export default function EvaluacionesAcademicas() {
       aria-labelledby="myt-titulo-evaluacion"
     >
       <div className="myt-evaluaciones-header">
+        <MechaHeroArmor variant="assessment" />
         <div>
           <span className="myt-etiqueta">
             APRENDIZAJE PERSONALIZADO

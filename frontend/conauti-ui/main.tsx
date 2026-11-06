@@ -6,6 +6,7 @@ import CentroEstudio from "./CentroEstudio";
 import MarcaMyTeacher from "./MarcaMyTeacher";
 import ActiveTheoryStage from './ActiveTheoryStage'
 import MechaEmblem from './MechaEmblem'
+import { MechaHeroArmor, MechaPowerPanel, MechaCommandCore, MechaSystemStrip, MechaViewport } from './CybertronArmor'
 import { validarImagen, dimensionesImagen, LIMITE_ENVIO } from "./ImagenEducativa";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -21,6 +22,7 @@ import './auth-premium.css'
 import './ConfiguracionGlobal'
 import './active-theory-skin.css'
 import './mecha-interface.css'
+import './cybertron-max.css'
 
 type User = {
   id: string
@@ -939,6 +941,7 @@ function App() {
       <main className="mtc-auth-shell">
         <ActiveTheoryStage variant="intro" />
         <section className="mtc-auth-showcase" aria-label="Descubre My Teacher IA">
+          <MechaHeroArmor variant="access" />
           <div className="mtc-auth-decoration mtc-auth-decoration-one" aria-hidden="true" />
           <div className="mtc-auth-decoration mtc-auth-decoration-two" aria-hidden="true" />
           <header className="mtc-auth-brand">
@@ -1135,6 +1138,7 @@ function App() {
       )}
 
       <aside className={'mtc-sidebar' + (mobileOpen ? ' mtc-sidebar-visible' : '')}>
+        <MechaPowerPanel />
         <header className="mtc-side-head">
           <button type="button" className="mtc-brand" onClick={returnToChat}
             title="Volver a la conversación actual" aria-label="Ir a mi conversación actual">
@@ -1202,7 +1206,9 @@ function App() {
       </aside>
 
       <div className="mtc-content">
+        <MechaViewport />
         <header className="mtc-topbar">
+          <MechaCommandCore />
           <div className="mtc-topbar-left">
             <button type="button" className="mtc-icon-button mtc-mobile-menu"
               aria-label="Abrir menú" onClick={() => setMobileOpen(true)}>☰</button>
@@ -1230,6 +1236,8 @@ function App() {
           </div>
         </header>
 
+        <MechaSystemStrip page={page} />
+
         {notice && (
           <div className="mtc-notice" role="status">
             <span>{notice}</span>
@@ -1245,6 +1253,7 @@ function App() {
               ) : messages.length === 0 ? (
                 <section className="mtc-welcome">
                   <ActiveTheoryStage variant="welcome" />
+                  <MechaHeroArmor variant="chat" />
                   <div className="mtc-welcome-symbol" aria-hidden="true"><MarcaMyTeacher /></div>
                   <h1>¿Qué quieres aprender hoy?</h1>
                   <p>Haz una pregunta. Te ayudaré a descubrir la respuesta paso a paso.</p>
@@ -1485,6 +1494,7 @@ function App() {
         {page === 'settings' && (
           <main className="mtc-secondary">
             <section className="mtc-settings-card">
+              <MechaHeroArmor variant="settings" />
               <h1>Configuración</h1>
               <p>Personaliza tu experiencia de aprendizaje.</p>
               <div className="mtc-settings-row">
@@ -1510,6 +1520,7 @@ function App() {
         {page === 'privacy' && (
           <main className="mtc-secondary">
             <section className="mtc-settings-card">
+              <MechaHeroArmor variant="settings" />
               <button type="button" className="mtc-text-link" onClick={() => openPage('settings')}>← Configuración</button>
               <h1>Mi perfil</h1>
               <p>Personaliza cómo te conocen en My Teacher IA, sin modificar tu correo de acceso.</p>
