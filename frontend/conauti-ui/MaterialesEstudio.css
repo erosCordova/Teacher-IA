@@ -55,3 +55,69 @@ html[data-myteacher-theme] #root .mtc-app .mtc-materials {
   #root .mtc-app .mtc-materials-form{flex-direction:column;align-items:stretch}
   #root .mtc-app .mtc-materials-card{padding:17px 14px}
 }
+
+/* Visor privado y acciones por documento */
+#root .mtc-app .mtc-materials-file-detail {flex:1;min-width:0;display:grid;gap:5px}
+#root .mtc-app .mtc-materials-file-detail strong {font-size:12px;overflow-wrap:anywhere}
+#root .mtc-app .mtc-materials-file-detail small {color:var(--mtc-muted);font-size:10px;line-height:1.5}
+#root .mtc-app .mtc-materials-file-detail .mtc-materials-legacy {color:#ad6b20;max-width:620px}
+#root .mtc-app .mtc-materials-file-actions {display:flex;flex:0 0 auto;flex-wrap:wrap;gap:7px;align-items:center;justify-content:flex-end}
+#root .mtc-app .mtc-materials-file-actions button {
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px 11px;border-radius:10px;font-size:11px;font-weight:750;
+  white-space:nowrap;min-height:36px;
+  border:1px solid var(--mtc-border);background:var(--mtc-surface);
+}
+#root .mtc-app .mtc-materials-file-actions .mtc-materials-view {color:#176ca7;background:color-mix(in srgb,#249adf 10%,var(--mtc-surface));}
+#root .mtc-app .mtc-materials-file-actions .mtc-materials-download {color:#087e73;background:color-mix(in srgb,#11ae91 11%,var(--mtc-surface));}
+#root .mtc-app .mtc-materials-file-actions .mtc-materials-delete {color:#bf4458;}
+#root .mtc-app .mtc-materials-file-actions button:hover {border-color:var(--mtc-accent);box-shadow:0 5px 12px #152f5320;}
+#root .mtc-app .mtc-materials-viewer-backdrop {
+  position:fixed;z-index:5500;inset:0;display:grid;place-items:center;
+  padding:18px;background:rgba(8,19,43,.66);backdrop-filter:blur(5px)
+}
+#root .mtc-app .mtc-materials-viewer {
+  display:flex;flex-direction:column;width:min(1000px,100%);
+  height:min(900px,93dvh);min-height:330px;overflow:hidden;
+  border:1px solid var(--mtc-border);background:var(--mtc-surface);
+  border-radius:21px;box-shadow:0 22px 90px #08152d60;
+}
+#root .mtc-app .mtc-materials-viewer-heading {
+  padding:15px 21px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--mtc-surface);border-bottom:1px solid var(--mtc-border);
+}
+#root .mtc-app .mtc-materials-viewer-heading>div {min-width:0;display:grid;gap:3px}
+#root .mtc-app .mtc-materials-viewer-heading strong {font-size:15px;color:var(--mtc-text);overflow-wrap:anywhere}
+#root .mtc-app .mtc-materials-viewer-heading small {font-size:11px;color:var(--mtc-muted)}
+#root .mtc-app .mtc-materials-viewer-heading button {
+  border:1px solid var(--mtc-border);border-radius:100px;
+  width:34px;height:34px;flex:0 0 34px;background:var(--mtc-bg);
+  font-size:24px;color:var(--mtc-text);display:grid;place-items:center
+}
+#root .mtc-app .mtc-materials-pdf-frame {
+  width:100%;flex:1;min-height:0;border:0;background:#f0f3f8;
+}
+#root .mtc-app .mtc-materials-text-frame {
+  flex:1;min-height:0;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;
+  padding:22px 27px;margin:0;background:var(--mtc-bg);color:var(--mtc-text);
+  font-family:inherit;font-size:13px;line-height:1.8;
+}
+#root .mtc-app .mtc-materials-viewer footer {
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 20px;border-top:1px solid var(--mtc-border);
+}
+#root .mtc-app .mtc-materials-viewer footer span {font-size:11px;color:var(--mtc-muted)}
+#root .mtc-app .mtc-materials-viewer footer button {
+  border:0;border-radius:10px;padding:9px 19px;background:#286acf;
+  color:white;font-size:12px;font-weight:750;
+}
+@media (max-width:780px) {
+  #root .mtc-app .mtc-materials-file {flex-wrap:wrap;align-items:flex-start}
+  #root .mtc-app .mtc-materials-file-actions {width:100%;justify-content:stretch}
+  #root .mtc-app .mtc-materials-file-actions button {flex:1}
+  #root .mtc-app .mtc-materials-viewer {height:96dvh;border-radius:15px}
+  #root .mtc-app .mtc-materials-text-frame {padding:16px;font-size:12px}
+}
+@media (prefers-reduced-motion:reduce) {
+  #root .mtc-app .mtc-materials button {transition:none}
+}
