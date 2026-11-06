@@ -356,6 +356,22 @@ def clear_learning_memory(
 
                 profiles = cursor.rowcount
 
+                # Eliminar tarjetas y registro de generaciones de IA del estudiante.
+                cursor.execute("SELECT to_regclass('public.conauti_study_cards')")
+                cards = 0
+                if cursor.fetchone()[0] is not None:
+                    cursor.execute(
+                        "DELETE FROM public.conauti_study_cards WHERE user_id=%s",
+                        (user_id,),
+                    )
+                    cards = cursor.rowcount
+                cursor.execute("SELECT to_regclass('public.conauti_study_generations')")
+                if cursor.fetchone()[0] is not None:
+                    cursor.execute(
+                        "DELETE FROM public.conauti_study_generations WHERE user_id=%s",
+                        (user_id,),
+                    )
+
                 # La opción de borrar memoria también elimina materiales
                 # guardados voluntariamente en la biblioteca académica.
                 cursor.execute("SELECT to_regclass('public.conauti_rag_documents')")
@@ -379,6 +395,7 @@ def clear_learning_memory(
         "profiles_deleted": profiles,
         "assessments_deleted": assessments,
         "documents_deleted": documents,
+        "study_cards_deleted": cards,
         "conversations_deleted": False,
     }
 
