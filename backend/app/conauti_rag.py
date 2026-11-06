@@ -167,7 +167,7 @@ def cosine(a: list[float] | None, b: list[float] | None) -> float:
 
 def search_chunks(question: str, chunks: list[dict], query_vector=None, limit: int = 4) -> list[dict]:
     """Corrective RAG: descarta fragmentos sin respaldo suficiente."""
-    generic = bool(re.search(r"\b(resume|resumen|sintetiza|ideas principales)\b", question.casefold()))
+    generic = bool(re.search(r"\b(resume|resumen|sintetiza|analiza|explica|ideas principales)\b", question.casefold()))
     ranked = []
     for chunk in chunks:
         lexical = lexical_score(question, chunk["text"])
