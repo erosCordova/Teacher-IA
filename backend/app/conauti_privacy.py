@@ -140,6 +140,19 @@ def export_personal_data(user=Depends(current_user)):
                 (uid,),
             ).fetchall()
 
+        # Exportar los resultados de las evaluaciones dinámicas.
+        study_exams = []
+        exams_table = conn.execute(
+            "SELECT to_regclass('public.conauti_study_exams') AS exists"
+        ).fetchone()
+        if exams_table["exists"] is not None:
+            study_exams = conn.execute(
+                "SELECT topic,score,total,created_at,submitted_at "
+                "FROM public.conauti_study_exams WHERE user_id=%s "
+                "ORDER BY created_at DESC",
+                (uid,),
+            ).fetchall()
+
         # Exportar también los textos guardados voluntariamente en RAG.
         materials = []
         exists = conn.execute(
@@ -167,6 +180,7 @@ def export_personal_data(user=Depends(current_user)):
         "memories": memories,
         "materials": materials,
         "study_cards": study_cards,
+        "study_exams": study_exams,
         "progress": progress,
     }
 
