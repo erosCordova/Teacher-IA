@@ -72,12 +72,13 @@ def recommendations(memories, assessments):
         if not topic:
             continue
         level = max(0,min(4,int(mastery)))
-        priority = 3 if level <= 1 or difficulty else (2 if level == 2 else 1)
+        priority = 3 if level <= 1 else (2 if level == 2 else 1)
         topics[topic.casefold()] = dict(
             topic=topic, mastery=level, priority=priority,
             status="Refuerzo recomendado" if priority == 3 else
                    "Consolidar" if priority == 2 else "Continuar avanzando",
-            reason=str(difficulty)[:150] if difficulty else "Memoria académica registrada.",
+            reason=(f"Dominio registrado: {level}/4." +
+                    (f" Última dificultad: {str(difficulty)[:55]}." if difficulty else "")),
             next_step=str(goal)[:150] if goal else "Repasa el tema con preguntas guiadas.",
             evidence="memoria",
         )
@@ -188,8 +189,12 @@ def insert_card(conn,uid,topic,question,answer,source="",document_id=None,page=N
 
 @router.get("/overview")
 def overview(user=Depends(current_user)):
+    # La ruta incorpora respuestas de las evaluaciones nuevas, además de
+    # los ejercicios adaptativos existentes. No infiere conocimientos no medidos.
+    from app.conauti_quiz_engine import prepare as prepare_exams
     with psycopg.connect(database_url(),connect_timeout=10) as conn:
         prepare(conn)
+        prepare_exams(conn)
         uid=user["id"]
         mem=conn.execute(
             "SELECT topic,mastery,last_difficulty,next_goal "
@@ -203,13 +208,35 @@ def overview(user=Depends(current_user)):
             "WHERE user_id=%s AND answered_at IS NOT NULL GROUP BY topic_key",
             (uid,),
         ).fetchall()
+        # Los exámenes generales contienen preguntas de varias materias.
+        # Evaluamos cada respuesta contra su clave y agrupamos por materia.
+        exam_results=conn.execute(
+            "SELECT item->>'topic' AS topic, count(*)::integer, "
+            "count(*) FILTER (WHERE "
+            "e.answers->>(item->>'id')=item->>'correct')::integer "
+            "FROM public.conauti_study_exams e, "
+            "LATERAL jsonb_array_elements(e.questions) item "
+            "WHERE e.user_id=%s AND e.submitted_at IS NOT NULL "
+            "AND e.answers IS NOT NULL AND item ? 'topic' "
+            "GROUP BY item->>'topic'",(uid,),
+        ).fetchall()
         counts=conn.execute(
             "SELECT count(*)::integer,"
             "count(*) FILTER (WHERE due_at<=now())::integer,"
             "count(*) FILTER (WHERE reviews>0)::integer "
             "FROM public.conauti_study_cards WHERE user_id=%s",(uid,),
         ).fetchone()
-    return {"recommendations":recommendations(mem,tests),
+    totals={}
+    for topic,total,correct in [*tests,*exam_results]:
+        label=str(topic).strip()
+        if not label:
+            continue
+        key=label.casefold()
+        if key not in totals:
+            totals[key]=[label,0,0]
+        totals[key][1]+=int(total)
+        totals[key][2]+=int(correct)
+    return {"recommendations":recommendations(mem,totals.values()),
             "cards":{"total":counts[0],"due":counts[1],"reviewed":counts[2]},
             "note":"Indicadores orientativos, no certificaciones de dominio."}
 
