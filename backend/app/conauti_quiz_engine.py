@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS public.conauti_study_exams (
 );
 CREATE INDEX IF NOT EXISTS idx_study_exams_user
  ON public.conauti_study_exams(user_id,created_at DESC);
+ALTER TABLE public.conauti_study_exams ENABLE ROW LEVEL SECURITY;
 """
 
 
