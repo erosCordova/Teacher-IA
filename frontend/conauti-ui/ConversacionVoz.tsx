@@ -1,5 +1,5 @@
 import { apiFetch } from './apiFetch'
-import { hablarConKokoro, cancelarVozKokoro } from './KokoroPlayer'
+import { hablarConKokoro, cancelarVozKokoro, prepararVozKokoroRapida } from './KokoroPlayer'
 import { habilitarAudioKokoro } from './KokoroAudio'
 import { useEffect, useRef, useState } from 'react'
 
@@ -297,7 +297,7 @@ export default function ConversacionVoz({
 
         const silenceAfterSpeech =
           heardVoice &&
-          now - lastSpeech > 1700 &&
+          now - lastSpeech > 1100 &&
           now - started > 950
 
         const noSpeech =
@@ -309,7 +309,7 @@ export default function ConversacionVoz({
             device.stop()
           }
         }
-      }, 180)
+      }, 120)
 
       maxTimer.current = setTimeout(() => {
         if (device.state === 'recording') {
@@ -431,6 +431,7 @@ export default function ConversacionVoz({
           body: JSON.stringify({
             request_id: crypto.randomUUID(),
             text,
+            voice_mode: true,
           }),
           signal: request.signal,
         },
@@ -571,7 +572,7 @@ export default function ConversacionVoz({
         }
       }
 
-      hablarConKokoro(utterance, synth)
+      hablarConKokoro(utterance, synth, { priorizarRapidez: true })
     }
 
     next()
@@ -606,6 +607,8 @@ export default function ConversacionVoz({
 
     // Desbloquear WebAudio durante el clic inicial del estudiante.
     habilitarAudioKokoro()
+    // Verifica la disponibilidad del motor sin retrasar la captura de voz.
+    prepararVozKokoroRapida()
 
     running.current = true
 

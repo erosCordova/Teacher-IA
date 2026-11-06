@@ -84,6 +84,50 @@ export function obtenerVolumenKokoro(): number {
   )
 }
 
+
+/**
+ * Camino rápido de voz: comprobar una sola vez si existe Kokoro remoto.
+ * Si no existe, la primera respuesta sale inmediatamente con la voz
+ * española del navegador mientras Kokoro local se prepara en segundo plano.
+ */
+let servidorKokoro: 'desconocido' | 'disponible' | 'no_disponible' = 'desconocido'
+let comprobacionKokoro: Promise<void> | null = null
+let motorLocalListo = false
+let preparandoLocal: Promise<void> | null = null
+
+function prepararMotorLocal(): void {
+  if (motorLocalListo || preparandoLocal) return
+  const tarea = import('./KokoroBrowser')
+    .then(modulo => modulo.prepararKokoroEnNavegador())
+    .then(() => { motorLocalListo = true })
+    .catch(() => {
+      // No detener la conversación. Se puede intentar otra vez más adelante.
+    })
+    .finally(() => { preparandoLocal = null })
+  preparandoLocal = tarea
+}
+
+export function prepararVozKokoroRapida(): void {
+  if (comprobacionKokoro || servidorKokoro !== 'desconocido') return
+  const tarea = (async () => {
+    const cancelacion = new AbortController()
+    const limite = setTimeout(() => cancelacion.abort(), 1600)
+    try {
+      const respuesta = await apiFetch('/api/conauti/kokoro/status', {
+        signal: cancelacion.signal,
+      })
+      if (!respuesta.ok) throw new Error('Kokoro remoto no disponible')
+      const estado: { available?: boolean } = await respuesta.json()
+      servidorKokoro = estado.available === true ? 'disponible' : 'no_disponible'
+    } catch {
+      servidorKokoro = 'no_disponible'
+    } finally {
+      clearTimeout(limite)
+    }
+  })()
+  comprobacionKokoro = tarea
+}
+
 let version = 0
 let controller: AbortController | null = null
 let audioActual: HTMLAudioElement | null = null
@@ -147,6 +191,8 @@ export type OpcionesKokoro = {
   omitirServidor?: boolean
   /** Tiempo máximo del primer intento de Kokoro local antes de responder con la voz del navegador. */
   esperaLocalMs?: number
+  /** Responder ya con TTS del navegador si Kokoro todavía no está listo. */
+  priorizarRapidez?: boolean
   onFallback?: () => void
 }
 
@@ -206,6 +252,16 @@ export function hablarConKokoro(
     }
   }
 
+  if (opciones.priorizarRapidez) {
+    prepararVozKokoroRapida()
+    if (servidorKokoro !== 'disponible' && !motorLocalListo) {
+      // No esperar la descarga del modelo: la frase se escucha inmediatamente.
+      if (servidorKokoro === 'no_disponible') prepararMotorLocal()
+      respaldo()
+      return
+    }
+  }
+
   const reproducir = async (blob: Blob) => {
     if (!vigente()) return
 
@@ -230,7 +286,9 @@ export function hablarConKokoro(
       return
     }
 
-    let motorLocal = false
+    let motorLocal = Boolean(opciones.omitirServidor) || (
+      Boolean(opciones.priorizarRapidez) && servidorKokoro !== 'disponible'
+    )
 
     try {
       for (const fragmento of fragmentos) {
@@ -240,20 +298,25 @@ export function hablarConKokoro(
 
         if (!motorLocal && !opciones.omitirServidor) {
           try {
-            const respuesta = await apiFetch(
-              '/api/conauti/kokoro/speech',
-              {
+            const remoto = new AbortController()
+            const cancelarRemoto = () => remoto.abort()
+            abort.signal.addEventListener('abort', cancelarRemoto, { once: true })
+            const limiteRemoto = setTimeout(
+              cancelarRemoto, opciones.priorizarRapidez ? 3500 : 12000,
+            )
+            let respuesta: Response
+            try {
+              respuesta = await apiFetch('/api/conauti/kokoro/speech', {
                 method: 'POST',
                 credentials: 'same-origin',
-                signal: abort.signal,
+                signal: remoto.signal,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  text: fragmento,
-                  voice: voz,
-                  speed: velocidad,
-                }),
-              },
-            )
+                body: JSON.stringify({ text: fragmento, voice: voz, speed: velocidad }),
+              })
+            } finally {
+              clearTimeout(limiteRemoto)
+              abort.signal.removeEventListener('abort', cancelarRemoto)
+            }
 
             if (!respuesta.ok) {
               throw new Error(`Kokoro remoto: HTTP ${respuesta.status}`)
@@ -269,6 +332,12 @@ export function hablarConKokoro(
               error,
             )
             motorLocal = true
+            if (opciones.priorizarRapidez && !motorLocalListo) {
+              servidorKokoro = 'no_disponible'
+              prepararMotorLocal()
+              respaldo()
+              return
+            }
           }
         }
 
@@ -296,7 +365,7 @@ export function hablarConKokoro(
                       'Kokoro aun se esta descargando.',
                     ),
                   )
-                }, opciones.esperaLocalMs ?? 12000)
+                }, opciones.esperaLocalMs ?? (opciones.priorizarRapidez ? 3000 : 12000))
               }),
             ])
           } finally {

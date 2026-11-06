@@ -838,7 +838,8 @@ function App() {
       } else if (fileToSend && id) {
         setContextDocument({ conversationId: id, file: fileToSend })
       }
-      await refresh(token)
+      // La lista del historial se actualiza en paralelo; no retrasa el chat.
+      void refresh(token).catch(() => {})
       setNotice('')
     } catch (error) {
       setNotice(errorText(error))
