@@ -151,6 +151,11 @@ def _myteacher_with_learning_memory(
 
 
 def generate_reply(history, pedagogical_instruction='', *, student_id=None, conversation_id=None):
+    # Modo local opcional, explícito y sin redirección a servidores remotos.
+    from app.conauti_local_model import local_enabled, local_reply
+    if local_enabled():
+        return local_reply(history, SYSTEM_PROMPT + "\n\n" + pedagogical_instruction)
+
     # CONAUTI_ORCHESTRATOR: LangGraph activo.
     if config(
         "CONAUTI_ORCHESTRATOR",
