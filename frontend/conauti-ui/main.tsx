@@ -5,6 +5,7 @@ import MaterialesEstudio from "./MaterialesEstudio";
 import CentroEstudio from "./CentroEstudio";
 import MarcaMyTeacher from "./MarcaMyTeacher";
 import ActiveTheoryStage from './ActiveTheoryStage'
+import MechaEmblem from './MechaEmblem'
 import { validarImagen, dimensionesImagen, LIMITE_ENVIO } from "./ImagenEducativa";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -1217,6 +1218,10 @@ function App() {
             )}
           </div>
           <div className="mtc-topbar-right">
+            <div className="mecha-hud-label" aria-hidden="true">
+              <MechaEmblem />
+              <span className="mecha-hud-copy">MY TEACHER IA<small>EXPERIENCIA INMERSIVA</small></span>
+            </div>
             <button type="button" className="mtc-icon-button" onClick={toggleTheme}
               title={theme === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'}
               aria-label={theme === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'}>
