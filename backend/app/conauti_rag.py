@@ -496,7 +496,7 @@ def delete_document(document_id: UUID, user=Depends(current_user)):
 # almacenamiento de preguntas o fragmentos dentro de mensajes del estudiante.
 _DOCUMENT_REFERENCE = re.compile(
     r"\b(?:mi|mis|el|los|este|esta|ese|esa|estos|esos|tus)\s+"
-    r"(?:documentos?|materiales?|archivos?|pdf|libros?|manuales?|apuntes|biblioteca)\b"
+    r"(?:documentos?|material(?:es)?|archivos?|pdf|libros?|manual(?:es)?|apuntes|biblioteca)\b"
     r"|\b(?:documento|material|archivo|pdf|manual|texto)\s+"
     r"que\s+(?:subi|guarde|cargue|adjunte)\b"
     r"|\b(?:mis\s+materiales|mi\s+biblioteca)\b",
