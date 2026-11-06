@@ -43,6 +43,8 @@ CREATE TABLE IF NOT EXISTS public.conauti_study_generations (
  used integer NOT NULL DEFAULT 0,
  PRIMARY KEY(user_id,generated_on)
 );
+ALTER TABLE public.conauti_study_cards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.conauti_study_generations ENABLE ROW LEVEL SECURITY;
 """
 
 
