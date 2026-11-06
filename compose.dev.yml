@@ -1,0 +1,40 @@
+# Entorno Docker LOCAL y gratuito. No altera el despliegue de Render.
+# Requiere PostgreSQL inicializado con las migraciones del proyecto.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: teacher
+      POSTGRES_PASSWORD: dev_teacher_local_only
+      POSTGRES_DB: conauti
+    volumes:
+      - teacher_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teacher -d conauti"]
+      interval: 5s
+      retries: 12
+    ports:
+      - "127.0.0.1:55433:5432"
+  backend:
+    build: ./backend
+    environment:
+      APP_ENV: development
+      DATABASE_URL: postgresql://teacher:dev_teacher_local_only@postgres:5432/conauti
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
+      CONAUTI_ORCHESTRATOR: langgraph
+      RAG_EMBEDDINGS_ENABLED: "false"
+      LANGGRAPH_CHECKPOINTS_ENABLED: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8010:8010"
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:18080:8080"
+volumes:
+  teacher_pgdata:
