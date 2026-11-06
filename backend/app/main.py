@@ -164,6 +164,10 @@ app.include_router(conauti_games_router)
 from app.conauti_files import router as conauti_files_router
 app.include_router(conauti_files_router)
 
+# Biblioteca RAG de documentos con consentimiento explícito.
+from app.conauti_rag import router as conauti_rag_router
+app.include_router(conauti_rag_router)
+
 # MYTEACHER_ERROR_COACH_GRID_V3
 from app.conauti_error_coach import (
     router as conauti_error_coach_router,
