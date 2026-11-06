@@ -79,6 +79,8 @@ innecesariamente.
 class AIRequest(BaseModel):
     request_id: UUID
     text: str = Field(min_length=1, max_length=4000)
+    # Solo voz: el chat escrito conserva explicaciones completas.
+    voice_mode: bool = False
 
 
 def config(name, default=""):
@@ -175,7 +177,7 @@ def _myteacher_with_learning_memory(
     )
 
 
-def generate_reply(history, pedagogical_instruction='', *, student_id=None, conversation_id=None):
+def generate_reply(history, pedagogical_instruction='', *, student_id=None, conversation_id=None, voice_mode=False):
     from app.conauti_local_model import local_enabled, local_reply
     if local_enabled():
         return local_reply(history, SYSTEM_PROMPT + "\n\n" + pedagogical_instruction)
@@ -205,6 +207,7 @@ def generate_reply(history, pedagogical_instruction='', *, student_id=None, conv
                 current_model(),
                 student_id=student_id,
                 conversation_id=conversation_id,
+                voice_mode=voice_mode,
             )
 
         except HTTPException:
@@ -295,7 +298,7 @@ def generate_reply(history, pedagogical_instruction='', *, student_id=None, conv
         "contents": contents,
         "generationConfig": {
             "temperature": 0.6,
-            "maxOutputTokens": 700,
+            "maxOutputTokens": 320 if voice_mode else 700,
         },
     }
 
@@ -574,6 +577,15 @@ def respond(
             pedagogical = _myteacher_with_learning_memory(
                 uid, decision["instructions"]
             )
+            if data.voice_mode:
+                pedagogical += (
+                    "\nMODO VOZ EN TIEMPO REAL: responde en español "
+                    "con naturalidad, normalmente en 2 o 3 frases "
+                    "cortas (máximo 80 palabras). Da la pista o "
+                    "explicación más útil y una sola pregunta de "
+                    "seguimiento. Mantén la guía pedagógica y no "
+                    "recortes advertencias imprescindibles."
+                )
             if rag["context"]:
                 pedagogical += (
                     "\n\nBIBLIOTECA ACADÉMICA DEL ESTUDIANTE:\n"
@@ -594,6 +606,7 @@ def respond(
                 pedagogical,
                 student_id=uid,
                 conversation_id=conversation_id,
+                **({"voice_mode": True} if data.voice_mode else {}),
             )
             answer = review_output(answer, decision, question)
 

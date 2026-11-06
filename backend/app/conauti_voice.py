@@ -72,7 +72,8 @@ async def recognize(audio: bytes, mime: str) -> str:
             ],
         }],
         "generationConfig": {
-            "maxOutputTokens": 500,
+            "maxOutputTokens": 192,
+            "temperature": 0,
         },
     }
 

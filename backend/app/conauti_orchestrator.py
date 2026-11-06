@@ -25,6 +25,7 @@ class TutorState(TypedDict, total=False):
     system_prompt: str
     api_key: str
     model_name: str
+    voice_mode: bool
     question: str
     intent: str
     messages: list[Any]
@@ -150,7 +151,7 @@ def generate_with_langchain(state: TutorState):
             google_api_key=state.get("api_key") or _RUN_API_KEY.get(),
             vertexai=False,
             temperature=0.6,
-            max_tokens=700,
+            max_tokens=320 if state.get("voice_mode") else 700,
             timeout=35,
             max_retries=0,
         )
@@ -311,6 +312,7 @@ def run_graph(
     *,
     student_id=None,
     conversation_id=None,
+    voice_mode=False,
 ):
     if not api_key:
         raise ValueError("Gemini no está configurado.")
@@ -322,6 +324,7 @@ def run_graph(
         "rules": pedagogical_instruction,
         "system_prompt": system_prompt,
         "model_name": model_name,
+        "voice_mode": bool(voice_mode),
     }
 
     # Las credenciales NO se guardan en State, ni en los checkpoints.
