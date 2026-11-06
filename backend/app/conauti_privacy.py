@@ -126,6 +126,23 @@ def export_personal_data(user=Depends(current_user)):
             (uid,),
         ).fetchall()
 
+        # Exportar también los textos guardados voluntariamente en RAG.
+        materials = []
+        exists = conn.execute(
+            "SELECT to_regclass('public.conauti_rag_documents') AS exists"
+        ).fetchone()
+        if exists["exists"] is not None:
+            materials = conn.execute(
+                """
+                SELECT d.id, d.filename, d.created_at,
+                       c.page_number, c.ordinal, c.body
+                FROM public.conauti_rag_documents d
+                JOIN public.conauti_rag_chunks c ON c.document_id=d.id
+                WHERE d.user_id=%s
+                ORDER BY d.created_at, c.ordinal
+                """, (uid,),
+            ).fetchall()
+
     data = {
         "account": {
             "username": user["username"],
@@ -134,6 +151,7 @@ def export_personal_data(user=Depends(current_user)):
         "conversations": conversations,
         "messages": messages,
         "memories": memories,
+        "materials": materials,
         "progress": progress,
     }
 
