@@ -1,11 +1,9 @@
+import os
 import re
 from typing import Any, TypedDict
 
-from langchain_core.messages import (
-    AIMessage,
-    HumanMessage,
-    SystemMessage,
-)
+from app.conauti_prompting import (TutorPlan, adapt_instructions, lesson_plan, make_chain, safe_model_name, trim_history)
+from app.conauti_resilience import call_with_recovery
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, START, StateGraph
 
@@ -24,6 +22,8 @@ class TutorState(TypedDict, total=False):
     question: str
     intent: str
     messages: list[Any]
+    instructions: str
+    plan: dict[str, Any]
     answer: str
     usage: dict[str, int]
 
@@ -45,6 +45,11 @@ def identify_intent(state: TutorState):
         "question": question,
         "intent": classify(question),
     }
+
+
+def plan_learning(state: TutorState):
+    """Planificador determinista; no requiere llamadas adicionales a Gemini."""
+    return {"plan": lesson_plan(state["intent"]).model_dump()}
 
 
 def select_route(state: TutorState):
@@ -91,43 +96,43 @@ def protect_student(state: TutorState):
 
 
 def prepare_context(state: TutorState):
-    system = (
-        state["system_prompt"]
-        + "\n\n"
-        + state["rules"]
+    """Trimming + Prompt Templates + ejemplo Few-Shot del plan pedagógico."""
+    instructions = adapt_instructions(
+        state["system_prompt"] + "\n\n" + state["rules"],
+        state["intent"], plan=TutorPlan.model_validate(state["plan"]),
     )
-
-    messages = [
-        SystemMessage(content=system)
-    ]
-
-    for item in state["history"][-12:]:
-        content = str(item["body"])[:4000]
-
-        if item["role"] == "assistant":
-            messages.append(
-                AIMessage(content=content)
-            )
-        else:
-            messages.append(
-                HumanMessage(content=content)
-            )
-
-    return {"messages": messages}
+    return {
+        "instructions": instructions,
+        "messages": trim_history(state["history"], max_messages=12, max_chars=10500),
+    }
 
 
 def generate_with_langchain(state: TutorState):
-    model = ChatGoogleGenerativeAI(
-        model=state["model_name"],
-        google_api_key=state["api_key"],
-        vertexai=False,
-        temperature=0.6,
-        max_tokens=700,
-        timeout=35,
-        max_retries=0,
-    )
+    def invoke(model_name: str):
+        model = ChatGoogleGenerativeAI(
+            model=model_name,
+            google_api_key=state["api_key"],
+            vertexai=False,
+            temperature=0.6,
+            max_tokens=700,
+            timeout=35,
+            max_retries=0,
+        )
+        # LCEL: ChatPromptTemplate | ChatGoogleGenerativeAI
+        chain = make_chain(model)
+        return chain.invoke({
+            "instructions": state["instructions"],
+            "conversation": state["messages"],
+        })
 
-    response = model.invoke(state["messages"])
+    backup = os.getenv("GEMINI_FALLBACK_MODEL", "").strip()
+    alternative = (lambda: invoke(backup)) if (
+        safe_model_name(backup) and backup != state["model_name"]
+    ) else None
+    response = call_with_recovery(
+        lambda: invoke(state["model_name"]),
+        fallback=alternative,
+    )
 
     content = response.content
 
@@ -197,6 +202,7 @@ def create_graph():
         "clasificar",
         identify_intent,
     )
+    builder.add_node("planificar", plan_learning)
     builder.add_node(
         "proteger",
         protect_student,
@@ -219,8 +225,9 @@ def create_graph():
         "clasificar",
     )
 
+    builder.add_edge("clasificar", "planificar")
     builder.add_conditional_edges(
-        "clasificar",
+        "planificar",
         select_route,
         {
             "proteger": "proteger",
