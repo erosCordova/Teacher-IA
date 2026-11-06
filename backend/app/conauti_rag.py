@@ -483,12 +483,27 @@ def get_indexed_text(
 def delete_document(document_id: UUID, user=Depends(current_user)):
     with psycopg.connect(database_url(), connect_timeout=10) as conn:
         ensure_schema(conn)
-        deleted = conn.execute(
+        owner = conn.execute(
+            "SELECT id FROM public.conauti_rag_documents WHERE id=%s AND user_id=%s",
+            (document_id, user["id"]),
+        ).fetchone()
+        if owner is None:
+            raise HTTPException(404, "Documento no encontrado.")
+        # Quitar también tarjetas derivadas de este material,
+        # para no conservar datos después de borrarlo.
+        cards_table = conn.execute(
+            "SELECT to_regclass('public.conauti_study_cards')"
+        ).fetchone()[0]
+        if cards_table is not None:
+            conn.execute(
+                "DELETE FROM public.conauti_study_cards "
+                "WHERE source_document_id=%s AND user_id=%s",
+                (document_id, user["id"]),
+            )
+        conn.execute(
             "DELETE FROM public.conauti_rag_documents WHERE id=%s AND user_id=%s",
             (document_id, user["id"]),
-        ).rowcount
-    if not deleted:
-        raise HTTPException(404, "Documento no encontrado.")
+        )
     return {"deleted": True}
 
 
