@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS public.conauti_study_exams (
 CREATE INDEX IF NOT EXISTS idx_study_exams_user
  ON public.conauti_study_exams(user_id,created_at DESC);
 ALTER TABLE public.conauti_study_exams ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.conauti_study_exams ADD COLUMN IF NOT EXISTS answers jsonb;
 """
 
 
@@ -183,8 +184,10 @@ def submit_exam(exam_id:UUID,body:SubmitBody,user=Depends(current_user)):
             raise HTTPException(422,"Opción de respuesta inválida.")
         score,feedback=grade_exam(questions,body.answers)
         conn.execute(
-            "UPDATE public.conauti_study_exams SET score=%s,submitted_at=now() "
-            "WHERE id=%s AND user_id=%s",(score,exam_id,uid),
+            "UPDATE public.conauti_study_exams "
+            "SET score=%s,answers=%s,submitted_at=now() "
+            "WHERE id=%s AND user_id=%s",
+            (score,Jsonb(body.answers),exam_id,uid),
         )
     return {"score":score,"total":len(questions),
             "percentage":round(score/max(1,len(questions))*100),
