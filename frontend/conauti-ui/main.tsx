@@ -4,9 +4,8 @@ import AventuraEducativa from "./AventuraEducativa";
 import MaterialesEstudio from "./MaterialesEstudio";
 import CentroEstudio from "./CentroEstudio";
 import MarcaMyTeacher from "./MarcaMyTeacher";
-import ActiveTheoryStage from './ActiveTheoryStage'
-import MechaEmblem from './MechaEmblem'
-import { MechaHeroArmor, MechaPowerPanel, MechaCommandCore, MechaSystemStrip, MechaViewport } from './CybertronArmor'
+import { NatureScenery, NatureCompanion } from './NatureWorld'
+import NatureDashboard from './NatureDashboard'
 import { validarImagen, dimensionesImagen, LIMITE_ENVIO } from "./ImagenEducativa";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -20,9 +19,7 @@ import './style.css'
 import './chatgpt-layout.css'
 import './auth-premium.css'
 import './ConfiguracionGlobal'
-import './active-theory-skin.css'
-import './mecha-interface.css'
-import './cybertron-max.css'
+import './aurora-nature.css'
 
 type User = {
   id: string
@@ -938,10 +935,10 @@ function App() {
 
   if (!token || !user) {
     return (
-      <main className="mtc-auth-shell">
-        <ActiveTheoryStage variant="intro" />
+      <main className="mtc-auth-shell aur-auth-shell">
+        <NatureScenery />
         <section className="mtc-auth-showcase" aria-label="Descubre My Teacher IA">
-          <MechaHeroArmor variant="access" />
+          <span className="aur-auth-companion" aria-hidden="true"><NatureCompanion /></span>
           <div className="mtc-auth-decoration mtc-auth-decoration-one" aria-hidden="true" />
           <div className="mtc-auth-decoration mtc-auth-decoration-two" aria-hidden="true" />
           <header className="mtc-auth-brand">
@@ -1138,7 +1135,6 @@ function App() {
       )}
 
       <aside className={'mtc-sidebar' + (mobileOpen ? ' mtc-sidebar-visible' : '')}>
-        <MechaPowerPanel />
         <header className="mtc-side-head">
           <button type="button" className="mtc-brand" onClick={returnToChat}
             title="Volver a la conversación actual" aria-label="Ir a mi conversación actual">
@@ -1206,9 +1202,8 @@ function App() {
       </aside>
 
       <div className="mtc-content">
-        <MechaViewport />
+        <NatureScenery />
         <header className="mtc-topbar">
-          <MechaCommandCore />
           <div className="mtc-topbar-left">
             <button type="button" className="mtc-icon-button mtc-mobile-menu"
               aria-label="Abrir menú" onClick={() => setMobileOpen(true)}>☰</button>
@@ -1224,10 +1219,7 @@ function App() {
             )}
           </div>
           <div className="mtc-topbar-right">
-            <div className="mecha-hud-label" aria-hidden="true">
-              <MechaEmblem />
-              <span className="mecha-hud-copy">MY TEACHER IA<small>EXPERIENCIA INMERSIVA</small></span>
-            </div>
+            <div className="aur-topbar-brand" aria-hidden="true"><MarcaMyTeacher /><span>MY TEACHER IA</span></div>
             <button type="button" className="mtc-icon-button" onClick={toggleTheme}
               title={theme === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'}
               aria-label={theme === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'}>
@@ -1236,7 +1228,7 @@ function App() {
           </div>
         </header>
 
-        <MechaSystemStrip page={page} />
+
 
         {notice && (
           <div className="mtc-notice" role="status">
@@ -1246,14 +1238,16 @@ function App() {
         )}
 
         {page === 'chat' && (
-          <main className="mtc-chat">
+          <main className="mtc-chat aur-chat-layout">
+            <NatureDashboard displayName={user.display_name || user.username} onNavigate={destination => openPage(destination)} />
+            <section className="aur-chat-dock" aria-label="Chat con My Teacher IA">
+            <div className="aur-chat-dock__heading"><span aria-hidden="true">✧</span><strong>Chat con My Teacher IA</strong><small>En línea</small></div>
             <div className="mtc-scroller" ref={conversationScroll}>
               {loadingMessages ? (
                 <p className="mtc-loading" role="status">Cargando conversación...</p>
               ) : messages.length === 0 ? (
                 <section className="mtc-welcome">
-                  <ActiveTheoryStage variant="welcome" />
-                  <MechaHeroArmor variant="chat" />
+
                   <div className="mtc-welcome-symbol" aria-hidden="true"><MarcaMyTeacher /></div>
                   <h1>¿Qué quieres aprender hoy?</h1>
                   <p>Haz una pregunta. Te ayudaré a descubrir la respuesta paso a paso.</p>
@@ -1439,6 +1433,7 @@ function App() {
                 <p className="mtc-guidance">Aprende con pistas y explicaciones. Tu tutor te acompaña paso a paso.</p>
               )}
             </div>
+            </section>
           </main>
         )}
 
@@ -1494,7 +1489,7 @@ function App() {
         {page === 'settings' && (
           <main className="mtc-secondary">
             <section className="mtc-settings-card">
-              <MechaHeroArmor variant="settings" />
+              
               <h1>Configuración</h1>
               <p>Personaliza tu experiencia de aprendizaje.</p>
               <div className="mtc-settings-row">
@@ -1520,7 +1515,7 @@ function App() {
         {page === 'privacy' && (
           <main className="mtc-secondary">
             <section className="mtc-settings-card">
-              <MechaHeroArmor variant="settings" />
+              
               <button type="button" className="mtc-text-link" onClick={() => openPage('settings')}>← Configuración</button>
               <h1>Mi perfil</h1>
               <p>Personaliza cómo te conocen en My Teacher IA, sin modificar tu correo de acceso.</p>

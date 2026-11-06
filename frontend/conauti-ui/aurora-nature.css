@@ -1,0 +1,973 @@
+/*
+ MY TEACHER IA / AURORA NATURE
+ Diseño basado en el concepto aprobado de paisaje bioluminiscente:
+ paisaje SVG original, androide guía y cristal holográfico.
+ Todo lo interactivo sigue siendo React y las rutas originales.
+ Capa de presentación cargada después de los estilos de la aplicación.
+*/
+html[data-myteacher-theme] {
+  --mtc-bg:#071529;
+  --mtc-side:#071329;
+  --mtc-surface:rgba(14,42,72,.88);
+  --mtc-surface-hover:rgba(34,98,154,.66);
+  --mtc-field:rgba(10,28,53,.92);
+  --mtc-text:#e9f8ff;
+  --mtc-muted:#abcde5;
+  --mtc-border:rgba(92,178,241,.40);
+  --mtc-accent:#55dfff;
+  --mtc-action:#4cd5fb;
+  --mtc-action-text:#06182f;
+  --mtc-blue:#68aaff;
+  --mtc-cyan:#54ddff;
+  --mtc-green:#54dbe2;
+  --mtc-soft-cyan:rgba(27,114,199,.21);
+  --aur-deep:#07142c;
+  --aur-navy:#0b2142;
+  --aur-glass:rgba(7,26,52,.82);
+  --aur-glass-strong:rgba(8,27,56,.94);
+  --aur-edge:rgba(97,209,255,.62);
+  --aur-ink:#eaf8ff;
+  --aur-lavender:#b394ff;
+  --aur-gold:#ffbf65;
+  color-scheme:dark;
+}
+html[data-myteacher-theme="light"] {
+  --aur-glass:rgba(13,42,78,.80);
+  --aur-glass-strong:rgba(13,36,67,.91);
+  --aur-edge:rgba(116,213,255,.77);
+}
+html[data-myteacher-theme="dark"] {
+  --aur-glass:rgba(4,17,39,.88);
+  --aur-glass-strong:rgba(3,14,33,.95);
+  --aur-edge:rgba(90,183,249,.58);
+}
+html[data-myteacher-theme] body,
+html[data-myteacher-theme] #root {background:#061127!important;color:var(--aur-ink);}
+html[data-myteacher-theme] #root {font-family:"Inter","Segoe UI",system-ui,sans-serif;}
+html[data-myteacher-theme] #root :is(button,a,input,textarea,select):focus-visible {
+  outline:2px solid #a9f3ff!important;outline-offset:3px!important;
+}
+html[data-myteacher-theme] #root .mtc-app {
+  display:grid!important;grid-template-columns:260px minmax(0,1fr)!important;
+  background:#061329!important;color:#eef9ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-content {
+  position:relative;isolation:isolate;
+  background:linear-gradient(128deg,#071a36,#0a2855 60%,#091c35)!important;
+  overflow:hidden;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-content>.aur-scene {
+  position:absolute;inset:0;z-index:-1;
+  width:100%;height:100%;object-fit:cover;pointer-events:none;
+}
+.aur-scene {display:block;filter:saturate(1.16);}
+.aur-whale {transform-origin:880px 170px;animation:aur-whale-float 21s ease-in-out infinite alternate;}
+.aur-petal {animation:aur-fall 18s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:center;}
+.aur-petal:nth-of-type(7n) {animation-duration:12s;}
+.aur-petal:nth-of-type(11n) {animation-duration:25s;}
+.aur-islands {animation:aur-island-float 18s ease-in-out infinite alternate;}
+.aur-companion {width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 19px 30px rgba(1,12,40,.52));}
+.aur-companion__book {animation:aur-book-orbit 4.5s ease-in-out infinite alternate;transform-origin:378px 335px;}
+@keyframes aur-whale-float {0%{translate:-17px 0;opacity:.72}100%{translate:22px -18px;opacity:.96}}
+@keyframes aur-fall {0%{translate:0 -5px;opacity:.3}100%{translate:24px 26px;opacity:.75}}
+@keyframes aur-island-float {from{translate:0 0}to{translate:0 -5px}}
+@keyframes aur-book-orbit {0%{translate:0 -6px;opacity:.75}100%{translate:0 7px;opacity:1}}
+@keyframes aur-glow-breathe {0%{filter:brightness(.83) drop-shadow(0 0 5px rgba(56,180,251,.17))}100%{filter:brightness(1.08) drop-shadow(0 0 16px rgba(72,206,255,.48))}}
+@keyframes aur-glass-in {from{opacity:.5;translate:0 12px}to{opacity:1;translate:0 0}}
+@keyframes aur-light-sweep {from{transform:translateX(-130%) skewX(-26deg)}to{transform:translateX(500%) skewX(-26deg)}}
+
+/* SIDEBAR / polished dark glass & luminous icons, no mecha parts */
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar {
+  z-index:6!important;
+  background:
+    radial-gradient(circle at 9% 84%,rgba(63,89,190,.19),transparent 33%),
+    linear-gradient(170deg,rgba(8,29,66,.97),rgba(3,13,35,.98))!important;
+  color:#e9f7ff!important;
+  border-right:1px solid rgba(96,200,255,.43)!important;
+  box-shadow:inset -2px 0 rgba(86,142,231,.14),10px 0 34px rgba(2,9,26,.27)!important;
+  padding:21px 13px 13px!important;
+  gap:10px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar::after {
+  content:"";position:absolute;left:26px;bottom:80px;width:180px;height:135px;opacity:.17;pointer-events:none;
+  background:radial-gradient(circle at center,rgba(67,178,255,.46),transparent 67%);
+  border-radius:50%;border:1px solid rgba(111,227,255,.3);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-head {
+  min-height:66px;flex:0 0 auto;
+  background:transparent!important;padding:2px 7px 14px!important;
+  border-bottom:1px solid rgba(121,210,255,.17)!important;
+  margin-bottom:5px;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-brand strong {
+  color:#f2fbff!important;font-size:17px!important;font-weight:760!important;
+  letter-spacing:-.035em!important;text-shadow:0 0 14px rgba(37,168,255,.27);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-mark {
+  width:43px!important;height:43px!important;
+  display:grid;place-items:center;
+  background:rgba(3,31,68,.63)!important;
+  border:1px solid #60d8ff!important;border-radius:15px!important;
+  color:#aaf4ff!important;box-shadow:0 0 21px rgba(51,196,255,.18)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-mark svg {
+  width:32px;height:32px;filter:drop-shadow(0 0 5px rgba(116,230,255,.59));
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-new-chat {
+  position:relative;min-height:49px!important;
+  display:flex;align-items:center;
+  color:#e6f9ff!important;
+  border:1px solid rgba(83,203,255,.66)!important;border-radius:13px!important;
+  background:linear-gradient(112deg,rgba(30,122,205,.32),rgba(8,48,95,.68))!important;
+  box-shadow:0 0 19px rgba(24,126,231,.17),inset 0 1px rgba(209,244,255,.11)!important;
+  letter-spacing:.02em;text-transform:none;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-new-chat:hover {
+  background:linear-gradient(110deg,rgba(44,144,238,.54),rgba(7,49,91,.79))!important;
+  border-color:#9feeff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-nav {
+  display:grid;gap:4px!important;border:0!important;
+  padding:9px 0!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-nav button,
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer button {
+  display:flex!important;align-items:center;gap:12px!important;
+  color:#d3e9f9!important;
+  min-height:43px!important;padding:10px 12px!important;
+  background:transparent!important;border:1px solid transparent!important;
+  border-radius:12px!important;
+  font-size:12.8px!important;font-weight:550!important;
+  transition:background .2s,transform .2s,box-shadow .2s,border-color .2s!important;
+  text-align:left;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-nav button.active {
+  color:#f7fcff!important;font-weight:720!important;
+  background:linear-gradient(95deg,rgba(21,140,236,.60),rgba(30,78,150,.41))!important;
+  border-color:rgba(85,219,255,.69)!important;
+  box-shadow:0 0 14px rgba(39,162,252,.33),inset 0 1px rgba(224,250,255,.15)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-nav button:hover,
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer button:hover {
+  color:#fff!important;
+  transform:translateX(3px);
+  background:rgba(36,131,219,.20)!important;
+  border-color:rgba(94,187,249,.39)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-nav button .av-side-emoji {font-size:19px!important;}
+html[data-myteacher-theme] #root .mtc-app .mtc-history {position:relative;z-index:2;}
+html[data-myteacher-theme] #root .mtc-app .mtc-history .historial-avanzado {
+  border-top:1px solid rgba(120,198,253,.20)!important;
+  color:#dfefff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-history .historial-avanzado h3 {
+  color:#a9c9e6!important;font-size:10px;letter-spacing:.12em;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-history input {
+  background:rgba(7,28,58,.72)!important;border:1px solid rgba(112,186,247,.32)!important;
+  color:#eefaff!important;border-radius:9px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-history .historial-fila button {
+  color:#dff2ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-history .historial-fila.elegida {
+  background:rgba(40,113,197,.28)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer {
+  border-top:1px solid rgba(128,211,255,.24)!important;
+  position:relative;z-index:2;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer .mtc-account {
+  color:#dcefff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-avatar {
+  border-radius:50%!important;background:linear-gradient(135deg,#245b94,#745cb4)!important;
+  border:1px solid rgba(156,224,255,.55)!important;color:#fff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-logout-button {color:#a9c7e2!important;}
+
+/* HOVERING TOP BAR / same horizon as the reference */
+html[data-myteacher-theme] #root .mtc-app .mtc-topbar {
+  z-index:4;position:relative;flex:0 0 auto;
+  height:74px!important;min-height:74px!important;
+  padding:0 clamp(20px,2vw,34px)!important;
+  background:linear-gradient(90deg,rgba(4,18,43,.86),rgba(10,28,63,.79) 60%,rgba(5,20,48,.91))!important;
+  border-bottom:1px solid rgba(91,200,255,.42)!important;
+  box-shadow:0 7px 26px rgba(2,9,36,.18),inset 0 1px rgba(182,226,255,.06)!important;
+  color:#effaff!important;
+  backdrop-filter:blur(15px);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-topbar-left,
+html[data-myteacher-theme] #root .mtc-app .mtc-topbar-right {z-index:2;position:relative;}
+html[data-myteacher-theme] #root .mtc-app .mtc-title strong {
+  color:#edfaff!important;font-size:14px!important;font-weight:750!important;
+  letter-spacing:-.02em!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-title small {color:#9fc5e7!important;}
+html[data-myteacher-theme] #root .mtc-app .mtc-icon-button,
+html[data-myteacher-theme] #root .mtc-app .mtc-back-to-chat {
+  color:#e9f8ff!important;
+  border:1px solid rgba(115,193,250,.30)!important;
+  background:rgba(15,54,97,.29)!important;
+  border-radius:12px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-icon-button:hover,
+html[data-myteacher-theme] #root .mtc-app .mtc-back-to-chat:hover {
+  background:rgba(44,137,217,.36)!important;border-color:#77e1ff!important;
+}
+#root .mtc-app .aur-topbar-brand {
+  display:flex;align-items:center;gap:9px;
+  margin-right:8px;padding:7px 13px;
+  color:#dffbff;font-size:11px;font-weight:780;letter-spacing:.09em;
+  border-radius:14px;border:1px solid rgba(116,205,255,.3);
+  background:rgba(16,56,100,.25);
+  box-shadow:0 0 19px rgba(40,156,227,.07);
+  pointer-events:none;
+}
+#root .mtc-app .aur-topbar-brand svg {
+  width:25px;height:25px;filter:drop-shadow(0 0 6px #4dc3fc);
+}
+
+/* INTERACTIVE LANDING + LIVE RIGHT CHAT (NOT A SCREENSHOT) */
+html[data-myteacher-theme] #root .mtc-app main.mtc-chat.aur-chat-layout {
+  z-index:2;position:relative;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) clamp(330px,27vw,407px)!important;
+  gap:17px;overflow:hidden!important;
+  background:transparent!important;
+  min-height:0;padding:15px 16px 15px 18px;
+  align-items:stretch;
+}
+#root .mtc-app .aur-home {
+  position:relative;z-index:1;min-width:0;min-height:0;overflow-y:auto;
+  display:flex;flex-direction:column;gap:14px;
+  border-radius:18px;
+  background:linear-gradient(175deg,rgba(4,19,49,.12),rgba(4,14,37,.39) 63%,rgba(6,18,48,.59));
+  scrollbar-width:thin;scrollbar-color:rgba(108,212,252,.33) transparent;
+  padding:0 6px 12px;
+}
+#root .mtc-app .aur-home__hero {
+  position:relative;flex:0 0 clamp(310px,44vh,432px);
+  min-height:305px;
+  isolation:isolate;
+  display:flex;align-items:center;
+  overflow:hidden;
+}
+#root .mtc-app .aur-home__hero::before {
+  content:"";position:absolute;left:11%;top:16%;width:44%;height:73%;z-index:0;
+  background:radial-gradient(circle,rgba(40,155,230,.20),transparent 67%);
+  filter:blur(24px);pointer-events:none;
+}
+#root .mtc-app .aur-home__robot {
+  position:absolute;z-index:1;
+  left:-38px;bottom:-62px;
+  width:clamp(240px,29vw,425px);height:clamp(320px,42vh,485px);
+  transform:rotate(-1deg);
+  filter:drop-shadow(0 12px 30px rgba(1,13,39,.54));
+  pointer-events:none;user-select:none;
+  animation:aur-robot-float 6s ease-in-out infinite alternate;
+}
+@keyframes aur-robot-float {from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-9px) rotate(0)}}
+#root .mtc-app .aur-home__heading {
+  z-index:2;position:relative;
+  display:flex;flex-direction:column;align-items:flex-start;
+  margin-left:clamp(180px,29vw,390px);
+  padding:22px 15px 15px 0;
+  max-width:575px;text-shadow:0 3px 18px rgba(0,10,40,.70);
+}
+#root .mtc-app .aur-home__orb {
+  align-self:center;
+  display:grid;place-items:center;
+  width:75px;height:75px;margin:0 0 3px;
+  font-size:42px;color:#c1ffff;
+  background:radial-gradient(circle,rgba(34,163,232,.38),rgba(20,63,162,.08) 61%,transparent);
+  border:2px solid rgba(124,221,255,.63);border-radius:50%;
+  box-shadow:0 0 0 12px rgba(76,157,248,.06),0 0 23px rgba(73,184,255,.36),inset 0 0 22px rgba(82,202,255,.26);
+  animation:aur-glow-breathe 3.5s ease-in-out infinite alternate;
+}
+#root .mtc-app .aur-home__brand {
+  align-self:center;white-space:nowrap;
+  font-size:clamp(28px,3.3vw,51px);font-weight:780;
+  color:#f4fcff;line-height:1.07;letter-spacing:-.055em;
+  text-shadow:0 2px 7px rgba(5,23,71,.95),0 0 24px rgba(89,189,255,.7);
+}
+#root .mtc-app .aur-home__subtitle {
+  align-self:center;letter-spacing:.04em;
+  font-size:clamp(9px,.9vw,12px);
+  color:#c0e6fc;margin:7px 0 32px;text-align:center;
+}
+#root .mtc-app .aur-home__heading h1 {
+  margin:0 0 10px!important;
+  font-size:clamp(25px,2.35vw,38px)!important;
+  font-weight:780!important;color:#5de6ff!important;
+  text-shadow:0 0 19px rgba(85,193,255,.75),0 4px 13px #07132e;
+  letter-spacing:-.035em!important;
+}
+#root .mtc-app .aur-home__heading p {
+  margin:0;line-height:1.6;font-size:clamp(11px,1.05vw,14px);
+  max-width:420px;color:#effaff;text-shadow:0 3px 11px #06122a;
+}
+#root .mtc-app .aur-home__float {
+  position:absolute;z-index:0;font-size:28px;color:#a7efff;
+  filter:drop-shadow(0 0 13px #5caeff);pointer-events:none;
+  animation:aur-robot-float 5s ease-in-out infinite alternate;
+}
+#root .mtc-app .aur-home__float--one {top:10%;right:13%;}
+#root .mtc-app .aur-home__float--two {left:41%;top:23%;animation-delay:1.3s;}
+#root .mtc-app .aur-home__tiles {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:13px;padding:0 7px;flex:0 0 auto;
+}
+#root .mtc-app .aur-tile {
+  position:relative;overflow:hidden;isolation:isolate;
+  display:flex;gap:12px;align-items:center;text-align:left;
+  min-width:0;min-height:136px;padding:18px 13px 18px 14px;
+  border:1px solid var(--aur-tile-color, #65dcff)!important;
+  border-radius:17px!important;
+  color:#f5fcff!important;
+  background:
+    linear-gradient(132deg,var(--aur-tile-tint,rgba(38,131,213,.28)),rgba(6,20,48,.9) 77%),
+    rgba(8,24,53,.77)!important;
+  box-shadow:inset 0 2px rgba(246,255,255,.10),inset 0 -2px rgba(31,86,148,.53),
+             0 0 15px var(--aur-tile-tint,rgba(34,140,226,.25)),0 16px 28px rgba(1,10,36,.30)!important;
+  backdrop-filter:blur(13px);
+  transition:transform .25s,border-color .25s,box-shadow .25s,filter .25s!important;
+}
+#root .mtc-app .aur-tile::before {
+  content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
+  background:linear-gradient(118deg,transparent 0 25%,rgba(206,254,255,.085) 44%,transparent 56%);
+  opacity:.75;
+}
+#root .mtc-app .aur-tile::after {
+  content:"";position:absolute;bottom:0;left:18%;right:18%;height:4px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--aur-tile-color),transparent);
+  box-shadow:0 0 11px var(--aur-tile-color);opacity:.86;
+}
+#root .mtc-app .aur-tile:hover {
+  transform:translateY(-5px) scale(1.012);
+  filter:brightness(1.13);
+  border-color:#e1ffff!important;
+  box-shadow:0 0 28px var(--aur-tile-tint,rgba(24,130,216,.35)),0 19px 31px rgba(2,10,33,.32)!important;
+}
+#root .mtc-app .aur-tile:active {transform:translateY(-1px);}
+#root .mtc-app .aur-tile--aqua {--aur-tile-color:#62d7ff;--aur-tile-tint:rgba(30,137,233,.31);}
+#root .mtc-app .aur-tile--purple {--aur-tile-color:#bb82ff;--aur-tile-tint:rgba(125,57,230,.30);}
+#root .mtc-app .aur-tile--gold {--aur-tile-color:#f3ba66;--aur-tile-tint:rgba(229,137,40,.23);}
+#root .mtc-app .aur-tile--pink {--aur-tile-color:#ff85b9;--aur-tile-tint:rgba(203,60,120,.26);}
+#root .mtc-app .aur-tile--amber {--aur-tile-color:#ffcf72;--aur-tile-tint:rgba(214,144,39,.28);}
+#root .mtc-app .aur-tile--blue {--aur-tile-color:#6edcff;--aur-tile-tint:rgba(33,133,215,.29);}
+#root .mtc-app .aur-tile__icon {
+  width:68px;flex:0 0 68px;align-self:center;
+  display:grid;place-items:center;
+  color:var(--aur-tile-color);
+  filter:drop-shadow(0 0 9px var(--aur-tile-color));
+}
+#root .mtc-app .aur-tile__icon svg {width:100%;height:auto;}
+#root .mtc-app .aur-tile__copy {display:flex;flex-direction:column;gap:7px;min-width:0;}
+#root .mtc-app .aur-tile__copy strong {
+  font-size:clamp(12px,1.1vw,17px);font-weight:760!important;
+  line-height:1.16;letter-spacing:-.015em;color:#f4faff!important;
+}
+#root .mtc-app .aur-tile__copy small {
+  font-size:clamp(9px,.78vw,11px);line-height:1.45;
+  color:#cee3f5!important;letter-spacing:0;
+}
+#root .mtc-app .aur-tile__arrow {
+  position:absolute;bottom:11px;right:13px;
+  color:var(--aur-tile-color);font-size:26px;
+  text-shadow:0 0 10px var(--aur-tile-color);
+}
+#root .mtc-app .aur-tile__circuit {
+  position:absolute;top:0;right:12px;width:53px;height:8px;
+  background:linear-gradient(90deg,transparent,var(--aur-tile-color));
+  clip-path:polygon(0 0,100% 0,75% 100%,40% 100%);
+  opacity:.6;
+}
+#root .mtc-app .aur-home__bottom {
+  display:flex;flex-wrap:wrap;gap:9px;align-items:center;justify-content:space-evenly;
+  min-height:52px;padding:11px 12px;margin:5px 7px 0;
+  background:linear-gradient(90deg,rgba(8,32,75,.79),rgba(25,49,94,.69));
+  border:1px solid rgba(102,196,252,.42);border-radius:15px;
+  box-shadow:0 0 23px rgba(30,124,228,.11),inset 0 1px rgba(217,244,255,.1);
+}
+#root .mtc-app .aur-home__bottom>div {display:flex;align-items:center;gap:9px;}
+#root .mtc-app .aur-home__bottom span {color:#8be8ff;font-size:21px;}
+#root .mtc-app .aur-home__bottom strong {color:#c2dff4!important;font-size:10px;letter-spacing:.02em;}
+
+/* Dock: actual messages, real file controls, voice button and composer */
+#root .mtc-app .aur-chat-dock {
+  position:relative;z-index:3;
+  display:flex;flex-direction:column;
+  min-width:0;min-height:0;
+  border:2px solid rgba(95,203,255,.64);
+  border-radius:20px;
+  background:linear-gradient(165deg,rgba(5,18,46,.93),rgba(8,29,67,.84) 66%,rgba(7,24,56,.95));
+  box-shadow:0 0 28px rgba(29,120,226,.19),inset 0 2px rgba(167,224,255,.13),0 23px 45px rgba(0,9,36,.37);
+  backdrop-filter:blur(20px) saturate(118%);
+}
+#root .mtc-app .aur-chat-dock::before {
+  content:"";position:absolute;inset:-2px -2px auto;height:7px;pointer-events:none;
+  border-radius:16px 16px 0 0;
+  background:linear-gradient(90deg,transparent 9%,#42caff 18%,transparent 27%,#ab7cff 57%,transparent 77%,#67d5ff 91%);
+  opacity:.74;filter:drop-shadow(0 0 5px #4eafff);
+}
+#root .mtc-app .aur-chat-dock__heading {
+  flex:0 0 62px;display:flex;align-items:center;gap:11px;
+  min-width:0;padding:10px 17px;
+  color:#eafbff;
+  border-bottom:1px solid rgba(109,209,255,.35);
+  background:linear-gradient(90deg,rgba(32,60,121,.51),rgba(14,26,69,.41));
+  border-radius:18px 18px 0 0;
+}
+#root .mtc-app .aur-chat-dock__heading span {
+  font-size:28px;color:#c19cff;text-shadow:0 0 13px #9450ff;
+}
+#root .mtc-app .aur-chat-dock__heading strong {
+  color:#f1faff!important;font-size:15px;font-weight:740!important;letter-spacing:-.02em;
+}
+#root .mtc-app .aur-chat-dock__heading small {
+  margin-left:auto;white-space:nowrap;
+  color:#7df1d9!important;font-size:9px;letter-spacing:.05em;
+}
+#root .mtc-app .aur-chat-dock .mtc-scroller {
+  flex:1;min-height:0;
+  padding:17px 13px 8px!important;
+  background:transparent!important;
+  scrollbar-width:thin;scrollbar-color:rgba(92,179,238,.4) transparent;
+}
+#root .mtc-app .aur-chat-dock .mtc-messages {
+  max-width:none!important;padding:2px 0 16px!important;gap:15px!important;
+}
+#root .mtc-app .aur-chat-dock .mtc-message {gap:7px;min-width:0;}
+#root .mtc-app .aur-chat-dock .mtc-message-body {max-width:100%;min-width:0;}
+#root .mtc-app .aur-chat-dock .mtc-message-body p {
+  color:#e0f1ff!important;font-size:12.5px!important;line-height:1.67!important;
+}
+#root .mtc-app .aur-chat-dock .mtc-message-user .mtc-message-body {
+  background:linear-gradient(130deg,rgba(12,105,213,.72),rgba(17,62,125,.73))!important;
+  border:1px solid rgba(73,194,255,.66)!important;
+  color:#f4fbff!important;border-radius:15px 15px 4px 15px!important;
+  box-shadow:0 0 13px rgba(40,142,239,.14)!important;
+  padding:10px 12px!important;max-width:90%;
+}
+#root .mtc-app .aur-chat-dock .mtc-message-assistant .mtc-message-body {
+  background:linear-gradient(145deg,rgba(12,54,98,.70),rgba(12,34,73,.74))!important;
+  padding:12px 13px!important;
+  border:1px solid rgba(61,182,255,.48)!important;
+  border-radius:13px 13px 13px 4px!important;
+  box-shadow:inset 0 1px rgba(226,250,255,.07);
+}
+#root .mtc-app .aur-chat-dock .mtc-ai-mark {
+  width:30px;height:30px;flex:0 0 30px;
+  border:1px solid rgba(134,231,255,.59)!important;
+  background:linear-gradient(140deg,#1c6498,#0d265c)!important;
+  border-radius:50%!important;box-shadow:0 0 14px rgba(81,196,255,.24);
+}
+#root .mtc-app .aur-chat-dock .mtc-welcome {
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  min-height:200px!important;max-width:100%;padding:22px 12px!important;
+  background:transparent!important;
+}
+#root .mtc-app .aur-chat-dock .mtc-welcome h1 {
+  font-size:22px!important;color:#8ce8ff!important;line-height:1.15!important;
+  text-shadow:0 0 14px rgba(56,195,255,.30);
+}
+#root .mtc-app .aur-chat-dock .mtc-welcome p {
+  font-size:12px!important;color:#b8d9ef!important;
+}
+#root .mtc-app .aur-chat-dock .mtc-welcome-symbol {
+  display:grid!important;place-items:center;width:46px;height:46px;
+  padding:8px;margin-bottom:10px;
+  background:rgba(27,108,198,.27)!important;
+  border:1px solid rgba(104,227,255,.56);border-radius:50%;
+}
+#root .mtc-app .aur-chat-dock .mtc-welcome-symbol svg {width:100%;height:100%;}
+#root .mtc-app .aur-chat-dock .mtc-compose-area {
+  width:calc(100% - 22px)!important;max-width:none!important;
+  margin:0 auto!important;padding:8px 0 8px!important;
+  position:relative;flex:0 0 auto;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-dock form.mtc-composer {
+  min-height:80px!important;max-width:none!important;
+  padding:10px 10px 8px!important;
+  border-radius:13px!important;
+  background:rgba(6,24,55,.81)!important;
+  border:1px solid rgba(92,179,254,.52)!important;
+  box-shadow:inset 0 1px rgba(199,242,255,.06)!important;
+  overflow:visible!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-dock form.mtc-composer textarea {
+  min-height:40px!important;max-height:130px!important;
+  color:#f1fbff!important;font-size:12px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-dock form.mtc-composer textarea::placeholder {color:#8eaeca!important;}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-dock form.mtc-composer button.mtc-plus,
+html[data-myteacher-theme] #root .mtc-app .aur-chat-dock form.mtc-composer button.mtc-voice-button {
+  color:#9ceaff!important;border:1px solid rgba(95,195,255,.49)!important;
+  border-radius:9px!important;background:rgba(29,88,158,.32)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-dock form.mtc-composer button.mtc-send {
+  border-radius:9px!important;border:1px solid #bffaff!important;
+  background:linear-gradient(125deg,#4cddff,#197feb)!important;
+  color:#faffff!important;
+  box-shadow:0 0 15px rgba(57,199,254,.35)!important;
+}
+#root .mtc-app .aur-chat-dock .mtc-guidance,
+#root .mtc-app .aur-chat-dock .mtc-voice-inline-status {
+  color:#9dbdd5!important;font-size:9px!important;margin:5px 3px 0;text-align:center;
+}
+#root .mtc-app .aur-chat-dock .mtc-tools-menu {
+  background:#0d2b51!important;color:#f2faff!important;
+  border:1px solid #6cceff!important;
+  border-radius:12px!important;
+  box-shadow:0 14px 31px rgba(2,8,28,.67)!important;
+  z-index:100!important;
+}
+#root .mtc-app .aur-chat-dock .mtc-tools-menu button {color:#e9f7ff!important;}
+#root .mtc-app .aur-chat-dock .mtc-file-chip {background:rgba(25,82,138,.7)!important;}
+
+/* INNER SECTIONS: holo glass + landscape visible, not old opaque cards */
+html[data-myteacher-theme] #root .mtc-app :is(.av-root,.study-center,.mtc-materials,.mtc-secondary) {
+  position:relative;z-index:2;flex:1;min-height:0;
+  background:linear-gradient(145deg,rgba(5,18,49,.36),rgba(7,20,49,.64))!important;
+  color:#e7f6ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(.av-shell,.study-wrap,.mtc-materials-shell) {
+  position:relative;z-index:2;max-width:1280px;
+  padding-top:29px!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(.av-header,.study-hero,.mtc-materials-heading) {
+  position:relative;isolation:isolate;
+  min-height:240px;overflow:hidden;border-radius:22px!important;
+  border:1px solid rgba(109,215,255,.66)!important;
+  background:
+    radial-gradient(ellipse at 83% 38%,rgba(72,186,255,.32),transparent 42%),
+    linear-gradient(115deg,rgba(8,48,89,.82),rgba(6,22,55,.65))!important;
+  box-shadow:0 18px 40px rgba(2,10,37,.30),inset 0 1px rgba(199,248,255,.11)!important;
+  backdrop-filter:blur(15px);
+}
+html[data-myteacher-theme] #root .mtc-app :is(.av-header,.study-hero,.mtc-materials-heading)::after {
+  content:"";position:absolute;inset:auto 0 0;height:4px;width:100%;
+  pointer-events:none;background:linear-gradient(90deg,#69d6ff,transparent 32%,#ad8fff 65%,transparent 86%,#8af0ff);
+  box-shadow:0 0 12px rgba(80,191,255,.4);
+}
+#root .mtc-app .aur-section-companion {
+  position:absolute;right:4%;bottom:-112px;width:min(31%,330px);height:360px;
+  z-index:1;pointer-events:none;opacity:.68;filter:drop-shadow(0 0 15px rgba(66,193,249,.17));
+}
+#root .mtc-app .av-header-copy,
+#root .mtc-app .study-hero-copy,
+#root .mtc-app .mtc-materials-heading>div:not(.aur-section-companion),
+#root .mtc-app .myt-evaluaciones-header>div:first-child {position:relative;z-index:2;}
+html[data-myteacher-theme] #root .mtc-app .av-header .av-hero-decoration,
+html[data-myteacher-theme] #root .mtc-app .study-hero .study-hero-decoration {display:none!important;}
+html[data-myteacher-theme] #root .mtc-app :is(.av-header h1,.study-hero h1,.mtc-materials-heading h1) {
+  color:#f2faff!important;font-size:clamp(28px,3.3vw,45px)!important;
+  font-weight:750!important;letter-spacing:-.045em!important;
+  text-shadow:0 3px 17px #05132e;
+}
+html[data-myteacher-theme] #root .mtc-app :is(.av-header p,.study-hero p,.mtc-materials-heading p) {
+  color:#c8e3f5!important;max-width:620px;
+}
+html[data-myteacher-theme] #root .mtc-app :is(.av-eyebrow,.study-eyebrow,.mtc-materials-kicker) {
+  color:#8beaff!important;letter-spacing:.15em!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(.av-header-actions button,.study-hero-actions button,.mtc-materials-primary) {
+  border-radius:11px!important;color:#061e3d!important;
+  background:linear-gradient(125deg,#adf4ff,#5dbcf3)!important;
+  border:1px solid rgba(201,249,255,.68)!important;
+  box-shadow:0 4px 19px rgba(52,156,250,.21)!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(.av-header-actions .av-header-secondary,.study-hero-actions button:last-child) {
+  color:#ecfaff!important;
+  background:rgba(45,88,160,.29)!important;
+  border:1px solid rgba(121,211,255,.42)!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(
+ .av-game-card,.av-puzzle-experience,.av-quiz-panel,.av-curiosity-panel,.av-achievement-card,
+ .study-route-panel,.study-route-card,.study-flashcards,.study-flashcard,.study-create-box,
+ .study-lab,.study-exam,.study-board,
+ .mtc-materials-card,.mtc-materials-file,.mtc-materials-upload,
+ .myt-estadistica,.myt-bienvenida,.myt-area-practica,.myt-pregunta
+) {
+  background:linear-gradient(145deg,rgba(13,57,104,.91),rgba(9,27,65,.92))!important;
+  border:1px solid rgba(103,199,252,.47)!important;
+  color:#ecfaff!important;border-radius:17px!important;
+  box-shadow:0 15px 33px rgba(0,8,31,.25),inset 0 1px rgba(178,232,255,.09)!important;
+  backdrop-filter:blur(14px);
+}
+html[data-myteacher-theme] #root .mtc-app :is(
+ .av-game-card,.av-puzzle-experience,.av-quiz-panel,.av-curiosity-panel,.av-achievement-card,
+ .study-route-panel,.study-route-card,.study-flashcards,.study-flashcard,.study-create-box,
+ .study-lab,.study-exam,.study-board,
+ .mtc-materials-card,.mtc-materials-file,.mtc-materials-upload,
+ .myt-estadistica,.myt-bienvenida,.myt-area-practica,.myt-pregunta
+) :is(h2,h3,strong) {color:#f0fbff!important;}
+html[data-myteacher-theme] #root .mtc-app :is(
+ .av-game-card,.av-puzzle-experience,.av-quiz-panel,.av-curiosity-panel,.av-achievement-card,
+ .study-route-panel,.study-route-card,.study-flashcards,.study-flashcard,.study-create-box,
+ .study-lab,.study-exam,.study-board,
+ .mtc-materials-card,.mtc-materials-file,.mtc-materials-upload,
+ .myt-estadistica,.myt-bienvenida,.myt-area-practica,.myt-pregunta
+) :is(p,small,label) {color:#c1dcec!important;}
+html[data-myteacher-theme] #root .mtc-app :is(.av-game-card,.study-route-card,.mtc-materials-file):hover {
+  border-color:#b0f5ff!important;
+  box-shadow:0 19px 33px rgba(12,34,90,.42),0 0 15px rgba(94,181,255,.25)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .av-game-card .av-art {border-bottom:2px solid rgba(163,217,255,.6)!important;}
+html[data-myteacher-theme] #root .mtc-app .av-root :is(.av-tabs button,.av-puzzle-choice button) {
+  border-radius:10px!important;background:rgba(21,61,116,.87)!important;
+  color:#e6faff!important;border:1px solid rgba(122,187,246,.45)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .av-root :is(.av-tabs button,.av-puzzle-choice button).active {
+  background:rgba(58,108,208,.72)!important;
+  border-color:#95e5ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .av-curiosity-art {
+  background:radial-gradient(circle at 40% 33%,rgba(106,86,213,.55),rgba(15,52,101,.86) 69%)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .av-stats>div,
+html[data-myteacher-theme] #root .mtc-app .study-metrics>* {
+  background:rgba(13,47,100,.88)!important;border:1px solid rgba(104,191,252,.41)!important;
+  color:#e5f7ff!important;border-radius:15px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .av-stats>div :is(strong,small),
+html[data-myteacher-theme] #root .mtc-app .study-metrics :is(strong,small) {color:#e5f7ff!important;}
+html[data-myteacher-theme] #root .mtc-app .study-tabs button {
+  border-radius:11px!important;background:rgba(13,53,106,.82)!important;
+  border:1px solid rgba(94,183,247,.4)!important;color:#eafaff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .study-tabs button.selected {
+  background:linear-gradient(105deg,#327fcd,#453baf)!important;border-color:#9eefff!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(.study-route-next,.study-route-note,.av-curiosity-question) {
+  background:rgba(24,81,139,.49)!important;
+  color:#e4f6ff!important;
+  border:1px solid rgba(99,198,253,.29)!important;border-radius:11px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .study-lab-stage {
+  background:linear-gradient(135deg,#091d44,#174672)!important;
+  border:1px solid rgba(93,196,255,.52)!important;
+}
+
+/* Modules that previously hard-coded white backgrounds */
+html[data-myteacher-theme] #root .mtc-app .myt-evaluaciones {
+  --mt-bg:#0b244d;--mt-panel:#12356a;--mt-text:#e9f8ff;
+  --mt-muted:#b2d4e9;--mt-border:rgba(106,204,253,.4);--mt-accent:#8be8ff;
+  color:#eaf8ff!important;
+  border-radius:19px!important;
+  background:linear-gradient(155deg,rgba(15,53,105,.94),rgba(10,28,65,.95))!important;
+  border:1px solid rgba(100,205,255,.53)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .myt-evaluaciones-header {
+  position:relative;min-height:185px;
+  overflow:hidden;border-radius:15px!important;
+  background:linear-gradient(108deg,rgba(25,87,159,.73),rgba(10,35,78,.81))!important;
+  border:1px solid rgba(111,208,255,.42)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .myt-evaluaciones-header .aur-section-companion {
+  right:4%;width:200px;bottom:-90px;height:250px;opacity:.48;
+}
+html[data-myteacher-theme] #root .mtc-app .myt-evaluaciones :is(
+ .myt-tabpanel,.myt-temas,.myt-pestanas,.myt-estadistica,.myt-bienvenida,.myt-area-practica,.myt-pregunta
+) {
+  color:#eaf8ff!important;background:rgba(13,44,95,.84)!important;
+  border-color:rgba(111,198,252,.41)!important;border-radius:13px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .myt-evaluaciones :is(
+ .myt-pestana,.myt-tema,.myt-opcion
+) {
+  background:rgba(20,61,118,.87)!important;color:#edfaff!important;
+  border:1px solid rgba(110,196,255,.38)!important;border-radius:9px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .myt-evaluaciones :is(
+ .myt-pestana-activa,.myt-activo,.myt-opcion-activa
+) {
+  background:rgba(57,125,211,.63)!important;color:#f0fbff!important;
+  border-color:#a1f2ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .myt-evaluaciones :is(h1,h2,h3,p,label,strong,small) {color:#eaf8ff!important;}
+html[data-myteacher-theme] #root .mtc-app .myt-evaluaciones .myt-boton-primario {
+  border-radius:9px!important;color:#062b4c!important;background:linear-gradient(120deg,#b7f8ff,#66cafb)!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(.ma-academica,.mt-memoria,.mt-plan,.mt-simulacro,.mt-logros) {
+  --ma-fondo:#0f2b55;--ma-panel:#164278;--ma-texto:#e8f9ff;--ma-muted:#b9d9ed;--ma-borde:rgba(107,200,251,.47);--ma-acento:#8ce8ff;
+  --mm-fondo:#0f2b55;--mm-suave:#164278;--mm-texto:#e8f9ff;--mm-secundario:#b9d9ed;--mm-borde:rgba(107,200,251,.47);
+  --mp-bg:#0f2b55;--mp-soft:#164278;--mp-text:#e8f9ff;--mp-muted:#b9d9ed;--mp-line:rgba(107,200,251,.47);--mp-accent:#8ce8ff;
+  --ms-bg:#0f2b55;--ms-panel:#164278;--ms-text:#e8f9ff;--ms-muted:#b9d9ed;--ms-border:rgba(107,200,251,.47);--ms-accent:#8ce8ff;
+  --ml-fondo:#0f2b55;--ml-suave:#164278;--ml-texto:#e8f9ff;--ml-muted:#b9d9ed;--ml-borde:rgba(107,200,251,.47);--ml-acento:#8ce8ff;
+  color:#e8f9ff!important;
+  background:linear-gradient(135deg,rgba(20,60,119,.96),rgba(10,27,63,.97))!important;
+  border:1px solid rgba(106,198,255,.51)!important;border-radius:16px!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(.ma-academica,.mt-memoria,.mt-plan,.mt-simulacro,.mt-logros) :is(input,textarea,select) {
+  background:#0b2950!important;color:#e9f8ff!important;
+  border:1px solid rgba(116,196,250,.43)!important;
+}
+
+/* Settings and student profile: glass panel, not an empty white page */
+html[data-myteacher-theme] #root .mtc-app .mtc-settings-card {
+  position:relative;max-width:940px!important;
+  background:linear-gradient(138deg,rgba(13,53,105,.93),rgba(6,22,57,.96))!important;
+  border:1px solid rgba(102,207,255,.55)!important;border-radius:21px!important;
+  box-shadow:0 22px 58px rgba(1,10,39,.35),inset 0 1px rgba(237,252,255,.10)!important;
+  padding:clamp(28px,4vw,50px)!important;overflow:hidden;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-settings-card::before {
+  content:"";position:absolute;inset:0 0 auto;height:4px;pointer-events:none;
+  background:linear-gradient(90deg,#62d6ff,transparent 39%,#ac8aff 70%,transparent);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-settings-card h1 {
+  font-size:clamp(29px,4vw,52px)!important;color:#eafaff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-settings-card :is(p,small,label,strong) {color:#c5e4f7!important;}
+html[data-myteacher-theme] #root .mtc-app .mtc-settings-row {
+  border-bottom:1px solid rgba(110,196,252,.29)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-settings-row strong {color:#f0fbff!important;}
+html[data-myteacher-theme] #root .mtc-app .mtc-settings-row button {
+  background:rgba(28,89,158,.39)!important;color:#ebfaff!important;
+  border:1px solid rgba(107,214,255,.49)!important;border-radius:10px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-settings-card :is(input,textarea) {
+  background:rgba(10,41,84,.84)!important;color:#edfaff!important;
+  border:1px solid rgba(111,191,249,.45)!important;
+}
+
+/* Voice modals and floating screen sharing remain functional */
+html[data-myteacher-theme] .mt-pantalla {
+  --mp-bg:#102f59;--mp-soft:#174475;--mp-text:#eaf9ff;
+  --mp-muted:#bdd9ed;--mp-line:rgba(99,193,255,.48);--mp-accent:#7ce8ff;--mp-bubble:#1a5780;
+  background:linear-gradient(155deg,rgba(13,45,87,.96),rgba(7,24,57,.97))!important;
+  color:#effbff!important;
+  border:1px solid rgba(127,219,255,.58)!important;border-radius:17px!important;
+  box-shadow:0 25px 80px rgba(2,10,35,.55)!important;
+}
+html[data-myteacher-theme] .mt-pantalla .mt-pantalla-top {
+  background:linear-gradient(110deg,#154779,#192d6b)!important;color:#effaff!important;
+  border-bottom:1px solid rgba(109,206,255,.43)!important;
+}
+html[data-myteacher-theme] :is(.cv-modal,.myteacher-voices-dialog,.conauti-ajustes-ventana) {
+  color:#eaf8ff!important;border-radius:18px!important;
+  background:linear-gradient(125deg,#123968,#091d43)!important;
+  border:1px solid rgba(128,201,255,.6)!important;
+  box-shadow:0 25px 70px rgba(0,10,35,.56)!important;
+}
+html[data-myteacher-theme] :is(.cv-header,.myteacher-voices-heading,.conauti-ajustes-header) {
+  background:linear-gradient(110deg,#1b5591,#2b347b)!important;
+  border-bottom:1px solid rgba(127,216,255,.40)!important;color:#f6fcff!important;
+}
+html[data-myteacher-theme] :is(.cv-modal,.myteacher-voices-dialog,.conauti-ajustes-ventana) :is(input,textarea,select) {
+  background:#133d70!important;color:#e7faff!important;border-color:rgba(141,204,251,.49)!important;
+}
+html[data-myteacher-theme] :is(.cv-voice,.cv-detail,.myteacher-voices-card,.myteacher-voices-adjustments,.conauti-ajustes-opcion) {
+  background:rgba(20,67,126,.9)!important;color:#eaf8ff!important;border-color:rgba(117,207,250,.44)!important;
+}
+
+/* LOGIN PAGE: same scenic world, visible companion, original authorization flow */
+html[data-myteacher-theme] #root .aur-auth-shell {
+  position:relative;isolation:isolate;overflow:hidden;
+  background:linear-gradient(150deg,#0b224c,#06142f)!important;
+  grid-template-columns:minmax(0,1.15fr) minmax(355px,.68fr)!important;
+  min-height:100dvh!important;
+}
+#root .aur-auth-shell>.aur-scene {
+  position:absolute;inset:0;z-index:-1;width:100%;height:100%;pointer-events:none;
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-showcase {
+  z-index:2;position:relative;overflow:hidden;
+  background:linear-gradient(110deg,rgba(6,16,44,.15),rgba(7,17,45,.23))!important;
+  min-height:100svh!important;
+  padding:clamp(21px,3vw,39px) clamp(20px,4vw,60px) 24px!important;
+}
+#root .aur-auth-shell .aur-auth-companion {
+  position:absolute;z-index:1;bottom:-90px;left:-45px;
+  width:clamp(300px,39vw,600px);height:min(78vh,680px);
+  opacity:.95;pointer-events:none;user-select:none;
+  filter:drop-shadow(0 14px 31px rgba(1,7,31,.51));
+  animation:aur-robot-float 6s ease-in-out infinite alternate;
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-brand {
+  position:relative;z-index:3;display:flex;
+  background:rgba(11,42,87,.48)!important;
+  border:1px solid rgba(112,205,255,.34);
+  border-radius:15px;padding:9px 12px!important;
+  align-self:flex-start;
+  backdrop-filter:blur(15px);
+}
+#root .aur-auth-shell .mtc-auth-brand strong {color:#f2fbff!important;}
+#root .aur-auth-shell .mtc-auth-brand small {color:#b2d5ee!important;}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-hero {
+  z-index:3;position:relative;
+  margin:auto 0 9vh clamp(200px,25vw,420px)!important;
+  padding:0 0 0!important;
+  width:auto!important;max-width:590px!important;
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-hero h1 {
+  font-size:clamp(35px,4.5vw,70px)!important;
+  color:#f4fcff!important;
+  text-shadow:0 7px 34px rgba(0,6,27,.67),0 0 21px rgba(99,197,255,.25);
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-hero h1 em {
+  color:#83edff!important;
+  background:linear-gradient(110deg,#eaffff,#69c9fb,#c8b2ff);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-hero>p {
+  color:#e4f5ff!important;line-height:1.7!important;
+  text-shadow:0 3px 14px rgba(0,8,24,.65);
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-preview,
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-features {display:none!important;}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-showcase-footer {
+  position:relative;z-index:3;color:#c3e9f7!important;
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-access {
+  position:relative;z-index:4;
+  padding:clamp(22px,2.5vw,43px)!important;
+  max-height:100dvh;overflow-y:auto;
+  color:#e9f9ff!important;
+  background:linear-gradient(110deg,rgba(5,17,42,.78),rgba(5,18,49,.95))!important;
+  border-left:1px solid rgba(116,208,255,.34);
+  backdrop-filter:blur(22px);
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-form-panel {
+  max-width:460px!important;
+  padding:22px 0 30px!important;
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-form-panel h2 {color:#edfaff!important;}
+html[data-myteacher-theme] #root .aur-auth-shell :is(.mtc-auth-subtitle,.mtc-auth-encouragement,.mtc-auth-security) {
+  color:#bdd8ec!important;
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-tabs {
+  background:rgba(10,47,96,.52)!important;border:1px solid rgba(103,185,245,.26)!important;
+  border-radius:12px!important;
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-tabs button {
+  border-radius:9px!important;color:#c4e3f7!important;
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-tabs button.selected {
+  color:#f9ffff!important;
+  background:linear-gradient(115deg,#246dab,#3944a6)!important;
+  box-shadow:0 3px 13px rgba(38,133,240,.20)!important;
+}
+html[data-myteacher-theme] #root .aur-auth-shell :is(.mtc-auth-google-panel,.mtc-auth-legacy-form,.mtc-auth-email-form) {
+  color:#edfaff!important;background:rgba(17,53,99,.65)!important;
+  border:1px solid rgba(94,177,237,.42)!important;border-radius:13px!important;
+}
+html[data-myteacher-theme] #root .aur-auth-shell :is(.mtc-auth-google-header strong,.mtc-auth-email-form label,.mtc-auth-legacy-form label) {
+  color:#f3fbff!important;
+}
+html[data-myteacher-theme] #root .aur-auth-shell :is(.mtc-auth-google-header small,.mtc-auth-method-pending) {color:#bcd8e9!important;}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-email-choice {
+  background:rgba(28,86,152,.49)!important;color:#e9faff!important;
+  border:1px solid rgba(99,186,250,.35)!important;border-radius:10px!important;
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-email-choice:hover {background:rgba(39,119,200,.61)!important;}
+html[data-myteacher-theme] #root .aur-auth-shell :is(.mtc-auth-email-submit,.mtc-auth-legacy-submit) {
+  background:linear-gradient(115deg,#baf7ff,#5cc9fa)!important;color:#0a2842!important;border-radius:10px!important;
+}
+html[data-myteacher-theme] #root .aur-auth-shell :is(.mtc-auth-email-form input,.mtc-auth-legacy-form input) {
+  color:#e7faff!important;background:rgba(6,33,68,.85)!important;border:1px solid rgba(105,189,252,.49)!important;
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-theme {
+  background:rgba(40,111,180,.4)!important;color:#e9faff!important;border:1px solid rgba(96,200,253,.5)!important;
+}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-topbar {color:#d0ebfa!important;}
+html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-links a {color:#a8cfef!important;}
+
+/* Shared safety rules */
+html[data-myteacher-theme] #root .mtc-app .aur-scene,
+html[data-myteacher-theme] #root .aur-auth-shell .aur-scene,
+html[data-myteacher-theme] #root .aur-auth-shell .aur-auth-companion,
+html[data-myteacher-theme] #root .mtc-app .aur-home__robot,
+html[data-myteacher-theme] #root .mtc-app .aur-section-companion {pointer-events:none!important;}
+#root .mtc-app .aur-chat-dock .mtc-tools-menu {overflow:visible!important;}
+html[data-myteacher-theme] #root .mtc-app .mtc-compose-area .mtc-composer {overflow:visible!important;}
+/* Dashboard tiles reflow based on available space, preserving actual chat buttons. */
+@media(min-width:1151px) and (max-width:1620px) {
+  #root .mtc-app .aur-home__tiles {grid-template-columns:repeat(2,minmax(0,1fr));}
+  #root .mtc-app .aur-home__hero {flex-basis:clamp(275px,37vh,380px);}
+  #root .mtc-app .aur-home__robot {width:clamp(210px,23vw,315px);height:365px;left:-39px;bottom:-38px;}
+  #root .mtc-app .aur-home__heading {margin-left:clamp(168px,21vw,285px);}
+  #root .mtc-app .aur-home__brand {font-size:clamp(27px,2.9vw,43px);}
+}
+@media(max-width:1150px) {
+  html[data-myteacher-theme] #root .mtc-app main.mtc-chat.aur-chat-layout {
+    display:flex!important;flex-direction:column;
+    overflow-y:auto!important;gap:15px;padding:11px 15px;
+  }
+  #root .mtc-app .aur-home {flex:0 0 auto;max-height:none;overflow:visible;padding-bottom:15px;}
+  #root .mtc-app .aur-home__hero {flex-basis:340px;}
+  #root .mtc-app .aur-home__robot {width:330px;height:390px;}
+  #root .mtc-app .aur-home__heading {margin-left:300px;}
+  #root .mtc-app .aur-home__tiles {grid-template-columns:repeat(3,minmax(0,1fr));}
+  #root .mtc-app .aur-chat-dock {height:580px;min-height:580px;flex:0 0 auto;}
+  html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-hero {margin-left:clamp(175px,21vw,300px)!important;}
+}
+@media(max-width:900px) {
+  html[data-myteacher-theme] #root .mtc-app {grid-template-columns:1fr!important;}
+  #root .mtc-app .aur-home__hero {flex-basis:300px;}
+  #root .mtc-app .aur-home__robot {width:250px;height:330px;bottom:-42px;}
+  #root .mtc-app .aur-home__heading {margin-left:235px;}
+  #root .mtc-app .aur-home__tiles {grid-template-columns:repeat(2,minmax(0,1fr));}
+  html[data-myteacher-theme] #root .aur-auth-shell {grid-template-columns:1fr!important;overflow:visible;}
+  html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-showcase {
+    min-height:360px!important;height:auto;padding:21px!important;
+  }
+  #root .aur-auth-shell .aur-auth-companion {width:275px;height:340px;left:-34px;bottom:-64px;opacity:.82;}
+  html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-hero {
+    margin:25px 5% 17px 245px!important;min-height:200px;
+  }
+  html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-hero h1 {font-size:clamp(32px,5vw,47px)!important;}
+  html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-access {
+    max-height:none!important;border-left:0;border-top:1px solid rgba(91,181,246,.38);
+  }
+}
+@media(max-width:660px) {
+  html[data-myteacher-theme] #root .mtc-app .mtc-topbar {
+    height:63px!important;min-height:63px!important;padding:0 13px!important;
+  }
+  #root .mtc-app .aur-topbar-brand {display:none;}
+  html[data-myteacher-theme] #root .mtc-app main.mtc-chat.aur-chat-layout {padding:9px 10px;}
+  #root .mtc-app .aur-home__hero {flex-basis:280px;min-height:260px;}
+  #root .mtc-app .aur-home__robot {width:225px;height:308px;bottom:-43px;left:-55px;opacity:.87;}
+  #root .mtc-app .aur-home__heading {margin-left:150px;padding-right:0;}
+  #root .mtc-app .aur-home__orb {width:46px;height:46px;font-size:23px;}
+  #root .mtc-app .aur-home__brand {font-size:clamp(20px,5.5vw,31px);}
+  #root .mtc-app .aur-home__subtitle {font-size:8px;margin-bottom:18px;}
+  #root .mtc-app .aur-home__heading h1 {font-size:clamp(19px,5.1vw,28px)!important;}
+  #root .mtc-app .aur-home__heading p {font-size:10px;line-height:1.48;}
+  #root .mtc-app .aur-home__tiles {gap:9px;padding:0 2px;}
+  #root .mtc-app .aur-tile {min-height:104px;padding:10px 10px;gap:5px;}
+  #root .mtc-app .aur-tile__icon {flex-basis:43px;width:43px;}
+  #root .mtc-app .aur-tile__copy strong {font-size:12px;}
+  #root .mtc-app .aur-tile__copy small {font-size:9px;line-height:1.3;}
+  #root .mtc-app .aur-home__bottom {gap:10px;margin:4px 0 0;justify-content:flex-start;}
+  #root .mtc-app .aur-home__bottom strong {font-size:9px;}
+  #root .mtc-app .aur-chat-dock {height:550px;min-height:550px;}
+  html[data-myteacher-theme] #root .mtc-app .aur-section-companion {opacity:.25!important;right:-10%;width:230px;}
+  #root .mtc-app .myt-evaluaciones-header .aur-section-companion {opacity:.15!important;}
+  html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-showcase {min-height:380px!important;}
+  #root .aur-auth-shell .aur-auth-companion {width:240px;left:-72px;}
+  html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-hero {margin:24px 5px 14px 125px!important;}
+  html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-hero h1 {font-size:clamp(28px,8vw,44px)!important;}
+  html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-hero>p {font-size:11px!important;}
+  html[data-myteacher-theme] #root .aur-auth-shell .mtc-auth-access {padding:22px 17px!important;}
+}
+@media(max-width:400px) {
+  #root .mtc-app .aur-home__heading {margin-left:128px;}
+  #root .mtc-app .aur-home__robot {left:-82px;}
+  #root .mtc-app .aur-home__brand {font-size:19px;}
+  #root .mtc-app .aur-tile__icon {width:32px;flex-basis:32px;}
+  #root .mtc-app .aur-tile__copy strong {font-size:11px;}
+  #root .mtc-app .aur-tile__copy small {font-size:8.5px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .aur-whale,.aur-petal,.aur-islands,.aur-companion__book,
+  #root .mtc-app .aur-home__robot,#root .aur-auth-shell .aur-auth-companion,
+  #root .mtc-app .aur-home__orb {
+    animation:none!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-tile {transition:none!important;}
+}
