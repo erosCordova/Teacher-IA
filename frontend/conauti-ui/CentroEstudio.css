@@ -204,3 +204,107 @@
 @media (prefers-reduced-motion:reduce) {
   #root .mtc-app .study-center *{animation:none!important;transition:none!important}
 }
+
+
+/* STUDY_LAB_ORBITS_V1 — laboratorio orbital accesible */
+#root .mtc-app .study-lab {
+  padding:clamp(16px,2.4vw,29px);
+  background:var(--mtc-surface);border:1px solid var(--mtc-border);
+  border-radius:22px;box-shadow:0 10px 30px rgba(34,76,128,.06);
+}
+#root .mtc-app .study-lab-stage {
+  position:relative;border-radius:20px;overflow:hidden;
+  background:#0e1d3d;border:1px solid #354e7c;
+  box-shadow:0 12px 28px rgba(20,47,93,.21);
+}
+#root .mtc-app .study-lab-stage canvas{
+  display:block;width:100%;height:auto;aspect-ratio:1050 / 500;
+  touch-action:none;cursor:grab;
+}
+#root .mtc-app .study-lab-stage canvas:active{cursor:grabbing}
+#root .mtc-app .study-lab-stage-caption{
+  position:absolute;left:13px;bottom:12px;border-radius:100px;padding:8px 12px;
+  max-width:calc(100% - 26px);font-size:10px;line-height:1.4;
+  color:#e4f1ff;background:#132647b0;border:1px solid #83aece3d;
+  backdrop-filter:blur(4px);
+}
+#root .mtc-app .study-lab-controls{
+  display:flex;align-items:center;flex-wrap:wrap;gap:12px;
+  padding:14px 0 17px;border-bottom:1px solid var(--mtc-border);
+}
+#root .mtc-app .study-lab-controls label{
+  display:flex;align-items:center;gap:8px;font-size:11px;font-weight:750;
+  color:var(--mtc-muted);
+}
+#root .mtc-app .study-lab-controls input{
+  width:100px;accent-color:#318ad5;
+}
+#root .mtc-app .study-lab-controls button{
+  border:1px solid var(--mtc-border);border-radius:10px;
+  background:var(--mtc-bg);color:var(--mtc-text);
+  cursor:pointer;padding:9px 13px;font-size:11px;font-weight:750;
+}
+#root .mtc-app .study-lab-bottom{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.85fr);
+  gap:14px;margin-top:15px;
+}
+#root .mtc-app .study-lab-selection,
+#root .mtc-app .study-lab-mission{
+  padding:19px;border-radius:17px;
+  background:var(--mtc-bg);border:1px solid var(--mtc-border);min-width:0;
+}
+#root .mtc-app .study-lab-planets{
+  display:flex;flex-wrap:wrap;gap:7px;margin:12px 0;
+}
+#root .mtc-app .study-lab-planets button{
+  padding:9px 11px;font-size:11px;font-weight:750;border-radius:9px;
+  background:var(--mtc-surface);color:var(--mtc-text);border:1px solid var(--mtc-border);
+  cursor:pointer;
+}
+#root .mtc-app .study-lab-planets button.selected{
+  color:#fff;background:linear-gradient(110deg,#247cc7,#248bce);
+  border-color:transparent;
+}
+#root .mtc-app .study-lab-description{
+  padding:13px 14px;border-radius:13px;
+  background:color-mix(in srgb,#3d8edc 8%,var(--mtc-surface));
+}
+#root .mtc-app .study-lab-description strong{
+  font-size:16px;font-weight:850;color:var(--mtc-text);
+}
+#root .mtc-app .study-lab-description p,
+#root .mtc-app .study-lab-mission p{
+  font-size:12px;line-height:1.6;color:var(--mtc-muted);margin:7px 0;
+}
+#root .mtc-app .study-lab-description button,
+#root .mtc-app .study-lab-mission-actions button{
+  border:1px solid var(--mtc-border);border-radius:10px;
+  background:var(--mtc-surface);color:var(--mtc-text);
+  padding:10px 13px;font-size:11px;font-weight:750;cursor:pointer;margin-top:7px;
+}
+#root .mtc-app .study-lab-mission h3{
+  font-size:19px;line-height:1.35;margin:11px 0 5px!important;font-weight:850;color:var(--mtc-text);
+}
+#root .mtc-app .study-lab-feedback{
+  background:color-mix(in srgb,#328ace 11%,var(--mtc-surface));
+  padding:12px;border-radius:11px;color:var(--mtc-text)!important;
+  font-weight:650;
+}
+#root .mtc-app .study-lab-mission-actions{
+  display:flex;flex-wrap:wrap;gap:8px;
+}
+#root .mtc-app .study-lab-mission-actions button:last-child{
+  color:#fff;background:linear-gradient(115deg,#2779c9,#298cb8);border:0;
+}
+@media(max-width:940px){
+  #root .mtc-app .study-lab-bottom{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  #root .mtc-app .study-lab{padding:13px;border-radius:16px}
+  #root .mtc-app .study-lab-controls{gap:9px}
+  #root .mtc-app .study-lab-controls label{flex:1}
+  #root .mtc-app .study-lab-controls input{width:70px;max-width:100%}
+  #root .mtc-app .study-lab-stage-caption{font-size:8px;padding:7px 9px}
+  #root .mtc-app .study-lab-selection,#root .mtc-app .study-lab-mission{padding:13px}
+  #root .mtc-app .study-lab-planets button{font-size:10px}
+}
