@@ -308,3 +308,87 @@
   #root .mtc-app .study-lab-selection,#root .mtc-app .study-lab-mission{padding:13px}
   #root .mtc-app .study-lab-planets button{font-size:10px}
 }
+
+
+/* STUDY_DYNAMIC_EXAMS_V1 */
+#root .mtc-app .study-exam{
+  padding:clamp(16px,2.4vw,29px);background:var(--mtc-surface);
+  border:1px solid var(--mtc-border);border-radius:22px;
+  box-shadow:0 10px 30px rgba(34,76,128,.06);
+}
+#root .mtc-app .study-exam-start{
+  display:flex;flex-direction:column;align-items:center;gap:13px;
+  padding:29px clamp(14px,3vw,35px);text-align:center;border-radius:19px;
+  background:linear-gradient(125deg,#f3f8ff,#eaf4ff);border:1px solid #d4e5f6;
+  color:#1d426d;
+}
+#root .mtc-app .study-exam-visual{display:flex;align-items:center;gap:12px;padding:8px}
+#root .mtc-app .study-exam-visual span{display:grid;place-items:center;width:55px;height:55px;
+  border-radius:17px;background:white;border:1px solid #d2e4fb;font-size:24px;font-weight:850;color:#3270b2;
+  box-shadow:0 6px 16px #3970b015;transform:rotate(-8deg)}
+#root .mtc-app .study-exam-visual span:nth-child(2){background:#e8e0ff;color:#7b58b8;transform:rotate(8deg)}
+#root .mtc-app .study-exam-visual span:nth-child(3){background:#ddf4fc;color:#208da8;transform:rotate(-5deg)}
+#root .mtc-app .study-exam-start h3{font-size:20px;font-weight:850;margin:0!important;color:#1c4169}
+#root .mtc-app .study-exam-start p{max-width:580px;font-size:12px;line-height:1.65;margin:0;color:#527392}
+#root .mtc-app .study-exam-start label{display:grid;gap:7px;font-size:11px;font-weight:800;min-width:min(340px,100%);text-align:left}
+#root .mtc-app .study-exam-start select{width:100%;border:1px solid #bed3eb;border-radius:11px;padding:12px;
+  font:inherit;font-size:12px;background:white;color:#21446b}
+#root .mtc-app .study-exam-start small{max-width:570px;font-size:10px;color:#647d99;line-height:1.55}
+#root .mtc-app .study-exam-form{display:grid;gap:17px}
+#root .mtc-app .study-exam-progress{display:grid;gap:10px;margin-bottom:4px;color:var(--mtc-text);font-size:12px}
+#root .mtc-app .study-exam-progress>div{height:7px;border-radius:100px;background:var(--mtc-border);overflow:hidden}
+#root .mtc-app .study-exam-progress>div span{display:block;height:100%;border-radius:100px;
+  background:linear-gradient(90deg,#2973d4,#28a6c5);transition:width .15s}
+#root .mtc-app .study-exam-question{border:1px solid var(--mtc-border);border-radius:15px;padding:17px 18px;
+  background:var(--mtc-bg);min-width:0}
+#root .mtc-app .study-exam-question legend{font-size:14px;color:var(--mtc-text);font-weight:800;
+  line-height:1.5;padding:4px 8px}
+#root .mtc-app .study-exam-question legend span{display:inline-block;white-space:nowrap;
+  font-size:10px;color:#2f74b7;margin-right:9px}
+#root .mtc-app .study-exam-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+#root .mtc-app .study-exam-options label{display:flex;gap:9px;align-items:center;cursor:pointer;
+  padding:10px 12px;background:var(--mtc-surface);border:1px solid var(--mtc-border);
+  border-radius:11px;color:var(--mtc-text);font-size:12px;line-height:1.5;
+  transition:background .14s,border-color .14s;overflow-wrap:anywhere}
+#root .mtc-app .study-exam-options label.selected{background:color-mix(in srgb,#3482da 13%,var(--mtc-surface));
+  border:1px solid #5ca8e6;box-shadow:0 0 0 2px #5ca8e61b}
+#root .mtc-app .study-exam-options input{position:absolute;opacity:0;width:1px;height:1px}
+#root .mtc-app .study-exam-options input:focus-visible+.study-exam-letter{outline:3px solid #6ba9ec;outline-offset:2px}
+#root .mtc-app .study-exam-letter{display:grid;place-items:center;width:29px;height:29px;flex:0 0 29px;
+  border-radius:9px;color:#286db3;background:#e7f2fe;font-size:12px;font-weight:900}
+#root .mtc-app .study-exam-options label.selected .study-exam-letter{background:#327dcd;color:#fff}
+#root .mtc-app .study-exam-form>.study-primary-button{justify-self:start}
+#root .mtc-app .study-exam-result{display:grid;gap:12px}
+#root .mtc-app .study-exam-score{display:grid;place-items:center;text-align:center;
+  padding:27px 15px;background:linear-gradient(125deg,#e7f5ff,#eef7ff);color:#1d4c7d;
+  border:1px solid #cde7fa;border-radius:18px}
+#root .mtc-app .study-exam-score strong{font-size:42px;font-weight:900}
+#root .mtc-app .study-exam-score span{font-size:14px;font-weight:800}
+#root .mtc-app .study-exam-score p{font-size:12px;line-height:1.65}
+#root .mtc-app .study-exam-feedback{display:grid;gap:8px;padding:14px 16px;
+  border:1px solid var(--mtc-border);background:var(--mtc-bg);border-radius:13px}
+#root .mtc-app .study-exam-feedback.correct{border-left:4px solid #3bbba5}
+#root .mtc-app .study-exam-feedback.incorrect{border-left:4px solid #e7a64d}
+#root .mtc-app .study-exam-feedback>div{display:flex;gap:9px;align-items:start}
+#root .mtc-app .study-exam-feedback>div span{font-size:20px;font-weight:900;color:#258f83}
+#root .mtc-app .study-exam-feedback.incorrect>div span{color:#d08a3d}
+#root .mtc-app .study-exam-feedback strong{font-size:12px;line-height:1.5;color:var(--mtc-text)}
+#root .mtc-app .study-exam-feedback p{font-size:12px;color:var(--mtc-muted);line-height:1.6;margin:0}
+#root .mtc-app .study-exam-feedback small{font-size:10px;color:var(--mtc-accent)}
+#root .mtc-app .study-exam-feedback button{justify-self:start;border:1px solid var(--mtc-border);
+  border-radius:9px;padding:8px 12px;background:var(--mtc-surface);color:var(--mtc-text);font-size:11px;cursor:pointer}
+#root .mtc-app .study-exam-result>.study-primary-button{justify-self:start}
+#root .mtc-app .study-exam-history{border-top:1px solid var(--mtc-border);padding-top:18px;margin-top:17px}
+#root .mtc-app .study-exam-history h3{font-size:14px;margin:0 0 12px!important;color:var(--mtc-text)}
+#root .mtc-app .study-exam-history>div{display:grid;gap:7px}
+#root .mtc-app .study-exam-history>div>div{display:grid;grid-template-columns:1fr auto auto;gap:12px;
+  align-items:center;padding:10px 12px;border-radius:10px;background:var(--mtc-bg);
+  color:var(--mtc-text);font-size:12px}
+#root .mtc-app .study-exam-history small{font-size:10px;color:var(--mtc-muted)}
+#root .mtc-app .study-exam-notice{font-size:12px;color:var(--mtc-muted);line-height:1.5}
+@media(max-width:650px){
+  #root .mtc-app .study-exam{padding:14px;border-radius:16px}
+  #root .mtc-app .study-exam-options{grid-template-columns:1fr}
+  #root .mtc-app .study-exam-history>div>div{grid-template-columns:1fr auto;gap:5px}
+  #root .mtc-app .study-exam-history small{grid-column:1/-1}
+}
