@@ -356,6 +356,17 @@ def clear_learning_memory(
 
                 profiles = cursor.rowcount
 
+                # La opción de borrar memoria también elimina materiales
+                # guardados voluntariamente en la biblioteca académica.
+                cursor.execute("SELECT to_regclass('public.conauti_rag_documents')")
+                documents = 0
+                if cursor.fetchone()[0] is not None:
+                    cursor.execute(
+                        "DELETE FROM public.conauti_rag_documents WHERE user_id=%s",
+                        (user_id,),
+                    )
+                    documents = cursor.rowcount
+
     except psycopg.Error as exc:
         raise HTTPException(
             status_code=503,
@@ -367,6 +378,7 @@ def clear_learning_memory(
         "topics_deleted": topics,
         "profiles_deleted": profiles,
         "assessments_deleted": assessments,
+        "documents_deleted": documents,
         "conversations_deleted": False,
     }
 
