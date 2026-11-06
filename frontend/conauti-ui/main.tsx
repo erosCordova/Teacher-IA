@@ -4,6 +4,7 @@ import AventuraEducativa from "./AventuraEducativa";
 import MaterialesEstudio from "./MaterialesEstudio";
 import CentroEstudio from "./CentroEstudio";
 import MarcaMyTeacher from "./MarcaMyTeacher";
+import ActiveTheoryStage from './ActiveTheoryStage'
 import { validarImagen, dimensionesImagen, LIMITE_ENVIO } from "./ImagenEducativa";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -17,6 +18,7 @@ import './style.css'
 import './chatgpt-layout.css'
 import './auth-premium.css'
 import './ConfiguracionGlobal'
+import './active-theory-skin.css'
 
 type User = {
   id: string
@@ -933,6 +935,7 @@ function App() {
   if (!token || !user) {
     return (
       <main className="mtc-auth-shell">
+        <ActiveTheoryStage variant="intro" />
         <section className="mtc-auth-showcase" aria-label="Descubre My Teacher IA">
           <div className="mtc-auth-decoration mtc-auth-decoration-one" aria-hidden="true" />
           <div className="mtc-auth-decoration mtc-auth-decoration-two" aria-hidden="true" />
@@ -1235,6 +1238,7 @@ function App() {
                 <p className="mtc-loading" role="status">Cargando conversación...</p>
               ) : messages.length === 0 ? (
                 <section className="mtc-welcome">
+                  <ActiveTheoryStage variant="welcome" />
                   <div className="mtc-welcome-symbol" aria-hidden="true"><MarcaMyTeacher /></div>
                   <h1>¿Qué quieres aprender hoy?</h1>
                   <p>Haz una pregunta. Te ayudaré a descubrir la respuesta paso a paso.</p>

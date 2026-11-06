@@ -1,0 +1,838 @@
+/*
+ * MY TEACHER IA / DARK IMMERSIVE SYSTEM
+ * Referencia de dirección de arte: Active Theory (negro pleno, tipografía,
+ * escena central, reflejos metálicos, acentos cian y navegación discreta).
+ * Solamente presentación: no reescribe flujos de sesión, chat, voz ni juegos.
+ */
+
+/* 01 / TOKENS */
+html[data-myteacher-theme="dark"] {
+  --mtc-bg: #030508;
+  --mtc-side: #070a0f;
+  --mtc-surface: #121720;
+  --mtc-surface-hover: #1b2430;
+  --mtc-field: #111720;
+  --mtc-text: #eef4fc;
+  --mtc-muted: #94a8bc;
+  --mtc-border: rgba(174,207,231,.15);
+  --mtc-accent: #69daff;
+  --mtc-action: #a4eaff;
+  --mtc-action-text: #041019;
+  --mtc-blue: #3d84ff;
+  --mtc-cyan: #60daff;
+  --mtc-green: #69daff;
+  --mtc-soft-cyan: rgba(70,163,255,.13);
+  --at-line: rgba(184,215,239,.18);
+  --at-focus: #9feaff;
+  --at-milk: #eff7ff;
+  --at-glass: rgba(9,17,28,.78);
+  --at-shadow: rgba(0,0,0,.57);
+  color-scheme: dark;
+}
+html[data-myteacher-theme="light"] {
+  --mtc-bg: #f4f8fc;
+  --mtc-side: #eaf1f9;
+  --mtc-surface: #fff;
+  --mtc-surface-hover: #e1ecf8;
+  --mtc-field: #fff;
+  --mtc-text: #102238;
+  --mtc-muted: #566f87;
+  --mtc-border: rgba(32,79,123,.17);
+  --mtc-accent: #155fbe;
+  --mtc-action: #146adb;
+  --mtc-action-text: #fff;
+  --mtc-blue: #155fbe;
+  --mtc-cyan: #2672b9;
+  --mtc-green: #155fbe;
+  --mtc-soft-cyan: #e0ebf9;
+  --at-line: rgba(21,56,92,.19);
+  --at-focus: #165ec0;
+  --at-milk: #11253c;
+  --at-glass: rgba(255,255,255,.85);
+  --at-shadow: rgba(8,25,51,.13);
+  color-scheme: light;
+}
+html[data-myteacher-theme] #root {
+  font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+}
+html[data-myteacher-theme] #root :is(button,input,textarea,select,a):focus-visible {
+  outline:2px solid var(--at-focus)!important; outline-offset:3px!important;
+}
+
+/* 02 / SCENOGRAPHY - photographic quality comes from layered vectors,
+   depth, specular highlights and animated light, not remote image requests. */
+.at-stage {
+  position:absolute;
+  inset:0;
+  isolation:isolate;
+  overflow:hidden;
+  pointer-events:none;
+  user-select:none;
+  z-index:0;
+  background:radial-gradient(ellipse at 48% 46%,rgba(12,34,53,.49),transparent 48%),
+             linear-gradient(120deg,#030508 7%,#07111a 47%,#030508 90%);
+  --at-mouse-x:0px;--at-mouse-y:0px;
+}
+.at-stage__haze,.at-stage__rays,.at-stage__particles,.at-stage__object,
+.at-stage__scanline,.at-stage__edge {position:absolute;pointer-events:none;}
+.at-stage__haze {
+  inset:-20%;
+  background:
+    radial-gradient(ellipse at 48% 39%,rgba(43,149,186,.20),transparent 26%),
+    radial-gradient(ellipse at 72% 60%,rgba(42,70,139,.18),transparent 36%),
+    radial-gradient(ellipse at 5% 80%,rgba(31,45,115,.21),transparent 39%);
+  filter:blur(28px);
+  animation:at-breathe 13s ease-in-out infinite alternate;
+}
+.at-stage__rays {
+  inset:-20%; opacity:.45;
+  background:
+    conic-gradient(from 35deg at 45% 44%,transparent 0 29deg,rgba(80,171,248,.045) 31deg,transparent 35deg 84deg,
+    rgba(137,226,255,.065) 87deg,transparent 92deg 160deg,rgba(75,106,209,.04) 166deg,transparent 172deg 360deg);
+  mix-blend-mode:screen;
+  animation:at-drift 27s linear infinite;
+}
+.at-stage__particles {inset:0;width:100%;height:100%;}
+.at-stage__object {
+  width:min(70vw,930px);
+  aspect-ratio:1;
+  left:-2.5vw; top:-10vh;
+  transform:translate3d(var(--at-mouse-x),var(--at-mouse-y),0);
+  transition:transform 1.25s cubic-bezier(.18,.72,.21,1);
+  filter:drop-shadow(0 0 24px rgba(34,129,206,.18));
+  animation:at-object-breath 11s ease-in-out infinite alternate;
+}
+.at-stage__sculpture {width:100%;height:100%;overflow:visible;}
+.at-stage__rotor {
+  transform-origin:454px 317px; transform-box:view-box;
+  animation:at-rotate 17s linear infinite;
+}
+.at-stage__inner-rotor {
+  transform-origin:454px 317px; transform-box:view-box;
+  animation:at-rotate-reverse 23s linear infinite;
+}
+.at-stage__core {
+  position:absolute;
+  left:50.2%;
+  top:35.2%;
+  transform:translate(-50%,-50%);
+  width:5.7%;
+  aspect-ratio:1;
+  display:grid;
+  place-items:center;
+  opacity:.95;
+  filter:drop-shadow(0 0 16px rgba(99,223,255,.52));
+}
+.at-stage__core svg {width:100%;height:100%;}
+.at-stage__scanline {
+  inset:0;
+  opacity:.28;
+  background:repeating-linear-gradient(180deg,rgba(141,194,238,.024) 0 1px,transparent 1px 5px);
+  mix-blend-mode:screen;
+}
+.at-stage__edge {
+  inset:0;
+  background:
+    linear-gradient(90deg,rgba(1,3,8,.14),transparent 23%,transparent 65%,rgba(1,3,8,.88)),
+    linear-gradient(180deg,rgba(1,4,10,.16),transparent 34%,rgba(1,4,10,.73) 92%);
+}
+.at-stage--welcome {
+  inset:-90px -105px -80px;
+  opacity:.79;
+  background:none;
+}
+.at-stage--welcome .at-stage__object {
+  width:min(100%,640px);
+  left:50%; top:-180px;
+  transform:translate3d(calc(-50% + var(--at-mouse-x)),var(--at-mouse-y),0);
+  filter:drop-shadow(0 0 18px rgba(68,159,230,.16));
+}
+.at-stage--welcome .at-stage__haze {filter:blur(45px);}
+.at-stage--welcome .at-stage__scanline {opacity:.1;}
+.at-stage--welcome .at-stage__edge {
+  background:linear-gradient(180deg,rgba(3,5,8,.34),transparent 43%,rgba(3,5,8,.96) 94%);
+}
+@keyframes at-rotate {to {transform:rotate(360deg)}}
+@keyframes at-rotate-reverse {to {transform:rotate(-360deg)}}
+@keyframes at-object-breath {from{opacity:.87;filter:drop-shadow(0 0 14px rgba(51,184,255,.10))}
+  to{opacity:1;filter:drop-shadow(0 0 32px rgba(51,184,255,.28))}}
+@keyframes at-drift {to{transform:rotate(360deg)}}
+@keyframes at-breathe {from{transform:scale(.91);opacity:.55}to{transform:scale(1.09);opacity:.94}}
+
+/* 03 / THE FULL SCREEN ENTRY */
+html[data-myteacher-theme] #root .mtc-auth-shell {
+  position:relative;
+  isolation:isolate;
+  grid-template-columns:minmax(0,1.42fr) minmax(380px,.58fr)!important;
+  overflow:visible;
+  background:#030508!important;
+  min-height:100svh!important;
+}
+#root .mtc-auth-shell > .at-stage--intro {z-index:0;inset:0;}
+#root .mtc-auth-shell .mtc-auth-showcase {
+  z-index:1;
+  min-height:100svh;
+  background:transparent!important;
+  padding:clamp(28px,3vw,48px) clamp(30px,4vw,68px) 28px!important;
+}
+#root .mtc-auth-shell .mtc-auth-decoration {display:none;}
+#root .mtc-auth-shell .mtc-auth-brand {
+  gap:14px!important;
+  align-self:flex-start;
+  background:transparent!important;
+}
+#root .mtc-auth-shell .mtc-auth-brand-icon {
+  background:rgba(7,16,30,.44)!important;
+  border:1px solid rgba(224,246,255,.52)!important;
+  box-shadow:0 0 36px rgba(105,216,255,.17)!important;
+  border-radius:50%!important;
+}
+#root .mtc-auth-shell .mtc-auth-brand strong {
+  font-size:13px!important;letter-spacing:.19em!important;
+  text-transform:uppercase;font-weight:700;
+}
+#root .mtc-auth-shell .mtc-auth-brand small {
+  font-size:9px!important;letter-spacing:.1em;color:#aec3d1!important;
+}
+#root .mtc-auth-shell .mtc-auth-brand-tag {
+  border-radius:4px!important;
+  color:#d7f3ff!important;
+  background:rgba(255,255,255,.025)!important;
+  border-color:rgba(229,242,255,.16)!important;
+  font-size:9px!important;
+  letter-spacing:.19em!important;
+}
+#root .mtc-auth-shell .mtc-auth-hero {
+  position:relative;
+  z-index:2;
+  margin:auto 0 2.6vh!important;
+  padding:clamp(36px,17vh,160px) 0 8px!important;
+  max-width:870px!important;
+  width:100%!important;
+}
+#root .mtc-auth-shell .mtc-auth-eyebrow {
+  font-size:10px!important;
+  font-weight:700!important;
+  letter-spacing:.29em!important;
+  padding:0!important;
+  color:#b3e9fa!important;
+  border:0!important;
+  background:transparent!important;
+  text-shadow:0 3px 12px rgba(0,0,0,.9);
+}
+html[data-myteacher-theme] #root .mtc-auth-shell .mtc-auth-hero h1 {
+  max-width:860px!important;
+  font-family:"Arial Narrow","Helvetica Neue",Arial,sans-serif;
+  font-size:clamp(58px,5.6vw,110px)!important;
+  font-weight:800!important;
+  line-height:.96!important;
+  letter-spacing:-.075em!important;
+  color:#f7fcff!important;
+  text-transform:uppercase;
+  text-shadow:0 12px 38px rgba(0,0,0,.67);
+  margin:12px 0 20px!important;
+}
+#root .mtc-auth-shell .mtc-auth-hero h1 em {
+  display:block;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-weight:400!important;
+  font-style:italic!important;
+  text-transform:none;
+  letter-spacing:-.082em!important;
+  background:linear-gradient(108deg,#ffffff 10%,#93dfff 58%,#f6feff 89%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+#root .mtc-auth-shell .mtc-auth-hero > p {
+  max-width:480px!important;
+  color:#c2d5e4!important;
+  font-size:14px!important;
+  line-height:1.7!important;
+  margin:0 0 16px!important;
+  text-shadow:0 2px 17px #000;
+}
+#root .mtc-auth-shell .mtc-auth-preview,
+#root .mtc-auth-shell .mtc-auth-features {display:none!important;}
+#root .mtc-auth-shell .mtc-auth-showcase-footer {
+  position:relative;
+  z-index:2;
+  margin-top:0;
+  text-transform:uppercase;
+  letter-spacing:.19em!important;
+  font-size:9px!important;
+  color:#b7c7d7!important;
+}
+#root .mtc-auth-shell .mtc-auth-showcase-footer span {color:#77ddff!important;}
+#root .mtc-auth-shell .mtc-auth-access {
+  z-index:3;
+  padding:clamp(22px,2.7vw,42px) clamp(25px,3vw,48px)!important;
+  max-height:100dvh;
+  overflow-y:auto;
+  background:linear-gradient(105deg,rgba(2,6,13,.58),rgba(5,9,16,.93) 18%,rgba(3,6,12,.98))!important;
+  border-left:1px solid rgba(207,234,255,.14);
+  backdrop-filter:blur(19px) saturate(115%);
+  color:#f0f6fc!important;
+}
+#root .mtc-auth-shell .mtc-auth-topbar {
+  color:#b9c6d3!important;
+  padding-bottom:10px;
+  border-bottom:1px solid rgba(210,228,249,.09);
+}
+#root .mtc-auth-shell .mtc-auth-topbar > span {
+  color:#94aabe!important;font-weight:600!important;letter-spacing:.19em!important;font-size:9px!important;
+}
+#root .mtc-auth-shell .mtc-auth-topbar > span > span {color:#74dcff!important;}
+#root .mtc-auth-shell .mtc-auth-theme {
+  background:rgba(255,255,255,.04)!important;
+  color:#e5f3ff!important;
+  border:1px solid rgba(208,235,255,.24)!important;
+  border-radius:999px!important;
+}
+#root .mtc-auth-shell .mtc-auth-theme:hover {
+  background:rgba(70,156,255,.14)!important;
+}
+#root .mtc-auth-shell .mtc-auth-form-panel {
+  max-width:410px!important;
+  padding:clamp(26px,6vh,70px) 0 32px!important;
+}
+#root .mtc-auth-shell .mtc-auth-form-kicker {
+  color:#8bd7ff!important;letter-spacing:.22em!important;font-size:10px!important;
+}
+html[data-myteacher-theme] #root .mtc-auth-shell .mtc-auth-form-panel h2 {
+  color:#f6faff!important;
+  font-size:clamp(33px,3vw,48px)!important;
+  font-weight:650!important;
+  line-height:1.09!important;
+  letter-spacing:-.056em!important;
+}
+#root .mtc-auth-shell .mtc-auth-subtitle {
+  color:#aabbd0!important;
+  font-size:13px!important;
+}
+#root .mtc-auth-shell .mtc-auth-tabs {
+  border-radius:6px!important;
+  background:rgba(2,8,17,.55)!important;
+  border:1px solid rgba(191,221,249,.15)!important;
+  padding:4px!important;
+}
+#root .mtc-auth-shell .mtc-auth-tabs button {
+  border-radius:4px!important;
+  color:#b7c7d8!important;
+  font-size:12px!important;
+  font-weight:650!important;
+}
+#root .mtc-auth-shell .mtc-auth-tabs button.selected {
+  background:rgba(105,173,237,.2)!important;
+  color:#fff!important;
+  box-shadow:inset 0 0 0 1px rgba(147,209,255,.32)!important;
+}
+#root .mtc-auth-shell .mtc-auth-google-panel,
+#root .mtc-auth-shell .mtc-auth-legacy-form,
+#root .mtc-auth-shell .mtc-auth-email-form {
+  background:rgba(11,20,31,.75)!important;
+  border:1px solid rgba(185,221,247,.18)!important;
+  border-radius:10px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045);
+}
+#root .mtc-auth-shell .mtc-auth-google-header strong,
+#root .mtc-auth-shell .mtc-auth-legacy-form label,
+#root .mtc-auth-shell .mtc-auth-email-form label {color:#edf6ff!important;}
+#root .mtc-auth-shell .mtc-auth-google-header small,
+#root .mtc-auth-shell .mtc-auth-security,
+#root .mtc-auth-shell .mtc-auth-method-pending,
+#root .mtc-auth-shell .mtc-auth-google-panel small {color:#a2b7cb!important;}
+#root .mtc-auth-shell .mtc-auth-google-monogram {
+  background:rgba(255,255,255,.08)!important;
+  color:#e9f5ff!important;
+  border:1px solid rgba(216,234,251,.22);
+}
+#root .mtc-auth-shell button.mtc-auth-email-choice {
+  color:#ebf7ff!important;
+  background:rgba(13,28,45,.91)!important;
+  border-color:rgba(165,207,245,.22)!important;
+  border-radius:6px!important;
+  transition:background .2s,border-color .2s,transform .2s;
+}
+#root .mtc-auth-shell button.mtc-auth-email-choice:not(:disabled):hover {
+  background:rgba(52,106,174,.29)!important;
+  border-color:#72c6ff!important;
+  transform:translateX(2px);
+}
+#root .mtc-auth-shell button.mtc-auth-email-submit,
+#root .mtc-auth-shell button.mtc-auth-legacy-submit {
+  background:linear-gradient(100deg,#dcf7ff,#7fcfff)!important;
+  color:#071321!important;
+  border:0!important;
+  border-radius:5px!important;
+  font-weight:750!important;
+}
+#root .mtc-auth-shell .mtc-auth-email-form input,
+#root .mtc-auth-shell .mtc-auth-legacy-form input {
+  background:#090f17!important;color:#f0f7ff!important;
+  border:1px solid rgba(160,199,232,.22)!important;
+  border-radius:5px!important;
+}
+#root .mtc-auth-shell .mtc-auth-divider {color:#a5b9c9!important;}
+#root .mtc-auth-shell .mtc-auth-legacy-toggle {color:#bde4ff!important;}
+#root .mtc-auth-shell .mtc-auth-notice,
+#root .mtc-auth-shell .mtc-auth-email-feedback {
+  background:rgba(18,40,66,.69)!important;
+  border-color:rgba(151,207,252,.3)!important;
+  color:#e5f4ff!important;
+}
+#root .mtc-auth-shell .mtc-auth-encouragement {
+  color:#9fb7cb!important;letter-spacing:.02em;
+}
+#root .mtc-auth-shell .mtc-auth-links {
+  margin-top:auto;
+  padding-top:20px;
+  border-top:1px solid rgba(207,231,253,.13);
+}
+#root .mtc-auth-shell .mtc-auth-links a {
+  color:#aec4d8!important;
+  font-size:11px!important;
+}
+
+/* 04 / AUTHENTICATED WORKSPACE */
+html[data-myteacher-theme] #root .mtc-app {
+  font-family:"Helvetica Neue",Arial,sans-serif!important;
+  letter-spacing:.003em;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app {
+  background:
+    radial-gradient(circle at 72% 30%,rgba(22,59,94,.17),transparent 44%),
+    #030508!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .mtc-sidebar {
+  background:linear-gradient(165deg,rgba(11,19,30,.98),rgba(4,7,12,.98))!important;
+  border-right:1px solid rgba(189,221,246,.16)!important;
+  box-shadow:inset -1px 0 rgba(255,255,255,.015),16px 0 60px rgba(0,0,0,.16)!important;
+}
+#root .mtc-app .mtc-side-head {
+  border-bottom:1px solid var(--at-line)!important;
+  padding-bottom:18px!important;margin-bottom:7px;
+}
+#root .mtc-app .mtc-brand strong {
+  font-size:13px!important;letter-spacing:.14em!important;font-weight:720!important;
+  text-transform:uppercase;
+}
+#root .mtc-app .mtc-mark {
+  background:rgba(19,43,65,.7)!important;
+  border:1px solid rgba(175,224,255,.36)!important;
+  box-shadow:0 0 28px rgba(54,153,235,.18);
+  border-radius:50%!important;
+}
+#root .mtc-app .mtc-new-chat {
+  background:transparent!important;
+  border:1px solid rgba(173,214,247,.24)!important;
+  border-radius:5px!important;
+  color:var(--mtc-text)!important;
+  min-height:47px;
+  font-size:12px!important;letter-spacing:.10em;text-transform:uppercase;
+  transition:transform .22s,background .22s,border-color .22s;
+}
+#root .mtc-app .mtc-new-chat:hover {
+  background:var(--mtc-soft-cyan)!important;
+  border-color:var(--mtc-accent)!important;
+  transform:translateX(3px);
+}
+#root .mtc-app .mtc-side-nav {
+  border-bottom:1px solid var(--at-line);
+  padding-bottom:14px!important;
+  gap:3px!important;
+}
+#root .mtc-app .mtc-side-nav button,
+#root .mtc-app .mtc-side-footer button {
+  border-radius:5px!important;
+  font-size:12px!important;
+  letter-spacing:.015em;
+  transition:background .2s,color .2s,border-color .2s,transform .2s;
+}
+#root .mtc-app .mtc-side-nav button.active,
+#root .mtc-app .mtc-side-footer button.active {
+  background:var(--mtc-soft-cyan)!important;
+  color:var(--mtc-text)!important;
+  box-shadow:inset 2px 0 var(--mtc-accent);
+}
+#root .mtc-app .mtc-side-nav button:hover,
+#root .mtc-app .mtc-side-footer button:hover {
+  background:var(--mtc-surface-hover)!important;
+  transform:translateX(2px);
+}
+#root .mtc-app .mtc-history .historial-avanzado {
+  border-top:0!important;padding-top:9px!important;
+}
+#root .mtc-app .mtc-history .historial-avanzado h3 {
+  letter-spacing:.17em!important;font-size:10px!important;
+  text-transform:uppercase;font-weight:700!important;
+}
+#root .mtc-app .mtc-history .historial-fila {
+  border-radius:5px!important;
+}
+#root .mtc-app .mtc-history .historial-fila.elegida {
+  box-shadow:inset 2px 0 var(--mtc-accent);
+}
+#root .mtc-app .mtc-side-footer {
+  border-color:var(--at-line)!important;
+}
+#root .mtc-app .mtc-account {
+  padding-top:8px;
+}
+#root .mtc-app .mtc-avatar {
+  border:1px solid rgba(205,237,255,.39);
+  background:linear-gradient(145deg,#152a42,#325d8d)!important;
+}
+#root .mtc-app .mtc-logout-button {
+  color:var(--mtc-muted)!important;
+}
+#root .mtc-app .mtc-content {
+  position:relative;
+  background:var(--mtc-bg)!important;
+}
+#root .mtc-app .mtc-topbar {
+  height:70px!important;
+  padding-inline:clamp(22px,4vw,64px)!important;
+  border-bottom:1px solid var(--at-line)!important;
+  background:rgba(5,9,15,.91)!important;
+  backdrop-filter:blur(20px);
+  z-index:5;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-topbar {
+  background:rgba(255,255,255,.88)!important;
+}
+#root .mtc-app .mtc-title strong {
+  font-size:13px!important;
+  font-weight:750!important;
+  letter-spacing:.1em!important;
+  text-transform:uppercase;
+}
+#root .mtc-app .mtc-title small {
+  font-size:10px!important;letter-spacing:.05em!important;
+}
+#root .mtc-app .mtc-icon-button {
+  border:1px solid transparent!important;
+  border-radius:50%!important;
+  transition:background .2s,border-color .2s,transform .2s;
+}
+#root .mtc-app .mtc-icon-button:hover {
+  border-color:var(--at-line)!important;
+  background:var(--mtc-soft-cyan)!important;
+  transform:rotate(8deg);
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .mtc-chat {
+  position:relative;
+  background:
+    radial-gradient(ellipse at 48% 25%,rgba(24,60,90,.19),transparent 56%),
+    linear-gradient(165deg,#04070c,#071019 58%,#030509)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-chat {
+  background:radial-gradient(circle at 55% 18%,#e4f2fb,transparent 55%),var(--mtc-bg)!important;
+}
+#root .mtc-app .mtc-scroller {scrollbar-color:rgba(119,162,194,.35) transparent;}
+#root .mtc-app .mtc-welcome {
+  position:relative;
+  isolation:isolate;
+  width:min(100%,800px)!important;
+  max-width:800px!important;
+  min-height:445px;
+  padding:235px 10px 30px!important;
+  text-align:center!important;
+  overflow:hidden;
+}
+#root .mtc-app .mtc-welcome::after {
+  content:"";
+  position:absolute;z-index:0;inset:0;
+  pointer-events:none;
+  background:linear-gradient(180deg,transparent 30%,var(--mtc-bg) 87%);
+  opacity:.54;
+}
+#root .mtc-app .mtc-welcome > :not(.at-stage) {
+  position:relative;z-index:2;
+}
+#root .mtc-app .mtc-welcome-symbol {display:none!important;}
+html[data-myteacher-theme] #root .mtc-app .mtc-welcome h1 {
+  font-size:clamp(32px,4vw,61px)!important;
+  line-height:1.03!important;
+  font-weight:750!important;
+  letter-spacing:-.065em!important;
+  color:var(--mtc-text)!important;
+  margin:0 auto 17px!important;
+  text-wrap:balance;
+}
+#root .mtc-app .mtc-welcome p {
+  font-size:14px!important;
+  line-height:1.7!important;
+  max-width:450px!important;
+  color:var(--mtc-muted)!important;
+}
+#root .mtc-app .mtc-messages {
+  padding-top:30px!important;
+  gap:26px!important;
+}
+#root .mtc-app .mtc-ai-mark {
+  border-radius:50%!important;
+  background:linear-gradient(120deg,rgba(22,57,85,.92),rgba(9,15,28,.98))!important;
+  border:1px solid rgba(157,219,251,.39)!important;
+  box-shadow:0 0 22px rgba(41,161,243,.12);
+}
+#root .mtc-app .mtc-message-user .mtc-message-body {
+  border:1px solid var(--at-line)!important;
+  border-radius:17px 17px 5px 17px!important;
+  background:var(--mtc-surface)!important;
+  box-shadow:0 8px 20px var(--at-shadow);
+}
+#root .mtc-app .mtc-message-assistant .mtc-message-body {
+  border-left:1px solid rgba(124,206,253,.24);
+  padding-left:16px!important;
+}
+#root .mtc-app .mtc-message-body p {
+  font-size:14px!important;line-height:1.85!important;
+}
+#root .mtc-app .mtc-older {
+  background:var(--mtc-surface)!important;
+  border:1px solid var(--at-line)!important;
+  border-radius:5px!important;
+}
+#root .mtc-app .mtc-compose-area {
+  max-width:930px!important;
+  width:calc(100% - 44px)!important;
+  padding-bottom:14px!important;
+}
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer {
+  border:1px solid rgba(153,200,233,.24)!important;
+  background:var(--mtc-field)!important;
+  border-radius:15px!important;
+  box-shadow:0 20px 72px var(--at-shadow),inset 0 1px rgba(255,255,255,.045)!important;
+  transition:border-color .2s,box-shadow .2s;
+}
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer:focus-within {
+  border-color:rgba(107,204,255,.72)!important;
+  box-shadow:0 20px 72px var(--at-shadow),0 0 0 1px rgba(109,215,255,.24)!important;
+}
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer button.mtc-send {
+  background:linear-gradient(135deg,#dbf7ff,#7bc8ff)!important;
+  color:#07111e!important;
+  border:1px solid rgba(255,255,255,.25)!important;
+  box-shadow:0 5px 21px rgba(41,172,255,.18)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app form.mtc-composer button.mtc-send {
+  background:#1668c7!important;color:#fff!important;
+}
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer button.mtc-voice-button-active {
+  background:var(--mtc-soft-cyan)!important;
+  color:var(--mtc-accent)!important;
+}
+#root .mtc-app .mtc-tools-menu {
+  border-radius:9px!important;
+  border-color:var(--at-line)!important;
+  box-shadow:0 24px 70px var(--at-shadow)!important;
+  background:var(--mtc-surface)!important;
+}
+#root .mtc-app .mtc-file-chip {
+  border:1px solid var(--at-line);
+  border-radius:7px!important;
+}
+#root .mtc-app .mtc-guidance {font-size:10px!important;letter-spacing:.05em;}
+
+/* 05 / LEARNING MODULES AND SETTINGS: preserve actual module structure. */
+#root .mtc-app .mtc-secondary {
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(34,93,145,.12),transparent 50%),
+    var(--mtc-bg)!important;
+}
+#root .mtc-app .mtc-settings-card {
+  padding-top:clamp(23px,6vw,76px)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-settings-card h1 {
+  font-size:clamp(38px,5vw,62px)!important;
+  letter-spacing:-.06em!important;
+  font-weight:750!important;
+}
+#root .mtc-app .mtc-settings-row {
+  border-bottom:1px solid var(--at-line)!important;
+  min-height:100px;
+}
+#root .mtc-app .mtc-settings-row strong {
+  font-size:15px!important;
+  letter-spacing:.015em;
+}
+#root .mtc-app .mtc-settings-row button {
+  border-radius:5px!important;
+}
+#root .mtc-app .mtc-profile-form,
+#root .mtc-app .mtc-danger {
+  border-color:var(--at-line)!important;
+}
+#root .mtc-app :is(.study-hero,.study-route-card,.study-flashcard,.study-create-box,
+ .mtc-materials-card,.mtc-materials-file,.myt-estadistica,.myt-bienvenida,
+ .myt-area-practica,.myt-pregunta,.av-puzzle-experience,.av-quiz-panel) {
+  border:1px solid var(--at-line)!important;
+  border-radius:12px!important;
+  box-shadow:0 14px 45px var(--at-shadow)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app :is(.study-hero,.study-route-card,.study-flashcard,
+ .study-create-box,.mtc-materials-card,.mtc-materials-file,.myt-estadistica,
+ .myt-bienvenida,.myt-area-practica,.myt-pregunta,.av-quiz-panel) {
+  background:linear-gradient(140deg,#101924,#080f19)!important;
+  color:#edf6ff!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app :is(.study-center,.mtc-materials,.myt-evaluaciones) {
+  color:var(--mtc-text)!important;
+}
+#root .mtc-app :is(.study-eyebrow,.mtc-materials-kicker,.myt-etiqueta) {
+  letter-spacing:.2em!important;
+  text-transform:uppercase;
+}
+#root .mtc-app :is(.study-primary-button,.mtc-materials-primary,.myt-boton-primario) {
+  border-radius:5px!important;
+  box-shadow:0 8px 25px rgba(30,100,179,.17)!important;
+}
+#root .mtc-app :is(.mtc-materials-file,.study-route-card) {
+  transition:transform .28s ease,border-color .25s ease;
+}
+#root .mtc-app :is(.mtc-materials-file,.study-route-card):hover {
+  transform:translateY(-3px);
+  border-color:rgba(112,193,248,.57)!important;
+}
+
+/* 06 / MOBILE + ACCESSIBILITY */
+@media (max-width:1150px) {
+  html[data-myteacher-theme] #root .mtc-auth-shell {
+    grid-template-columns:minmax(0,1fr) minmax(370px,.86fr)!important;
+  }
+  .at-stage--intro .at-stage__object {left:-9vw;top:0;width:82vw;}
+  html[data-myteacher-theme] #root .mtc-auth-shell .mtc-auth-hero h1 {
+    font-size:clamp(51px,6vw,76px)!important;
+  }
+}
+@media (max-width:850px) {
+  html[data-myteacher-theme] #root .mtc-auth-shell {
+    grid-template-columns:1fr!important;
+    min-height:100dvh!important;
+  }
+  #root .mtc-auth-shell > .at-stage--intro {height:490px;}
+  #root .mtc-auth-shell .mtc-auth-showcase {
+    min-height:390px!important;
+    padding:25px 25px 30px!important;
+  }
+  .at-stage--intro .at-stage__object {width:min(95vw,690px);left:10vw;top:-90px;}
+  #root .mtc-auth-shell .mtc-auth-hero {
+    padding:120px 0 0!important;
+    margin:0!important;
+  }
+  html[data-myteacher-theme] #root .mtc-auth-shell .mtc-auth-hero h1 {
+    font-size:clamp(43px,7vw,69px)!important;
+  }
+  #root .mtc-auth-shell .mtc-auth-access {
+    max-height:none!important;
+    padding:30px clamp(21px,5vw,60px)!important;
+    border-left:0!important;
+    border-top:1px solid rgba(207,234,255,.22);
+    background:rgba(4,8,16,.97)!important;
+  }
+  #root .mtc-auth-shell .mtc-auth-form-panel {max-width:520px!important;}
+  #root .mtc-app .mtc-welcome {min-height:410px;padding-top:200px!important;}
+}
+@media (max-width:680px) {
+  #root .mtc-app .mtc-sidebar {box-shadow:20px 0 80px rgba(0,0,0,.5)!important;}
+  #root .mtc-app .mtc-topbar {
+    min-height:64px!important;height:64px!important;padding-inline:16px!important;
+  }
+  #root .mtc-app .mtc-compose-area {width:calc(100% - 22px)!important;}
+  #root .mtc-app .mtc-welcome {padding:185px 10px 20px!important;min-height:385px;}
+  #root .mtc-app .mtc-welcome h1 {font-size:clamp(29px,8vw,45px)!important;}
+  .at-stage--welcome .at-stage__object {top:-155px;width:510px;}
+}
+@media (max-width:520px) {
+  #root .mtc-auth-shell .mtc-auth-showcase {min-height:355px!important;padding:20px 19px!important;}
+  #root .mtc-auth-shell .mtc-auth-hero {padding-top:112px!important;}
+  html[data-myteacher-theme] #root .mtc-auth-shell .mtc-auth-hero h1 {
+    font-size:clamp(40px,10.6vw,56px)!important;
+  }
+  #root .mtc-auth-shell .mtc-auth-hero > p {font-size:12px!important;}
+  #root .mtc-auth-shell .mtc-auth-showcase-footer {font-size:8px!important;}
+  .at-stage--intro .at-stage__object {width:560px;left:calc(50% - 270px);top:-125px;}
+  #root .mtc-auth-shell .mtc-auth-access {padding:22px 18px!important;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .at-stage * {animation:none!important;transition:none!important;}
+  html[data-myteacher-theme] #root .mtc-app :is(button,a),
+  html[data-myteacher-theme] #root .mtc-auth-shell :is(button,a) {
+    transition:none!important;
+  }
+}
+@supports not (backdrop-filter:blur(8px)) {
+  #root .mtc-auth-shell .mtc-auth-access {background:#070c14!important;}
+}
+
+
+/* 07 / LIGHT THEME: keep the existing theme control meaningful. */
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-access {
+  background:rgba(245,249,255,.97)!important;
+  border-left-color:rgba(26,61,101,.20)!important;
+  color:#12283f!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-topbar {
+  border-bottom-color:rgba(26,61,101,.15)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-topbar > span,
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-security,
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-google-header small,
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-encouragement,
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-subtitle {
+  color:#536b83!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-theme {
+  color:#1c3a54!important;
+  background:#fff!important;
+  border-color:rgba(26,61,101,.2)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-form-kicker {
+  color:#155fbe!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-form-panel h2 {
+  color:#12283f!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-tabs {
+  background:#e6eef8!important;
+  border-color:rgba(26,61,101,.18)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-tabs button {color:#46617a!important;}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-tabs button.selected {
+  color:#123554!important;background:#fff!important;border-color:#c3d7ed!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-google-panel,
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-legacy-form,
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-email-form {
+  color:#132c45!important;
+  background:rgba(255,255,255,.95)!important;
+  border-color:rgba(32,79,123,.18)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-google-header strong,
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-legacy-form label,
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-email-form label {
+  color:#132c45!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell button.mtc-auth-email-choice {
+  background:#f0f6fd!important;color:#153d5f!important;border-color:#cfdfef!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell button.mtc-auth-email-choice:not(:disabled):hover {
+  background:#dbeafa!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-email-form input,
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-legacy-form input {
+  background:#fff!important;color:#132c45!important;border-color:#bfd0e1!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-legacy-toggle {color:#155fbe!important;}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell .mtc-auth-links a {color:#335875!important;}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-sidebar {
+  background:linear-gradient(150deg,#f1f5fb,#e6eef8)!important;
+  border-color:rgba(32,79,123,.18)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-ai-mark {
+  background:linear-gradient(120deg,#226cb6,#5b9ee2)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-welcome::after {
+  background:linear-gradient(180deg,transparent 31%,#f4f8fc 92%);
+}
