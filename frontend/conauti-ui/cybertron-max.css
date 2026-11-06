@@ -1100,3 +1100,30 @@ html[data-myteacher-theme] #root .mtc-auth-shell :is(.mtc-auth-legacy-form input
     animation:none!important;
   }
 }
+
+
+/*
+ * Interaction guardrails: the composer contains an absolutely positioned
+ * attachment/screen-sharing menu which must be allowed to escape its frame.
+ * Preserve that functional popover instead of clipping it with the armor mask.
+ */
+html[data-myteacher-theme] #root .mtc-app form.mtc-composer {
+  clip-path:none!important;
+  border-radius:8px!important;
+  overflow:visible!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-tools-menu {
+  overflow:visible!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar .mtc-history,
+html[data-myteacher-theme] #root .mtc-app .mtc-materials-viewer {
+  clip-path:none!important;
+}
+/* Prevent the decorative machine figure from capturing pointer or keyboard interaction. */
+#root .mtc-app .cx-hero-armor,
+#root .mtc-auth-shell .cx-hero-armor,
+#root .mtc-app .cx-viewport,
+#root .mtc-app .cx-command,
+#root .mtc-app .cx-system-strip {
+  pointer-events:none!important;
+}
