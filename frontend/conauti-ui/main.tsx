@@ -2,6 +2,7 @@ import { apiFetch } from './apiFetch'
 import PantallaCompartida from "./PantallaCompartida";
 import AventuraEducativa from "./AventuraEducativa";
 import MaterialesEstudio from "./MaterialesEstudio";
+import CentroEstudio from "./CentroEstudio";
 import MarcaMyTeacher from "./MarcaMyTeacher";
 import { validarImagen, dimensionesImagen, LIMITE_ENVIO } from "./ImagenEducativa";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
@@ -37,7 +38,7 @@ type Message = {
   created_at: string
 }
 
-type Page = 'chat' | 'progress' | 'settings' | 'privacy' | 'games' | 'facts' | 'achievements' | 'materials'
+type Page = 'chat' | 'progress' | 'settings' | 'privacy' | 'games' | 'facts' | 'achievements' | 'materials' | 'study'
 
 type GoogleAccountAPI = {
   accounts: { id: {
@@ -1154,6 +1155,8 @@ function App() {
             onClick={() => openPage('progress')}>▤ <span>Mi aprendizaje</span></button>
           <button type="button" className={page === 'materials' ? 'active' : ''}
             onClick={() => openPage('materials')}>📚 <span>Mis materiales</span></button>
+          <button type="button" className={page === 'study' ? 'active' : ''}
+            onClick={() => openPage('study')}>◎ <span>Centro de estudio</span></button>
         </div>
 
         <div className="mtc-history">
@@ -1418,6 +1421,27 @@ function App() {
               )}
             </div>
           </main>
+        )}
+
+        {page === 'study' && (
+          <CentroEstudio token={token}
+            onAskTutor={texto => {
+              retryId.current = null
+              setDraft(texto)
+              setPage('chat')
+              setToolsOpen(false)
+              window.setTimeout(() => editor.current?.focus(), 0)
+            }}
+            onOpenPractice={() => { setPage('progress'); setMobileOpen(false) }}
+            onOpenLibrary={() => { setPage('materials'); setMobileOpen(false) }}
+            onAttachDrawing={file => {
+              setAttachedFile(file)
+              setDraft('Ayúdame a comprender el ejercicio o dibujo de esta pizarra. Guíame con pistas, sin darme la solución directamente.')
+              setNotice('')
+              setPage('chat')
+              window.setTimeout(() => editor.current?.focus(), 0)
+            }}
+          />
         )}
 
         {page === 'materials' && (
