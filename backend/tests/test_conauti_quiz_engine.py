@@ -46,3 +46,12 @@ def test_rejects_too_few_distinct_answers():
 
 def test_table_is_owned_by_student_and_cascades_on_account_deletion():
     assert "user_id uuid NOT NULL REFERENCES public.conauti_users(id) ON DELETE CASCADE" in SCHEMA
+
+
+def test_exam_links_to_source_document_but_does_not_expose_id():
+    document = uuid4()
+    sample=rows()
+    sample[0]=(*sample[0], document)
+    data=make_exam(sample,6,random.Random(9))
+    assert any(q["source_document_id"]==str(document) for q in data)
+    assert all("source_document_id" not in q for q in public_exam(data))

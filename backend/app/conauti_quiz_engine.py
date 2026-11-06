@@ -67,7 +67,8 @@ def make_exam(rows, count=5, rng=None):
     selected=rng.sample(pool,min(count,len(pool)))
     result=[]
     for card in selected:
-        card_id,topic,question,answer,source,page=card
+        card_id,topic,question,answer,source,page=card[:6]
+        source_doc=card[6] if len(card)>6 else None
         distractors=[other for other in pool if other[0]!=card_id]
         # Preferir distractores de la misma materia si existen.
         distractors.sort(key=lambda other:other[1]!=topic)
@@ -81,6 +82,7 @@ def make_exam(rows, count=5, rng=None):
             "id":str(uuid4()),"topic":topic,"question":question,
             "options":letters,"correct":right,"explanation":answer,
             "source":source,"page":page,
+            "source_document_id":str(source_doc) if source_doc else None,
         })
     return result
 
@@ -135,7 +137,7 @@ def start_exam(body:StartBody,user=Depends(current_user)):
         if taken>=5:
             raise HTTPException(429,"Has alcanzado el máximo de cinco evaluaciones diarias.")
         sql=(
-            "SELECT id,topic,question,answer,source_name,source_page "
+            "SELECT id,topic,question,answer,source_name,source_page,source_document_id "
             "FROM public.conauti_study_cards WHERE user_id=%s"
         )
         args=[uid]
