@@ -15,7 +15,7 @@ def simplify(value: str) -> str:
 
 
 PATTERNS = (
-    ("matemáticas", r"\b(fracciones?|ecuaciones?|algebra|matematicas?|geometria|"
+    ("matemáticas", r"\b(fraccion(?:es)?|ecuacion(?:es)?|algebra|matematicas?|geometria|"
      r"potencias?|porcentajes?|funciones?|derivadas?|integrales?|probabilidad|"
      r"estadistica|calculo|divisiones?|multiplicaciones?|angulos?)\b"),
     ("ciencias", r"\b(biologia|celulas?|organos?|neuronas?|cerebro|"
