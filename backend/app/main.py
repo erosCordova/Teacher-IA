@@ -172,6 +172,9 @@ app.include_router(conauti_rag_router)
 from app.conauti_study import router as conauti_study_router
 app.include_router(conauti_study_router)
 
+from app.conauti_quiz_engine import router as conauti_study_exams_router
+app.include_router(conauti_study_exams_router)
+
 # MYTEACHER_ERROR_COACH_GRID_V3
 from app.conauti_error_coach import (
     router as conauti_error_coach_router,
