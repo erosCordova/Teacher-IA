@@ -1,5 +1,6 @@
 import os
 import re
+from contextvars import ContextVar
 from typing import Any, TypedDict
 
 from app.conauti_prompting import (TutorPlan, adapt_instructions, lesson_plan, make_chain, safe_model_name, trim_history)
@@ -11,6 +12,9 @@ from app.conauti_pedagogy import (
     classify,
     review_output,
 )
+
+
+_RUN_API_KEY: ContextVar[str] = ContextVar("myteacher_api_key", default="")
 
 
 class TutorState(TypedDict, total=False):
@@ -111,7 +115,7 @@ def generate_with_langchain(state: TutorState):
     def invoke(model_name: str):
         model = ChatGoogleGenerativeAI(
             model=model_name,
-            google_api_key=state["api_key"],
+            google_api_key=state.get("api_key") or _RUN_API_KEY.get(),
             vertexai=False,
             temperature=0.6,
             max_tokens=700,
@@ -195,7 +199,7 @@ def validate_answer(state: TutorState):
     return {"answer": answer}
 
 
-def create_graph():
+def create_graph(checkpointer=None):
     builder = StateGraph(TutorState)
 
     builder.add_node(
@@ -258,7 +262,7 @@ def create_graph():
     # La persistencia continúa en PostgreSQL.
     # No guardamos secretos ni mensajes en
     # puntos de control adicionales.
-    return builder.compile()
+    return builder.compile(checkpointer=checkpointer)
 
 
 GRAPH = create_graph()
@@ -270,26 +274,48 @@ def run_graph(
     system_prompt,
     api_key,
     model_name,
+    *,
+    student_id=None,
+    conversation_id=None,
 ):
     if not api_key:
-        raise ValueError(
-            "Gemini no está configurado."
-        )
+        raise ValueError("Gemini no está configurado.")
+    if not safe_model_name(model_name):
+        raise ValueError("Identificador de modelo inválido.")
 
-    if not re.fullmatch(
-        r"[a-zA-Z0-9_.-]+",
-        model_name,
-    ):
-        raise ValueError(
-            "Identificador de modelo inválido."
-        )
-
-    result = GRAPH.invoke({
+    state = {
         "history": history,
         "rules": pedagogical_instruction,
         "system_prompt": system_prompt,
-        "api_key": api_key,
         "model_name": model_name,
-    })
+    }
+
+    # Las credenciales NO se guardan en State, ni en los checkpoints.
+    secret_context = _RUN_API_KEY.set(api_key)
+    try:
+        if (
+            os.getenv("LANGGRAPH_CHECKPOINTS_ENABLED", "false").lower() == "true"
+            and student_id is not None
+            and conversation_id is not None
+        ):
+            # Checkpoints reales, con persistencia PostgreSQL. Durability='exit'
+            # limita el almacenamiento en la base gratuita.
+            os.environ.setdefault("LANGGRAPH_STRICT_MSGPACK", "true")
+            from langgraph.checkpoint.postgres import PostgresSaver
+            from app.conauti_auth import database_url
+
+            thread_id = f"teacher:{student_id}:{conversation_id}"
+            with PostgresSaver.from_conn_string(database_url()) as saver:
+                saver.setup()
+                graph = create_graph(checkpointer=saver)
+                result = graph.invoke(
+                    state,
+                    config={"configurable": {"thread_id": thread_id}},
+                    durability="exit",
+                )
+        else:
+            result = GRAPH.invoke(state)
+    finally:
+        _RUN_API_KEY.reset(secret_context)
 
     return result["answer"], result["usage"]
