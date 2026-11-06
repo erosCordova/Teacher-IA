@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { apiFetch } from './apiFetch'
 import './MaterialesEstudio.css'
 
-type Documento = { id: string; filename: string; pages: number; created_at: string }
+type Documento = { id: string; filename: string; pages: number; created_at: string; has_original: boolean; size_bytes: number }
+type VistaMaterial = { tipo: 'pdf' | 'texto'; filename: string; url?: string; texto?: string; original: boolean }
 type Fuente = { filename: string; page: number; text: string; score: number }
 const ROOT = '/api/conauti/rag'
 const LIMITE = 6_000_000
@@ -18,6 +19,9 @@ export default function MaterialesEstudio({
   const [cargando,setCargando] = useState(false)
   const [mensaje,setMensaje] = useState('')
   const [error,setError] = useState('')
+  const [vista,setVista] = useState<VistaMaterial|null>(null)
+  const vistaUrl = useRef<string|null>(null)
+  useEffect(() => () => {if (vistaUrl.current) URL.revokeObjectURL(vistaUrl.current)}, [])
 
   async function solicitud<T>(path:string,method='GET',body?:BodyInit):Promise<T>{
     const response=await apiFetch(ROOT+path,{method,cache:'no-store',
@@ -32,6 +36,56 @@ export default function MaterialesEstudio({
   async function recargar(){
     const data=await solicitud<{documents:Documento[]}>('/documents')
     setDocumentos(data.documents)
+  }
+  async function archivoProtegido(path: string): Promise<Blob>{
+    const response=await apiFetch(ROOT+path,{
+      cache:'no-store',
+      headers:{Authorization:'Bearer '+token},
+    })
+    if(!response.ok){
+      const data:{detail?:string}=await response.json().catch(()=>({}))
+      throw new Error(data.detail||'No se pudo recuperar el material.')
+    }
+    return await response.blob()
+  }
+  function cerrarVista(){
+    if(vistaUrl.current){
+      URL.revokeObjectURL(vistaUrl.current)
+      vistaUrl.current=null
+    }
+    setVista(null)
+  }
+  async function verDocumento(doc:Documento){
+    setCargando(true);setError('')
+    cerrarVista()
+    try{
+      if(doc.has_original && doc.filename.toLowerCase().endsWith('.pdf')){
+        const blob=await archivoProtegido('/documents/'+encodeURIComponent(doc.id)+'/file')
+        const url=URL.createObjectURL(new Blob([blob],{type:'application/pdf'}))
+        vistaUrl.current=url
+        setVista({tipo:'pdf',filename:doc.filename,url,original:true})
+      }else{
+        const blob=await archivoProtegido('/documents/'+encodeURIComponent(doc.id)+'/text')
+        const texto=await blob.text()
+        setVista({tipo:'texto',filename:doc.filename,texto,original:false})
+      }
+    }catch(e){setError(e instanceof Error?e.message:'No se pudo abrir el material.')}
+    finally{setCargando(false)}
+  }
+  async function descargarDocumento(doc:Documento){
+    setCargando(true);setError('')
+    try{
+      const original=doc.has_original
+      const path='/documents/'+encodeURIComponent(doc.id)+(original?'/file?download=true':'/text?download=true')
+      const blob=await archivoProtegido(path)
+      const name=original?doc.filename:doc.filename.replace(/\.[^.]*$/,'')+'-texto-indexado.txt'
+      const url=URL.createObjectURL(blob)
+      const a=document.createElement('a')
+      a.href=url;a.download=name;a.rel='noopener';document.body.appendChild(a);a.click();a.remove()
+      window.setTimeout(()=>URL.revokeObjectURL(url),15000)
+      if(!original)setMensaje('Descargaste únicamente el texto indexado. Para recuperar el documento original, vuelve a subirlo.')
+    }catch(e){setError(e instanceof Error?e.message:'No se pudo descargar el material.')}
+    finally{setCargando(false)}
   }
   useEffect(()=>{
     let activo=true
@@ -48,10 +102,11 @@ export default function MaterialesEstudio({
     if(seleccionado.size>LIMITE){setError('El archivo no puede superar 6 MB.');return}
     setError('');setMensaje('Guardando el material de estudio…');setCargando(true)
     try{
-      const r=await solicitud<{duplicate:boolean;chunks:number}>(
+      const r=await solicitud<{duplicate:boolean;restored?:boolean;chunks:number}>(
         '/documents?filename='+encodeURIComponent(seleccionado.name),'POST',seleccionado)
-      setMensaje(r.duplicate?'Ese material ya estaba guardado.':
-        'Documento guardado. Se indexaron '+r.chunks+' fragmentos para las consultas.')
+      setMensaje(r.restored?'Original recuperado: ahora puedes verlo y descargarlo desde la biblioteca.':
+        r.duplicate?'Ese material ya estaba guardado y conserva su original.':
+        'Documento guardado con su original. Se indexaron '+r.chunks+' fragmentos para las consultas.')
       await recargar()
     }catch(e){setMensaje('');setError(e instanceof Error?e.message:'No se pudo guardar el documento.')}
     finally{setCargando(false)}
@@ -97,8 +152,8 @@ export default function MaterialesEstudio({
       </header>
       <section className="mtc-materials-upload">
         <div><h2>Biblioteca personal</h2>
-          <p>Los documentos solo se guardan cuando eliges «Guardar material».
-            Conservamos texto extraído para buscarlo; no almacenamos el archivo original.</p>
+          <p>Al guardar un material, conservamos el documento original y sus fragmentos de texto de forma privada
+            para permitir su consulta, visualización y descarga. Máximo 12 archivos y 24 MB en total.</p>
         </div>
         <input ref={archivo} type="file" hidden aria-label="Elegir material"
           accept=".pdf,.docx,.pptx,.xlsx,.odt,.ods,.odp,.txt,.md,.csv" onChange={adjuntar}/>
@@ -113,10 +168,43 @@ export default function MaterialesEstudio({
         {documentos.length===0?<p className="mtc-materials-empty">Todavía no has guardado materiales. Puedes seguir adjuntando documentos al chat sin almacenarlos.</p>:
           <div className="mtc-materials-files">{documentos.map(doc=><div key={doc.id} className="mtc-materials-file">
             <span className="mtc-materials-fileicon" aria-hidden="true">📄</span>
-            <div><strong title={doc.filename}>{doc.filename}</strong><small>{doc.pages} página(s) · Guardado {new Date(doc.created_at).toLocaleDateString('es-PE')}</small></div>
-            <button type="button" disabled={cargando} onClick={()=>eliminar(doc)} aria-label={'Eliminar '+doc.filename}>Eliminar</button>
+            <div className="mtc-materials-file-detail">
+              <strong title={doc.filename}>{doc.filename}</strong>
+              <small>{doc.pages} página(s) · Guardado {new Date(doc.created_at).toLocaleDateString('es-PE')}
+                {doc.has_original?' · '+(doc.size_bytes/1024/1024).toFixed(2)+' MB':' · Solo texto indexado'}</small>
+              {!doc.has_original&&<small className="mtc-materials-legacy">
+                Original no conservado. Puedes ver el texto disponible o volver a subir el mismo archivo para recuperar la vista completa.
+              </small>}
+            </div>
+            <div className="mtc-materials-file-actions">
+              <button type="button" disabled={cargando} className="mtc-materials-view" onClick={()=>void verDocumento(doc)}
+                aria-label={'Ver '+(doc.has_original?'documento ':'texto recuperado de ')+doc.filename}>
+                <span aria-hidden="true">👁</span> {doc.has_original&&doc.filename.toLowerCase().endsWith('.pdf')?'Ver PDF':'Ver texto'}
+              </button>
+              <button type="button" disabled={cargando} className="mtc-materials-download" onClick={()=>void descargarDocumento(doc)}
+                aria-label={'Descargar '+(doc.has_original?'documento ':'texto indexado de ')+doc.filename}>
+                <span aria-hidden="true">↓</span> {doc.has_original?'Descargar':'Descargar texto'}
+              </button>
+              <button type="button" disabled={cargando} className="mtc-materials-delete" onClick={()=>void eliminar(doc)}
+                aria-label={'Eliminar '+doc.filename}>Eliminar</button>
+            </div>
           </div>)}</div>}
       </section>
+      {vista&&<div className="mtc-materials-viewer-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)cerrarVista()}}>
+        <section className="mtc-materials-viewer" role="dialog" aria-modal="true" aria-label={'Vista previa de '+vista.filename}
+          onKeyDown={e=>{if(e.key==='Escape')cerrarVista()}}>
+          <header className="mtc-materials-viewer-heading">
+            <div><strong title={vista.filename}>{vista.filename}</strong>
+              <small>{vista.original?'Archivo PDF original':'Vista del texto recuperado (puede ser parcial)'}</small></div>
+            <button type="button" onClick={cerrarVista} autoFocus aria-label="Cerrar vista previa">×</button>
+          </header>
+          {vista.tipo==='pdf'&&vista.url
+            ?<iframe title={'Documento PDF '+vista.filename} src={vista.url} className="mtc-materials-pdf-frame"/>
+            :<pre className="mtc-materials-text-frame">{vista.texto}</pre>}
+          <footer><span>Solo tú puedes acceder a los materiales guardados en tu cuenta.</span>
+            <button type="button" onClick={cerrarVista}>Cerrar</button></footer>
+        </section>
+      </div>}
       <section className="mtc-materials-card">
         <h2>Pregunta a tus documentos</h2>
         <p>Buscaremos los fragmentos más relacionados. Cuando no haya evidencia suficiente, te lo indicaremos.</p>
