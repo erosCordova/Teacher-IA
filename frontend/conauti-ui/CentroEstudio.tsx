@@ -2,11 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { apiFetch } from './apiFetch'
 import PizarraEducativa from './PizarraEducativa'
 import LaboratorioVirtual from './LaboratorioVirtual'
+import EvaluacionDinamica from './EvaluacionDinamica'
 import MarcaMyTeacher from './MarcaMyTeacher'
 import type { FormEvent } from 'react'
 import './CentroEstudio.css'
 
-type Section = 'ruta'|'tarjetas'|'pizarra'|'laboratorio'
+type Section = 'ruta'|'tarjetas'|'evaluaciones'|'pizarra'|'laboratorio'
 type Recommendation = {
   topic:string;mastery:number|null;priority:number;status:string;
   reason:string;next_step:string;evidence:string;
@@ -177,6 +178,8 @@ export default function CentroEstudio({
           aria-current={section==='ruta'?'page':undefined} onClick={()=>setSection('ruta')}>◈ Mi ruta</button>
         <button type="button" className={section==='tarjetas'?'active':''}
           aria-current={section==='tarjetas'?'page':undefined} onClick={()=>setSection('tarjetas')}>▤ Tarjetas inteligentes</button>
+        <button type="button" className={section==='evaluaciones'?'active':''}
+          aria-current={section==='evaluaciones'?'page':undefined} onClick={()=>setSection('evaluaciones')}>✓ Evaluaciones</button>
         <button type="button" className={section==='pizarra'?'active':''}
           aria-current={section==='pizarra'?'page':undefined} onClick={()=>setSection('pizarra')}>✎ Pizarra interactiva</button>
         <button type="button" className={section==='laboratorio'?'active':''}
@@ -283,6 +286,7 @@ export default function CentroEstudio({
               </div>
             </div>
           </section>}
+          {section==='evaluaciones'&&<EvaluacionDinamica token={token} cards={cards} onAskTutor={onAskTutor}/>}
           {section==='pizarra'&&<PizarraEducativa
             onSend={file=>onAttachDrawing(file)}
             onError={message=>{setError(message);setNotice('')}} />}
