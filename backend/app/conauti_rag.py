@@ -500,7 +500,7 @@ _DOCUMENT_REFERENCE = re.compile(
     r"que subi|que cargue)\b", re.IGNORECASE,
 )
 _SUMMARY_REFERENCE = re.compile(
-    r"\b(resume|resumen|sintetiza|de que trata|que contiene|"
+    r"\b(resume|resumen|sintetiza|de que trata|que contiene|que dice|"
     r"ideas principales|explica el contenido|indice)\b", re.IGNORECASE,
 )
 
@@ -550,12 +550,12 @@ def chat_references(conn, student_id, question: str) -> dict:
         return {"context": "", "sources": [], "status": "no_query"}
 
     if conn.execute(
-        "SELECT to_regclass('public.conauti_rag_documents')"
-    ).fetchone()[0] is None:
+        "SELECT to_regclass('public.conauti_rag_documents') AS found"
+    ).fetchone()["found"] is None:
         return {"context": "", "sources": [], "status": "empty"}
 
     rows = conn.execute(
-        "SELECT d.id,d.filename,c.page_number,c.ordinal,c.body "
+        "SELECT d.id AS doc_id,d.filename AS filename,c.page_number AS page,c.ordinal AS ordinal,c.body AS body "
         "FROM public.conauti_rag_documents d "
         "JOIN public.conauti_rag_chunks c ON c.document_id=d.id "
         "WHERE d.user_id=%s "
@@ -569,9 +569,9 @@ def chat_references(conn, student_id, question: str) -> dict:
     docs = []
     seen = set()
     for row in rows:
-        doc_id = str(row[0])
+        doc_id = str(row["doc_id"])
         if doc_id not in seen:
-            docs.append({"id": doc_id, "filename": row[1]})
+            docs.append({"id": doc_id, "filename": row["filename"]})
             seen.add(doc_id)
 
     target, explicit = _document_target(question, docs)
@@ -595,9 +595,9 @@ def chat_references(conn, student_id, question: str) -> dict:
             }
 
     chunks = [
-        {"id": str(row[0]), "filename": row[1], "page": row[2],
-         "ordinal": row[3], "text": row[4]}
-        for row in rows if target is None or str(row[0]) == target
+        {"id": str(row["doc_id"]), "filename": row["filename"], "page": row["page"],
+         "ordinal": row["ordinal"], "text": row["body"]}
+        for row in rows if target is None or str(row["doc_id"]) == target
     ]
     if not chunks:
         return {"context": "", "sources": [], "status": "no_match"}
