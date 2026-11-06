@@ -177,6 +177,10 @@ export default function MaterialesEstudio({
               </small>}
             </div>
             <div className="mtc-materials-file-actions">
+              {!doc.has_original&&<button type="button" disabled={cargando} className="mtc-materials-recover"
+                onClick={()=>archivo.current?.click()} aria-label={'Volver a subir el original de '+doc.filename}>
+                <span aria-hidden="true">↻</span> Recuperar original
+              </button>}
               <button type="button" disabled={cargando} className="mtc-materials-view" onClick={()=>void verDocumento(doc)}
                 aria-label={'Ver '+(doc.has_original?'documento ':'texto recuperado de ')+doc.filename}>
                 <span aria-hidden="true">👁</span> {doc.has_original&&doc.filename.toLowerCase().endsWith('.pdf')?'Ver PDF':'Ver texto'}
