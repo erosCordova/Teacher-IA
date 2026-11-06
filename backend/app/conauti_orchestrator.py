@@ -5,6 +5,7 @@ from typing import Any, TypedDict
 
 from app.conauti_prompting import (TutorPlan, adapt_instructions, lesson_plan, make_chain, safe_model_name, trim_history)
 from app.conauti_resilience import call_with_recovery
+from app.conauti_tools import verificar_operacion, planificar_refuerzo
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, START, StateGraph
 
@@ -28,6 +29,7 @@ class TutorState(TypedDict, total=False):
     messages: list[Any]
     instructions: str
     plan: dict[str, Any]
+    tool_context: str
     answer: str
     usage: dict[str, int]
 
@@ -52,8 +54,28 @@ def identify_intent(state: TutorState):
 
 
 def plan_learning(state: TutorState):
-    """Planificador determinista; no requiere llamadas adicionales a Gemini."""
-    return {"plan": lesson_plan(state["intent"]).model_dump()}
+    """Planificador con herramientas verificadas, sin llamadas adicionales a Gemini."""
+    intent = state["intent"]
+    result = {"plan": lesson_plan(intent).model_dump(), "tool_context": ""}
+    if intent == "review":
+        match = re.search(r"(?<!\w)(\d{1,6}\s*[+\-*/]\s*\d{1,6})(?!\w)", state["question"])
+        if match:
+            try:
+                checked = verificar_operacion.invoke({"expresion": match.group(1)})
+                result["tool_context"] = (
+                    "Comprobación interna de una operación del intento: "
+                    + str(checked["resultado_de_comprobacion"])
+                    + ". No reveles la respuesta. Pregunta al estudiante "
+                      "cómo podría verificar su resultado."
+                )
+            except (ValueError, KeyError, TypeError):
+                pass
+    elif intent == "simpler":
+        plan = planificar_refuerzo.invoke({"tema": state["question"][:100]})
+        result["tool_context"] = (
+            "Protocolo de apoyo: " + "; ".join(plan["pasos"])
+        )
+    return result
 
 
 def select_route(state: TutorState):
@@ -104,7 +126,7 @@ def prepare_context(state: TutorState):
     instructions = adapt_instructions(
         state["system_prompt"] + "\n\n" + state["rules"],
         state["intent"], plan=TutorPlan.model_validate(state["plan"]),
-    )
+    ) + ("\n" + state.get("tool_context", "") if state.get("tool_context") else "")
     return {
         "instructions": instructions,
         "messages": trim_history(state["history"], max_messages=12, max_chars=10500),
