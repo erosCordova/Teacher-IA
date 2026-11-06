@@ -43,3 +43,34 @@ def test_generic_summaries_allow_document_reference():
 def test_generic_explication_is_not_any_document_match():
     chunks = [{"text":"Estructura de la célula.","ordinal":0,"page":1}]
     assert search_chunks("Explica el sistema solar", chunks, allow_generic=False) == []
+
+def test_library_missing_should_not_claim_materials():
+    conn = Connection([])
+    found = chat_references(conn, uuid4(), "¿Qué dice mi documento?")
+    assert found["status"] == "empty"
+    assert "no contiene documentos" in found["context"]
+    normal = chat_references(conn, uuid4(), "¿Qué es la fotosíntesis?")
+    assert normal["context"] == ""
+
+def test_normal_chat_refers_to_explicit_document_by_filename():
+    one = uuid4()
+    two = uuid4()
+    conn = Connection([
+        {"doc_id":one,"filename":"Biología.pdf","page":1,"ordinal":0,
+         "body":"La célula tiene membrana."},
+        {"doc_id":two,"filename":"SalesIA Enterprise Manual.pdf","page":4,"ordinal":0,
+         "body":"El sistema de ventas genera informes."},
+    ])
+    found = chat_references(conn, uuid4(), "Resume el manual SalesIA")
+    assert found["status"] == "matched"
+    assert found["sources"][0]["filename"] == "SalesIA Enterprise Manual.pdf"
+
+def test_ambiguous_document_question_requests_clarification():
+    conn = Connection([
+        {"doc_id":uuid4(),"filename":"Biología.pdf","page":1,"ordinal":0,"body":"Células."},
+        {"doc_id":uuid4(),"filename":"Literatura.pdf","page":1,"ordinal":0,"body":"Narrativa."},
+    ])
+    found = chat_references(conn, uuid4(), "¿Qué dice el documento?")
+    assert found["status"] == "ambiguous"
+    assert "Biología.pdf" in found["context"]
+    assert not found["sources"]
