@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { apiFetch } from './apiFetch'
 import PizarraEducativa from './PizarraEducativa'
+import LaboratorioVirtual from './LaboratorioVirtual'
+import MarcaMyTeacher from './MarcaMyTeacher'
+import type { FormEvent } from 'react'
 import './CentroEstudio.css'
 
-type Section = 'ruta'|'tarjetas'|'pizarra'
+type Section = 'ruta'|'tarjetas'|'pizarra'|'laboratorio'
 type Recommendation = {
   topic:string;mastery:number|null;priority:number;status:string;
   reason:string;next_step:string;evidence:string;
@@ -110,7 +113,7 @@ export default function CentroEstudio({
     await action(()=>request<{created:number}>('/cards/starter','POST'),
       r=>r.created?'Se añadieron '+r.created+' tarjetas para comenzar.':'Las tarjetas iniciales ya están guardadas.')
   }
-  async function addManual(e:React.FormEvent<HTMLFormElement>){
+  async function addManual(e:FormEvent<HTMLFormElement>){
     e.preventDefault()
     const ok=await action(()=>request('/cards','POST',{
       topic:newTopic.trim(),question:newQuestion.trim(),answer:newAnswer.trim(),
@@ -160,7 +163,7 @@ export default function CentroEstudio({
         </div>
         <div className="study-hero-decoration" aria-hidden="true">
           <div className="study-ring ring-one"/><div className="study-ring ring-two"/>
-          <div className="study-hero-glyph">✳</div>
+          <div className="study-hero-glyph"><MarcaMyTeacher /></div>
           <div className="study-float-dot first"/><div className="study-float-dot second"/>
         </div>
       </header>
@@ -176,6 +179,8 @@ export default function CentroEstudio({
           aria-current={section==='tarjetas'?'page':undefined} onClick={()=>setSection('tarjetas')}>▤ Tarjetas inteligentes</button>
         <button type="button" className={section==='pizarra'?'active':''}
           aria-current={section==='pizarra'?'page':undefined} onClick={()=>setSection('pizarra')}>✎ Pizarra interactiva</button>
+        <button type="button" className={section==='laboratorio'?'active':''}
+          aria-current={section==='laboratorio'?'page':undefined} onClick={()=>setSection('laboratorio')}>◉ Laboratorio virtual</button>
       </nav>
       {error&&<div className="study-feedback is-error" role="alert">{error}<button type="button" onClick={()=>setError('')}>Cerrar</button></div>}
       {notice&&<div className="study-feedback is-success" role="status">{notice}<button type="button" onClick={()=>setNotice('')}>Cerrar</button></div>}
@@ -281,6 +286,7 @@ export default function CentroEstudio({
           {section==='pizarra'&&<PizarraEducativa
             onSend={file=>onAttachDrawing(file)}
             onError={message=>{setError(message);setNotice('')}} />}
+          {section==='laboratorio'&&<LaboratorioVirtual onAskTutor={onAskTutor} />}
         </>
       )}
     </div>
