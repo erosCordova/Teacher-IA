@@ -164,9 +164,8 @@ export default function ShonenScene({ variante = 'aplicacion' }: { variante?: Va
         alt="" decoding="async" loading="eager" referrerPolicy="no-referrer"
         onError={evento => usarAlternativa(evento, "https://www.pngfind.com/pngs/m/57-574187_naruto-shippuden-naruto-official-art-hd-png-download.png")}/>
       <img className="shonen-character shonen-character--luffy"
-        src="https://image.pngaaa.com/792/2134792-middle.png"
-        alt="" decoding="async" loading="eager" referrerPolicy="no-referrer"
-        onError={evento => usarAlternativa(evento, "https://toppng.com/uploads/preview/luffy-anime-one-piece-luffy-115628753714bjr6ypxar.png")}/>
+        src="/anime/luffy-usuario.avif"
+        alt="" decoding="async" loading="eager"/>
       <img className="shonen-character shonen-character--ichigo"
         src="https://www.vhv.rs/dpng/d/434-4342176_ichigo-kurosaki-png-png-download-j-stars-ichigo.png"
         alt="" decoding="async" loading="eager" referrerPolicy="no-referrer"

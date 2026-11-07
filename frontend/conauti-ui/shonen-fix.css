@@ -183,3 +183,34 @@ html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome p {
     animation:none!important;
   }
 }
+
+/* Imagen proporcionada por el usuario: Luffy Gear 4 con fondo transparente.
+   No aplicar filtros de eliminación de cuadros que alteren la ilustración. */
+html[data-myteacher-theme] #root .shonen-scene .shonen-character--luffy {
+  top:4%!important;
+  bottom:auto!important;
+  left:auto!important;
+  right:1%!important;
+  height:clamp(195px,38%,335px)!important;
+  width:auto!important;
+  max-width:36%!important;
+  object-fit:contain!important;
+  opacity:.94!important;
+  filter:drop-shadow(-4px 11px 19px rgba(0,7,22,.47))!important;
+  mask-image:none!important;
+  -webkit-mask-image:none!important;
+}
+@media(max-width:1320px) {
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--luffy {
+    height:clamp(178px,34%,295px)!important;
+    right:0%!important;
+    opacity:.87!important;
+  }
+}
+@media(max-width:850px) {
+  html[data-myteacher-theme] #root .mtc-app .shonen-scene .shonen-character--luffy {
+    height:clamp(145px,30%,240px)!important;
+    right:-3%!important;
+    opacity:.43!important;
+  }
+}
