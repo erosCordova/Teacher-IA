@@ -1164,3 +1164,171 @@ html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__ground {
     margin-left:113px!important;width:calc(100% - 113px);
   }
 }
+
+
+/* ==============================================================
+   CHAT CENTRAL — volver a la distribución original del tutor.
+   Único área de conversación entre el sidebar y el fondo natural.
+   Sin portada izquierda, sin chat lateral ni navegación duplicada.
+   ============================================================== */
+html[data-myteacher-theme] #root .mtc-app main.mtc-chat.aur-chat-centered {
+  position:relative;
+  z-index:2;
+  isolation:isolate;
+  display:flex!important;
+  flex-direction:column!important;
+  flex:1 1 auto;
+  min-width:0;
+  min-height:0;
+  width:100%;
+  padding:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+  background:
+    radial-gradient(ellipse at 50% 45%,rgba(7,22,54,.17),transparent 68%),
+    linear-gradient(180deg,rgba(5,15,42,.22),rgba(7,20,46,.43))!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-scroller {
+  display:flex;
+  flex-direction:column;
+  flex:1 1 auto;
+  min-height:0;
+  width:100%;
+  overflow-y:auto;
+  padding:clamp(16px,2.4vw,36px) clamp(14px,3vw,46px) 14px!important;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(98,192,252,.50) rgba(10,27,59,.21);
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-welcome {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  max-width:800px;
+  min-height:230px;
+  width:100%;
+  padding:30px 24px 26px!important;
+  margin:auto!important;
+  text-align:center;
+  color:#ecfaff!important;
+  background:
+    radial-gradient(ellipse at 50% 30%,rgba(37,127,211,.23),transparent 60%),
+    linear-gradient(140deg,rgba(4,19,48,.30),rgba(6,23,51,.54));
+  border:1px solid rgba(115,207,255,.20);
+  border-radius:24px;
+  backdrop-filter:blur(8px);
+  box-shadow:0 20px 60px rgba(1,8,30,.15),inset 0 1px rgba(191,238,255,.08);
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-welcome-symbol {
+  display:grid!important;
+  place-items:center;
+  margin:0 auto 20px;
+  width:82px;
+  height:82px;
+  padding:15px;
+  border-radius:24px;
+  color:#b7f2ff!important;
+  background:linear-gradient(135deg,rgba(27,133,222,.44),rgba(78,70,173,.28));
+  border:1px solid rgba(130,221,255,.58);
+  box-shadow:0 0 32px rgba(45,164,247,.19),inset 0 1px rgba(232,253,255,.16);
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-welcome-symbol svg {
+  width:100%;
+  height:100%;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-welcome h1 {
+  color:#edfbff!important;
+  font-size:clamp(27px,3vw,39px)!important;
+  font-weight:730!important;
+  text-shadow:0 3px 19px rgba(0,7,28,.82),0 0 23px rgba(77,180,254,.35);
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-welcome p {
+  max-width:580px;
+  margin:0 auto;
+  font-size:clamp(12px,1.1vw,15px)!important;
+  line-height:1.65;
+  color:#bbdff5!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-messages {
+  width:100%;
+  max-width:860px!important;
+  margin:0 auto;
+  gap:22px;
+  padding:22px 0 42px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-message-body p {
+  color:#e9f7ff!important;
+  line-height:1.72;
+  font-size:14px;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-message-user .mtc-message-body {
+  background:linear-gradient(120deg,rgba(26,99,177,.86),rgba(18,54,115,.89))!important;
+  color:#f4fcff!important;
+  border:1px solid rgba(114,211,255,.56)!important;
+  border-radius:19px 19px 5px 19px!important;
+  box-shadow:0 9px 25px rgba(0,15,46,.20)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-message-assistant .mtc-message-body {
+  color:#e9f7ff!important;
+  background:linear-gradient(90deg,rgba(11,52,98,.56),rgba(9,28,63,.40) 66%,transparent)!important;
+  border-left:2px solid rgba(108,206,255,.54);
+  border-radius:0 13px 13px 0;
+  padding:13px 16px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-compose-area {
+  z-index:4;
+  width:calc(100% - 48px)!important;
+  max-width:860px!important;
+  margin:0 auto!important;
+  padding:12px 0 15px!important;
+  flex:0 0 auto;
+  align-self:center;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered form.mtc-composer {
+  background:linear-gradient(130deg,rgba(14,48,94,.95),rgba(6,25,59,.96))!important;
+  border:1px solid rgba(120,209,255,.66)!important;
+  border-radius:20px!important;
+  box-shadow:0 12px 38px rgba(0,10,39,.34),inset 0 1px rgba(201,243,255,.12)!important;
+  backdrop-filter:blur(14px);
+  overflow:visible!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered form.mtc-composer textarea {
+  color:#f0faff!important;
+  background:transparent!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered form.mtc-composer textarea::placeholder {
+  color:#a7c9e5!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered form.mtc-composer button.mtc-send {
+  background:linear-gradient(120deg,#9af0ff,#32b8f4)!important;
+  color:#082540!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-tools-menu {
+  background:#0e305c!important;
+  border:1px solid rgba(123,212,254,.68)!important;
+  border-radius:13px!important;
+  box-shadow:0 18px 45px rgba(1,9,34,.52)!important;
+  z-index:50!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-guidance,
+html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-voice-inline-status {
+  color:#b6d6e9!important;
+  text-shadow:0 2px 8px rgba(0,9,37,.35);
+}
+@media(max-width:660px) {
+  html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-scroller {
+    padding:12px 13px!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-welcome {
+    min-height:215px;
+    padding:20px 13px 22px!important;
+    border-radius:18px;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-welcome h1 {
+    font-size:clamp(24px,6.4vw,31px)!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-chat-centered .mtc-compose-area {
+    width:calc(100% - 24px)!important;
+    padding:9px 0 11px!important;
+  }
+}

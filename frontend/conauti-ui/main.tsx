@@ -5,7 +5,6 @@ import MaterialesEstudio from "./MaterialesEstudio";
 import CentroEstudio from "./CentroEstudio";
 import MarcaMyTeacher from "./MarcaMyTeacher";
 import { NatureScenery, NatureCompanion } from './NatureWorld'
-import NatureDashboard from './NatureDashboard'
 import { validarImagen, dimensionesImagen, LIMITE_ENVIO } from "./ImagenEducativa";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -1239,10 +1238,7 @@ function App() {
         )}
 
         {page === 'chat' && (
-          <main className="mtc-chat aur-chat-layout">
-            <NatureDashboard displayName={user.display_name || user.username} />
-            <section className="aur-chat-dock" aria-label="Chat con My Teacher IA">
-            <div className="aur-chat-dock__heading"><span aria-hidden="true">✧</span><strong>Chat con My Teacher IA</strong><small>En línea</small></div>
+          <main className="mtc-chat aur-chat-centered">
             <div className="mtc-scroller" ref={conversationScroll}>
               {loadingMessages ? (
                 <p className="mtc-loading" role="status">Cargando conversación...</p>
@@ -1434,7 +1430,6 @@ function App() {
                 <p className="mtc-guidance">Aprende con pistas y explicaciones. Tu tutor te acompaña paso a paso.</p>
               )}
             </div>
-            </section>
           </main>
         )}
 
