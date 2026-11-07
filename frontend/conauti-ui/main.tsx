@@ -23,6 +23,7 @@ import './shonen-classic.css'
 import './shonen-fix.css'
 import './shonen-characters-2026.css'
 import './shonen-cinema-reference.css'
+import './shonen-asset-repair.css'
 
 type User = {
   id: string

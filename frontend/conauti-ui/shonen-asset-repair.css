@@ -1,0 +1,109 @@
+/*
+  REPARACIÓN DE IMÁGENES / MY TEACHER IA
+  Los recursos existentes de Gojo, Naruto y el guerrero tienen fondos
+  opacos. Sus siluetas se recortan con SVG clipPath en ShonenScene.
+  Aquí NO se simula transparencia con filtros que alteran los rostros.
+*/
+html[data-myteacher-theme] #root .mtc-content .shonen-scene svg.shonen-character {
+  display:block!important;
+  overflow:visible!important;
+  max-height:unset!important;
+  max-width:unset!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  background:transparent!important;
+  border:0!important;
+  image-rendering:auto!important;
+  filter:drop-shadow(0 10px 18px rgba(0,5,22,.58)) contrast(1.04) saturate(.95)!important;
+  animation:shonen-character-float 11s ease-in-out infinite alternate!important;
+}
+html[data-myteacher-theme] #root .mtc-content .shonen-scene svg.shonen-character--gojo {
+  left:1.7%!important;top:5%!important;
+  width:clamp(153px,16vw,213px)!important;
+  height:40%!important;
+  object-fit:contain!important;
+  opacity:.98!important;
+}
+html[data-myteacher-theme] #root .mtc-content .shonen-scene svg.shonen-character--naruto {
+  left:0%!important;bottom:-1%!important;top:auto!important;
+  width:clamp(177px,18.5vw,257px)!important;
+  height:37%!important;
+  object-fit:contain!important;
+  opacity:.98!important;
+}
+html[data-myteacher-theme] #root .mtc-content .shonen-scene svg.shonen-character--ichigo {
+  right:.6%!important;bottom:.7%!important;top:auto!important;
+  width:clamp(150px,16vw,219px)!important;
+  height:39%!important;
+  object-fit:contain!important;
+  opacity:.94!important;
+}
+html[data-myteacher-theme] #root .mtc-content .shonen-scene .shonen-character--luffy {
+  right:0!important;top:4%!important;
+  width:clamp(198px,20vw,280px)!important;
+  height:38%!important;max-height:unset!important;max-width:unset!important;
+  opacity:.92!important;
+  image-rendering:auto!important;
+  filter:drop-shadow(0 10px 16px rgba(1,8,26,.55))!important;
+}
+html[data-myteacher-theme] #root .mtc-content .shonen-scene .shonen-character--frieren {
+  display:block;
+  top:43%!important;right:1.5%!important;
+  width:clamp(85px,10vw,138px)!important;
+  height:23%!important;
+  opacity:.8!important;
+  object-fit:contain!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  filter:drop-shadow(0 8px 17px rgba(2,9,24,.44))!important;
+}
+html[data-myteacher-theme] #root .mtc-content .shonen-scene {
+  --figure-foreground:#f4faff;
+}
+/* A subtle light vignette integrates the transparent foreground without
+   putting a fake rectangle, filter panel, or overlay over each character. */
+html[data-myteacher-theme] #root .mtc-content .shonen-scene__vignette {
+  pointer-events:none!important;
+  background:linear-gradient(90deg,rgba(0,5,18,.10),transparent 21%,transparent 76%,rgba(0,5,18,.10)),
+             linear-gradient(180deg,transparent 71%,rgba(2,9,22,.27))!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-content .shonen-scene svg.shonen-character {
+  opacity:.77!important;
+  filter:drop-shadow(0 9px 17px rgba(44,80,115,.28)) contrast(1.05)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-content .shonen-scene .shonen-character--luffy {
+  opacity:.74!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-content .shonen-scene .shonen-character--frieren {
+  opacity:.75!important;
+}
+@media(max-width:1050px) {
+  html[data-myteacher-theme] #root .mtc-content .shonen-scene svg.shonen-character--gojo {
+    left:-2%!important;width:160px!important;opacity:.58!important;
+  }
+  html[data-myteacher-theme] #root .mtc-content .shonen-scene svg.shonen-character--naruto {
+    left:-3%!important;width:171px!important;opacity:.66!important;
+  }
+  html[data-myteacher-theme] #root .mtc-content .shonen-scene svg.shonen-character--ichigo {
+    right:-3%!important;width:160px!important;opacity:.65!important;
+  }
+  html[data-myteacher-theme] #root .mtc-content .shonen-scene .shonen-character--luffy {
+    right:-1%!important;width:170px!important;opacity:.64!important;
+  }
+}
+@media(max-width:620px) {
+  html[data-myteacher-theme] #root .mtc-content .shonen-scene svg.shonen-character {
+    opacity:.32!important;
+  }
+  html[data-myteacher-theme] #root .mtc-content .shonen-scene .shonen-character--frieren {
+    display:none!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome {
+    isolation:isolate;z-index:4;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  html[data-myteacher-theme] #root .mtc-content .shonen-scene svg.shonen-character {
+    animation:none!important;
+  }
+}

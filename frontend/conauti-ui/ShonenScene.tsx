@@ -210,18 +210,20 @@ export default function ShonenScene({ variante = 'aplicacion' }: { variante?: Va
 
       {/* Recursos proporcionados por el estudiante, almacenados en la app.
           El fondo de las imágenes originales se integra mediante máscaras CSS. */}
-      <img className="shonen-character shonen-character--gojo"
-        src="/anime/gojo-usuario.avif" alt="" decoding="async" loading="eager"/>
-      <img className="shonen-character shonen-character--naruto"
-        src="/anime/naruto-usuario.avif" alt="" decoding="async" loading="eager"/>
-      <img className="shonen-character shonen-character--luffy"
-        src="/anime/luffy-usuario.avif" alt="" decoding="async" loading="eager"/>
-      <img className="shonen-character shonen-character--ichigo"
-        src="/anime/guerrero-usuario.avif" alt="" decoding="async" loading="eager"/>
-      {/* Ilustración oficial del anime Sousou no Frieren. */}
-      <img className="shonen-character shonen-character--frieren"
-        src="https://frieren-anime.jp/assets/img/character/chara1_full1.png"
-        alt="" decoding="async" loading="lazy" referrerPolicy="no-referrer"/>
+      <svg className="shonen-character shonen-character--gojo" viewBox="0 0 284 505" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+        <defs><clipPath id="shonen-clean-gojo"><path d="M128,20 L117,52 L96,32 L113,54 L86,58 L86,76 L93,78 L76,91 L73,124 L86,137 L91,160 L84,194 L74,184 L68,190 L79,212 L35,232 L45,277 L34,276 L20,290 L0,290 L0,504 L283,504 L283,327 L253,300 L268,250 L223,221 L227,198 L219,154 L231,133 L218,114 L240,90 L231,74 L215,67 L211,51 L188,41 L157,40 L181,31 L151,32 L127,46Z"/></clipPath></defs>
+        <image href="/anime/gojo-usuario.avif" x="0" y="0" width="284" height="505" clipPath="url(#shonen-clean-gojo)" />
+      </svg>
+      <svg className="shonen-character shonen-character--naruto" viewBox="0 0 300 342" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+        <defs><clipPath id="shonen-clean-naruto"><path d="M293,3 L284,3 L276,32 L256,8 L255,39 L216,10 L216,25 L185,11 L173,23 L159,3 L160,58 L120,51 L113,40 L97,44 L89,55 L74,54 L46,64 L53,76 L74,64 L84,64 L85,72 L58,83 L42,80 L40,90 L17,95 L5,111 L11,117 L21,108 L30,112 L31,117 L17,125 L20,134 L0,118 L0,274 L24,288 L77,279 L103,330 L111,335 L119,325 L127,329 L154,318 L168,325 L181,304 L190,265 L207,237 L244,231 L266,210 L299,198 L294,159 L299,136 L299,18Z"/></clipPath></defs>
+        <image href="/anime/naruto-usuario.avif" x="0" y="0" width="300" height="342" clipPath="url(#shonen-clean-naruto)" />
+      </svg>
+      <img className="shonen-character shonen-character--luffy" src="/anime/luffy-usuario.avif" alt="" decoding="async" loading="eager"/>
+      <svg className="shonen-character shonen-character--ichigo" viewBox="0 0 296 505" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+        <defs><clipPath id="shonen-clean-warrior"><path d="M84,0 L80,34 L22,60 L1,76 L1,119 L6,119 L37,93 L79,70 L88,72 L72,149 L53,174 L1,201 L1,315 L42,356 L50,387 L68,400 L54,425 L57,437 L68,433 L80,460 L67,494 L79,492 L94,450 L108,454 L123,447 L129,452 L131,444 L146,434 L163,436 L167,446 L194,446 L194,467 L231,483 L234,479 L206,451 L207,440 L218,448 L230,440 L219,422 L219,406 L235,387 L222,330 L244,311 L295,302 L295,262 L291,264 L281,250 L295,243 L264,243 L256,194 L235,167 L255,176 L268,195 L257,174 L244,164 L249,143 L231,120 L206,114 L225,104 L243,104 L252,111 L251,107 L226,102 L200,113 L177,112 L200,98 L180,107 L164,105 L158,99 L159,91 L164,94 L158,87 L161,80 L153,72 L160,69 L147,66 L152,60 L140,57 L212,43 L253,20 L261,5 L253,0 L212,5 L234,10 L215,28 L152,33 L142,25 L166,13 L127,22 L123,0Z M204,77 L227,88 L232,97 L295,119 L271,84 L256,76Z"/></clipPath></defs>
+        <image href="/anime/guerrero-usuario.avif" x="0" y="0" width="296" height="505" clipPath="url(#shonen-clean-warrior)" />
+      </svg>
+      <img className="shonen-character shonen-character--frieren" src="https://frieren-anime.jp/wp-content/uploads/2023/08/chara01_full1.png" alt="" decoding="async" loading="lazy" referrerPolicy="no-referrer" onError={event => { event.currentTarget.style.display="none" }} />
 
       <div className="shonen-scene__mist"/>
       <div className="shonen-scene__vignette"/>
