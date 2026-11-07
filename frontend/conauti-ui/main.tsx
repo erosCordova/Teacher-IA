@@ -1240,7 +1240,7 @@ function App() {
 
         {page === 'chat' && (
           <main className="mtc-chat aur-chat-layout">
-            <NatureDashboard displayName={user.display_name || user.username} onNavigate={destination => openPage(destination)} />
+            <NatureDashboard displayName={user.display_name || user.username} />
             <section className="aur-chat-dock" aria-label="Chat con My Teacher IA">
             <div className="aur-chat-dock__heading"><span aria-hidden="true">✧</span><strong>Chat con My Teacher IA</strong><small>En línea</small></div>
             <div className="mtc-scroller" ref={conversationScroll}>

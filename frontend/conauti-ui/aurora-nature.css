@@ -971,3 +971,196 @@ html[data-myteacher-theme] #root .mtc-app .mtc-compose-area .mtc-composer {overf
   }
   html[data-myteacher-theme] #root .mtc-app .aur-tile {transition:none!important;}
 }
+
+
+/* ==============================================
+   INICIO SIN ACCESOS DUPLICADOS
+   Las secciones se abren desde el sidebar;
+   la portada conserva solamente la bienvenida
+   y el chat real, con protagonismo del paisaje.
+   ============================================== */
+html[data-myteacher-theme] #root .mtc-app .aur-home.aur-home--focused {
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  flex:1 1 auto;
+  min-height:0;
+  height:100%;
+  padding:0!important;
+  margin:0;
+  gap:0;
+  overflow:hidden;
+  border:1px solid rgba(115,205,251,.21);
+  border-radius:20px;
+  background:
+    radial-gradient(ellipse at 19% 75%,rgba(94,165,255,.17),transparent 48%),
+    linear-gradient(180deg,rgba(5,16,42,.03),rgba(6,21,51,.14) 54%,rgba(7,21,47,.64));
+}
+html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__hero {
+  position:relative;
+  display:flex;
+  align-items:center;
+  flex:1 1 auto!important;
+  height:100%;
+  min-height:460px;
+  max-height:none;
+  margin:0;
+  padding:30px clamp(14px,2vw,35px);
+  overflow:hidden;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__hero::before {
+  content:"";
+  position:absolute;
+  z-index:0;
+  left:1%;
+  top:12%;
+  width:66%;
+  height:77%;
+  background:radial-gradient(ellipse,rgba(84,150,255,.27),rgba(55,134,236,.10) 45%,transparent 75%);
+  filter:blur(22px);
+  pointer-events:none;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__hero::after {
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:0;
+  height:25%;z-index:0;
+  pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(5,21,46,.48));
+}
+html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__robot {
+  position:absolute;z-index:1;pointer-events:none;
+  left:clamp(-95px,-5vw,-32px);
+  bottom:-7%;
+  width:clamp(320px,34vw,565px);
+  height:min(86%,710px);
+  max-height:710px;
+  opacity:.98;
+  filter:drop-shadow(0 28px 44px rgba(0,16,48,.47));
+}
+html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__heading {
+  position:relative;z-index:3;
+  align-self:center;
+  align-items:flex-start;
+  margin-left:clamp(225px,30vw,455px)!important;
+  padding:15px clamp(10px,2vw,40px) 50px 0;
+  width:calc(100% - clamp(225px,30vw,455px));
+  max-width:590px;
+  text-shadow:0 3px 20px rgba(0,8,32,.79);
+}
+html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__orb {
+  margin-bottom:15px;
+  width:82px;height:82px;
+  align-self:flex-start;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__brand {
+  align-self:flex-start;
+  font-size:clamp(32px,3.25vw,54px);
+  white-space:normal;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__subtitle {
+  align-self:flex-start;
+  text-align:left;
+  margin:10px 0 clamp(24px,4vh,48px);
+  font-size:12px;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__heading h1 {
+  font-size:clamp(28px,2.65vw,43px)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__heading p {
+  font-size:clamp(12px,1.08vw,16px);
+  line-height:1.75;
+  max-width:540px;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__ground {
+  position:absolute;
+  left:5%;
+  bottom:3%;
+  width:56%;
+  height:13%;
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(129,219,255,.21),rgba(68,127,222,.07) 55%,transparent 75%);
+  filter:blur(11px);
+  pointer-events:none;
+}
+@media(min-width:1151px) and (max-width:1620px) {
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__robot {
+    width:clamp(275px,29vw,450px);
+    height:min(84%,620px);
+    left:-54px;
+    bottom:-4%;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__heading {
+    margin-left:clamp(175px,24vw,330px)!important;
+    width:calc(100% - clamp(175px,24vw,330px));
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__brand {
+    font-size:clamp(27px,2.8vw,43px);
+  }
+}
+@media(max-width:1150px) {
+  html[data-myteacher-theme] #root .mtc-app .aur-home.aur-home--focused {
+    flex:0 0 auto; height:auto; min-height:0;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__hero {
+    min-height:420px;flex:0 0 auto!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__robot {
+    width:370px;height:425px;bottom:-16%;left:-32px;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__heading {
+    margin-left:310px!important;
+    width:calc(100% - 310px);
+    padding-bottom:20px;
+  }
+}
+@media(max-width:900px) {
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__hero {
+    min-height:365px;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__robot {
+    width:290px;height:340px;left:-30px;bottom:-13%;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__heading {
+    margin-left:245px!important;
+    width:calc(100% - 245px);
+  }
+}
+@media(max-width:660px) {
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__hero {
+    min-height:355px;
+    padding:18px 12px;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__robot {
+    width:230px;height:310px;left:-69px;bottom:-15%;
+    opacity:.88;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__heading {
+    margin-left:140px!important;
+    width:calc(100% - 140px);
+    padding:8px 4px 15px 0;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__orb {
+    width:48px;height:48px;font-size:24px;margin-bottom:9px;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__brand {
+    font-size:clamp(20px,5.6vw,32px);
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__subtitle {
+    font-size:9px;margin:6px 0 20px;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__heading h1 {
+    font-size:clamp(20px,5.2vw,29px)!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__heading p {
+    font-size:10px;line-height:1.55;
+  }
+}
+@media(max-width:400px) {
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__robot {
+    width:205px;left:-78px;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-home--focused .aur-home__heading {
+    margin-left:113px!important;width:calc(100% - 113px);
+  }
+}
