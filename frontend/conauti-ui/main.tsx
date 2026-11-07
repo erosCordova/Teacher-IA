@@ -21,6 +21,7 @@ import './ConfiguracionGlobal'
 import './aurora-nature.css'
 import './shonen-classic.css'
 import './shonen-fix.css'
+import './shonen-characters-2026.css'
 
 type User = {
   id: string

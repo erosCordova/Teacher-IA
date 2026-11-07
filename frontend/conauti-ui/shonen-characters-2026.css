@@ -1,0 +1,215 @@
+/*
+  MY TEACHER IA / PERSONAJES REALES REEMPLAZADOS
+  Cada uno usa el recurso entregado por el usuario, excepto Frieren
+  (imagen oficial). La escena nunca intercepta los controles.
+  Capa final para respetar modo oscuro y modo claro.
+*/
+html[data-myteacher-theme] #root .shonen-scene {
+  --anime-figure-shadow:drop-shadow(0 12px 24px rgba(0,7,22,.34));
+}
+html[data-myteacher-theme] #root .shonen-scene .shonen-character {
+  position:absolute!important;
+  display:block;
+  width:auto!important;
+  max-width:clamp(160px,24vw,325px)!important;
+  max-height:50%!important;
+  height:auto!important;
+  left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  transform:none!important;
+  opacity:.86!important;
+  animation:shonen-character-float 10s ease-in-out infinite alternate!important;
+  filter:var(--anime-figure-shadow) brightness(.94) saturate(.84)!important;
+  pointer-events:none!important;
+  z-index:2;
+}
+/* Evitar rectángulos visibles de las imágenes con fondo incrustado. */
+html[data-myteacher-theme] #root .shonen-scene .shonen-character--gojo {
+  left:1%!important;top:2%!important;
+  width:clamp(150px,18vw,245px)!important;
+  height:37%!important;
+  opacity:.76!important;
+  -webkit-mask-image:radial-gradient(ellipse 80% 80% at 50% 46%,black 35%,transparent 99%)!important;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 46%,black 35%,transparent 99%)!important;
+}
+html[data-myteacher-theme] #root .shonen-scene .shonen-character--naruto {
+  left:1%!important;bottom:2%!important;
+  width:clamp(145px,19vw,252px)!important;
+  height:40%!important;
+  opacity:.81!important;
+  -webkit-mask-image:radial-gradient(ellipse 79% 80% at 50% 50%,black 33%,transparent 100%)!important;
+  mask-image:radial-gradient(ellipse 79% 80% at 50% 50%,black 33%,transparent 100%)!important;
+}
+html[data-myteacher-theme] #root .shonen-scene .shonen-character--luffy {
+  right:1%!important;top:1%!important;
+  width:clamp(180px,23vw,310px)!important;
+  height:42%!important;
+  opacity:.89!important;
+  filter:drop-shadow(0 7px 20px rgba(2,5,20,.28))!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+}
+html[data-myteacher-theme] #root .shonen-scene .shonen-character--ichigo {
+  right:1%!important;bottom:1%!important;
+  width:clamp(145px,17vw,220px)!important;
+  height:35%!important;
+  opacity:.78!important;
+  -webkit-mask-image:radial-gradient(ellipse 78% 81% at 50% 46%,black 38%,transparent 100%)!important;
+  mask-image:radial-gradient(ellipse 78% 81% at 50% 46%,black 38%,transparent 100%)!important;
+}
+html[data-myteacher-theme] #root .shonen-scene .shonen-character--frieren {
+  right:2%!important;
+  top:44%!important;
+  width:clamp(125px,14vw,186px)!important;
+  height:27%!important;
+  z-index:1!important;
+  opacity:.76!important;
+  -webkit-mask-image:radial-gradient(ellipse 82% 88% at 50% 49%,black 39%,transparent 100%)!important;
+  mask-image:radial-gradient(ellipse 82% 88% at 50% 49%,black 39%,transparent 100%)!important;
+}
+html[data-myteacher-theme] #root .mtc-app main.shonen-chat-centered .mtc-welcome {
+  z-index:4!important;
+  max-width:620px!important;
+  padding-inline:32px!important;
+  text-shadow:0 3px 12px rgba(1,10,26,.64);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-compose-area {z-index:7!important;}
+html[data-myteacher-theme] #root .shonen-scene .shonen-scene__mist {
+  background:linear-gradient(90deg,rgba(3,12,29,.1),rgba(4,13,30,.31) 28%,rgba(4,13,30,.32) 72%,rgba(3,12,29,.08));
+}
+/* Tema claro REAL: primero el lienzo, luego superficies, textos y controles. */
+html[data-myteacher-theme="light"] {
+  --mtc-bg:#eaf3ff;
+  --mtc-side:#edf5ff;
+  --mtc-surface:#ffffff;
+  --mtc-surface-hover:#ddebfc;
+  --mtc-field:#f7fbff;
+  --mtc-text:#10294a;
+  --mtc-muted:#42617f;
+  --mtc-border:rgba(72,132,189,.29);
+  --mtc-accent:#1a65a8;
+  --mtc-action:#176db2;
+  --mtc-action-text:#ffffff;
+  --shonen-main:#eaf3ff;
+  --shonen-panel:rgba(249,253,255,.96);
+  --shonen-glass:rgba(242,248,255,.92);
+  --shonen-edge:rgba(76,130,189,.40);
+  color-scheme:light!important;
+}
+html[data-myteacher-theme="light"] body,
+html[data-myteacher-theme="light"] #root,
+html[data-myteacher-theme="light"] #root .mtc-app,
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-content {
+  background:#eaf3ff!important;
+  color:#10294a!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-scene {
+  background:linear-gradient(140deg,#f4faff,#d7e9ff 64%,#eff7ff)!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-scene__landscape {
+  opacity:.20!important;
+  filter:saturate(.65) brightness(1.85)!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-scene__vignette {
+  background:radial-gradient(ellipse at center,rgba(255,255,255,.2),rgba(238,247,255,.65))!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-scene__mist {
+  background:linear-gradient(90deg,rgba(232,243,255,.52),rgba(239,247,255,.59) 30%,rgba(239,247,255,.65) 70%,rgba(226,239,255,.50))!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-sidebar {
+  background:linear-gradient(160deg,#f6faff,#e5f1ff)!important;
+  color:#1a3357!important;
+  border-right:1px solid #c3d8ed!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-sidebar :is(button,strong,small,h3,.mtc-brand) {
+  color:#21466b!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-sidebar .mtc-side-nav button.active {
+  color:#ffffff!important;
+  background:linear-gradient(105deg,#2476be,#1c5194)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-sidebar .mtc-side-nav button.active * {color:#fff!important;}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-sidebar .mtc-new-chat {
+  background:linear-gradient(105deg,#f6fbff,#d8e9ff)!important;
+  color:#194775!important;
+  border-color:#89b8e5!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-topbar {
+  background:rgba(245,250,255,.91)!important;
+  border-color:#c6daec!important;
+  color:#163758!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-topbar :is(strong,small,button,.aur-topbar-brand) {
+  color:#153653!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-topbar :is(button,.aur-topbar-brand) {
+  background:rgba(225,239,255,.85)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app main.shonen-chat-centered {
+  background:linear-gradient(90deg,rgba(240,248,255,.28),rgba(255,255,255,.55) 50%,rgba(240,248,255,.30))!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered .mtc-welcome {
+  background:radial-gradient(ellipse,rgba(255,255,255,.86),rgba(255,255,255,.21) 80%)!important;
+  text-shadow:none!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered .mtc-welcome :is(h1,p,span) {
+  color:#193e65!important;
+  text-shadow:none!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered form.mtc-composer {
+  color:#18395b!important;
+  background:rgba(252,254,255,.97)!important;
+  border:1px solid #87b6e7!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered form.mtc-composer textarea {
+  color:#16395e!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered form.mtc-composer textarea::placeholder {
+  color:#57728e!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered form.mtc-composer :is(.mtc-plus,.mtc-voice-button) {
+  color:#19598b!important;
+  background:#e2effd!important;
+  border-color:#9bc8ee!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered .mtc-message-assistant .mtc-message-body {
+  background:rgba(255,255,255,.88)!important;
+  color:#16395d!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered .mtc-message-assistant .mtc-message-body :is(p,strong,small) {
+  color:#16395d!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered :is(.mtc-guidance,.mtc-voice-inline-status) {
+  color:#395d7c!important;text-shadow:none!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app :is(.av-root,.study-center,.mtc-materials,.mtc-secondary) {
+  background:rgba(245,250,255,.86)!important;color:#163c64!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app :is(.av-header,.study-hero,.mtc-materials-heading,.mtc-settings-card,.myt-evaluaciones) {
+  background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(226,241,255,.96))!important;
+  color:#153b63!important;
+  border-color:#a7c9e8!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app :is(.av-header,.study-hero,.mtc-materials-heading,.mtc-settings-card,.myt-evaluaciones) :is(h1,h2,h3,p,small,strong,label) {
+  color:#19416b!important;text-shadow:none!important;
+}
+@media(max-width:1050px) {
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character {opacity:.56!important;}
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--gojo {width:160px!important;}
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--naruto {width:155px!important;}
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--luffy {width:180px!important;}
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--ichigo {width:135px!important;}
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--frieren {width:105px!important;}
+}
+@media(max-width:620px) {
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--gojo,
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--naruto,
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--ichigo {opacity:.31!important;}
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--frieren {opacity:.40!important;top:46%!important;}
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--luffy {opacity:.40!important;max-width:135px!important;}
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome {padding:12px!important;}
+}
+@media(prefers-reduced-motion:reduce) {
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character {animation:none!important;}
+}
