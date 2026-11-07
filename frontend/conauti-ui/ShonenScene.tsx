@@ -133,23 +133,44 @@ export default function ShonenScene({ variante = 'aplicacion' }: { variante?: Va
         <rect width="1600" height="930" fill="#000a17" opacity=".10"/>
       </svg>
 
-      {/* Canonical characters from four existing anime, never input controls. */}
+
+      {/*
+        Corrección de PNG con cuadrícula integrada (Luffy/Ichigo).
+        La matriz reduce alpha de píxeles luminosos neutros preservando
+        el personaje y los píxeles ya transparentes.
+        La imagen final sigue siendo arte del anime original, no un dibujo generado.
+      */}
+      <svg className="shonen-scene__filters" aria-hidden="true"
+        width="0" height="0" focusable="false" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="shonen-eliminar-cuadricula" x="-5%" y="-5%" width="110%" height="110%"
+            colorInterpolationFilters="sRGB">
+            <feColorMatrix type="matrix"
+              values="1 0 0 0 0   0 1 0 0 0   0 0 1 0 0   -0.38 -0.38 -0.38 1.15 0"/>
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="8" intercept="-1.85"/>
+            </feComponentTransfer>
+          </filter>
+        </defs>
+      </svg>
+
+      {/* Personajes originales de animes existentes: decoración, no controles. */}
       <img className="shonen-character shonen-character--gojo"
         src="https://jujutsukaisen.jp/images/chara_category6/chara_detail1_2nd.png"
-        alt="" decoding="async" loading="lazy" referrerPolicy="no-referrer"
+        alt="" decoding="async" loading="eager" referrerPolicy="no-referrer"
         onError={evento => usarAlternativa(evento, "https://anibase.net/files/3284b7f9e5f5b3e83893ae921bf8cf8a")}/>
       <img className="shonen-character shonen-character--naruto"
         src="https://pngimg.com/uploads/naruto/naruto_PNG4.png"
-        alt="" decoding="async" loading="lazy" referrerPolicy="no-referrer"
+        alt="" decoding="async" loading="eager" referrerPolicy="no-referrer"
         onError={evento => usarAlternativa(evento, "https://www.pngfind.com/pngs/m/57-574187_naruto-shippuden-naruto-official-art-hd-png-download.png")}/>
       <img className="shonen-character shonen-character--luffy"
-        src="https://toppng.com/uploads/preview/luffy-anime-one-piece-luffy-115628753714bjr6ypxar.png"
-        alt="" decoding="async" loading="lazy" referrerPolicy="no-referrer"
-        onError={evento => usarAlternativa(evento, "https://file.aiquickdraw.com/imgcompressed/img/compressed_3cd7e43437201fdb2b1e917d67afdbdc.webp")}/>
+        src="https://image.pngaaa.com/792/2134792-middle.png"
+        alt="" decoding="async" loading="eager" referrerPolicy="no-referrer"
+        onError={evento => usarAlternativa(evento, "https://toppng.com/uploads/preview/luffy-anime-one-piece-luffy-115628753714bjr6ypxar.png")}/>
       <img className="shonen-character shonen-character--ichigo"
-        src="https://www.pngfind.com/pngs/m/79-793358_bleach-ichigo-hd-png-download.png"
-        alt="" decoding="async" loading="lazy" referrerPolicy="no-referrer"
-        onError={evento => usarAlternativa(evento, "https://www.pngkey.com/png/detail/340-3401069_ichigo-kurosaki-render-6-ichigo-kurosaki-face.png")}/>
+        src="https://www.vhv.rs/dpng/d/434-4342176_ichigo-kurosaki-png-png-download-j-stars-ichigo.png"
+        alt="" decoding="async" loading="eager" referrerPolicy="no-referrer"
+        onError={evento => usarAlternativa(evento, "https://www.pngfind.com/pngs/m/79-793358_bleach-ichigo-hd-png-download.png")}/>
 
       <div className="shonen-scene__mist"/>
       <div className="shonen-scene__vignette"/>

@@ -1,0 +1,185 @@
+/*
+ * CORRECCIÓN VISUAL SHONEN — 2026-11-07
+ * Corrige los cuadros incrustados, tamaños exagerados y personajes cortados.
+ * No afecta el chat, botones, eventos ni APIs.
+ */
+
+/* Se mantienen los cuatro personajes reales, pero los que vienen de
+   imágenes con patrón de cuadros se procesan mediante un filtro SVG. */
+html[data-myteacher-theme] #root .shonen-scene .shonen-scene__filters {
+  position:absolute;
+  left:0;top:0;width:0;height:0;
+  pointer-events:none;
+}
+html[data-myteacher-theme] #root .shonen-scene .shonen-character {
+  max-width:none!important;
+  width:auto!important;
+  object-fit:contain!important;
+  object-position:center;
+  pointer-events:none!important;
+  transform:translate3d(0,0,0);
+  transform-origin:center bottom;
+  will-change:auto!important;
+  animation:shonen-character-float 11s ease-in-out infinite alternate;
+}
+html[data-myteacher-theme] #root .shonen-scene .shonen-character--gojo {
+  top:2%!important;
+  bottom:auto!important;
+  left:-2%!important;
+  right:auto!important;
+  height:56%!important;
+  opacity:.77!important;
+  filter:drop-shadow(5px 17px 27px rgba(1,8,26,.63)) saturate(.78) brightness(.87)!important;
+  mask-image:linear-gradient(90deg,#000 0%,#000 62%,transparent 100%);
+}
+html[data-myteacher-theme] #root .shonen-scene .shonen-character--naruto {
+  top:auto!important;
+  bottom:0!important;
+  left:-3%!important;
+  right:auto!important;
+  height:53%!important;
+  opacity:.83!important;
+  filter:drop-shadow(6px 13px 30px rgba(0,8,25,.6)) saturate(.86) brightness(.90)!important;
+  mask-image:linear-gradient(90deg,#000 0%,#000 66%,transparent 100%);
+}
+html[data-myteacher-theme] #root .shonen-scene .shonen-character--luffy {
+  top:2%!important;
+  bottom:auto!important;
+  left:auto!important;
+  right:-2%!important;
+  height:58%!important;
+  opacity:.85!important;
+  /* La primera operación extrae cuadros de colores neutros integrados
+     en los PNG. La máscara suaviza los bordes de la ilustración. */
+  filter:url("#shonen-eliminar-cuadricula") saturate(.88) brightness(.91)
+    drop-shadow(-4px 13px 23px rgba(0,7,22,.52))!important;
+  mask-image:linear-gradient(90deg,transparent 0%,#000 24%,#000 95%,transparent 100%);
+}
+html[data-myteacher-theme] #root .shonen-scene .shonen-character--ichigo {
+  top:auto!important;
+  bottom:0!important;
+  left:auto!important;
+  right:-3%!important;
+  height:54%!important;
+  opacity:.82!important;
+  filter:url("#shonen-eliminar-cuadricula") saturate(.83) brightness(.87)
+    drop-shadow(-4px 13px 23px rgba(0,7,22,.6))!important;
+  mask-image:linear-gradient(90deg,transparent 0%,#000 25%,#000 97%,transparent 100%);
+}
+/* Oscurecer visualmente las esquinas, no el centro de los mensajes. */
+html[data-myteacher-theme] #root .shonen-scene .shonen-scene__vignette {
+  background:
+    linear-gradient(90deg,rgba(0,5,18,.32) 0%,rgba(0,5,18,.08) 22%,rgba(1,7,24,.04) 72%,rgba(1,6,19,.33) 100%),
+    linear-gradient(180deg,rgba(2,8,21,.10),transparent 24%,rgba(1,6,18,.33) 100%)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome {
+  position:relative;
+  z-index:3;
+  width:min(100%,740px)!important;
+  padding:26px 24px 33px!important;
+  background:radial-gradient(ellipse at center,rgba(2,11,28,.48),rgba(2,11,28,.22) 61%,transparent 92%)!important;
+  border:0!important;
+  backdrop-filter:none!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome h1 {
+  font-size:clamp(33px,4.1vw,59px)!important;
+  max-width:100%;
+  overflow-wrap:break-word;
+  text-wrap:balance;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome p {
+  max-width:520px!important;
+  text-wrap:balance;
+  font-size:clamp(13px,1.08vw,16px)!important;
+}
+
+/* El menú es una región propia. Nunca ocultarlo por un recorte de la escena. */
+@media(min-width:851px) {
+  html[data-myteacher-theme] #root .mtc-app {
+    display:grid!important;
+    grid-template-columns:clamp(240px,19vw,285px) minmax(0,1fr)!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .mtc-sidebar {
+    display:flex!important;
+    position:sticky!important;
+    top:0!important;left:0!important;
+    height:100dvh!important;
+    width:100%!important;
+    visibility:visible!important;
+    opacity:1!important;
+    transform:none!important;
+    overflow:hidden;
+  }
+  html[data-myteacher-theme] #root .mtc-app .mtc-content {
+    grid-column:2!important;
+    min-width:0!important;
+  }
+}
+@media(max-width:1320px) {
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--gojo {
+    height:51%!important;left:-4%!important;opacity:.71!important;
+  }
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--naruto {
+    height:48%!important;left:-7%!important;
+  }
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--luffy {
+    height:52%!important;right:-5%!important;opacity:.76!important;
+  }
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character--ichigo {
+    height:48%!important;right:-8%!important;opacity:.77!important;
+  }
+}
+@media(max-width:850px) {
+  /* El menú se convierte en cajón lateral. Restaurar siempre ☰. */
+  html[data-myteacher-theme] #root .mtc-app {
+    display:block!important;grid-template-columns:1fr!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .mtc-sidebar {
+    position:fixed!important;
+    left:0!important;top:0!important;bottom:0!important;
+    width:min(310px,85vw)!important;
+    height:100dvh!important;
+    z-index:2000!important;
+    transform:translateX(-105%)!important;
+    transition:transform .23s ease!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .mtc-sidebar.mtc-sidebar-visible {
+    transform:translateX(0)!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .mtc-mobile-menu {
+    display:grid!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-scene .shonen-character--gojo {
+    height:37%!important;left:-13%!important;opacity:.40!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-scene .shonen-character--naruto {
+    height:37%!important;left:-14%!important;opacity:.40!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-scene .shonen-character--luffy {
+    height:40%!important;right:-13%!important;opacity:.43!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-scene .shonen-character--ichigo {
+    height:37%!important;right:-14%!important;opacity:.43!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome {
+    max-width:530px!important;
+    background:rgba(3,13,33,.33)!important;
+  }
+}
+@media(max-width:540px) {
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome {
+    width:calc(100% - 18px)!important;
+    padding:22px 14px!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome h1 {
+    font-size:clamp(27px,8vw,39px)!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome p {
+    font-size:12px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  html[data-myteacher-theme] #root .shonen-scene .shonen-character {
+    animation:none!important;
+  }
+}
