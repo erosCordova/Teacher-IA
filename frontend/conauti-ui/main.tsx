@@ -22,6 +22,7 @@ import './aurora-nature.css'
 import './shonen-classic.css'
 import './shonen-fix.css'
 import './shonen-characters-2026.css'
+import './shonen-cinema-reference.css'
 
 type User = {
   id: string
@@ -1249,8 +1250,12 @@ function App() {
 
                   <div className="mtc-welcome-symbol" aria-hidden="true"><MarcaMyTeacher /></div>
                   <h1>My Teacher IA</h1>
-                  <p>Estoy aquí para guiarte, resolver tus dudas y ayudarte a aprender paso a paso.</p>
-                  <span className="shonen-welcome__caption" aria-hidden="true">TU AVENTURA DE APRENDIZAJE COMIENZA AQUÍ</span>
+                  <p className="shonen-cinema-subtitle">Tu compañero educativo con Inteligencia Artificial</p>
+                  <div className="shonen-cinema-greeting">
+                    <span className="shonen-cinema-greeting__star" aria-hidden="true">✧</span>
+                    <span><strong>¡Hola! 👋 Soy My Teacher IA.</strong>
+                    <small>Pregúntame lo que quieras aprender, resolvamos dudas, practiquemos juntos o exploremos nuevos temas.</small></span>
+                  </div>
                 </section>
               ) : (
                 <div className="mtc-messages" aria-live="polite">

@@ -73,7 +73,7 @@ export default function ShonenScene({ variante = 'aplicacion' }: { variante?: Va
           <path d="M610 746q95 7 160 0M650 812q244 8 403 0M1090 855q174-8 248-3"/>
         </g>
         {/* Japanese torii — dark architectural silhouette */}
-        <g fill="#010b19" stroke="#174170" strokeWidth="2">
+        <g fill="#020b1d" stroke="#3367a2" strokeWidth="2" transform="translate(-215 -45)">
           <path d="M1000 239l283-17 69-34c-19 49-44 71-92 74l-268 18-42-20 50-21Z"/>
           <path d="M1011 287l249-18 15 21-271 19Z"/>
           <rect x="1035" y="299" width="27" height="250"/>
@@ -119,6 +119,91 @@ export default function ShonenScene({ variante = 'aplicacion' }: { variante?: Va
             cx={(i * 103 + 97) % 1600} cy={(i * 119 + 47) % 800}
             rx={4 + i % 4} ry="2.5" fill={i % 2 ? '#cc9aba' : '#ecd1e6'} opacity=".42"/>
         ))}
+
+        {/* Composición cinematográfica: santuario, camino y luces nocturnas. */}
+        <defs>
+          <linearGradient id={'cinema-path-' + id} x1="0" y1="0" x2="0" y2="1">
+            <stop stopColor="#275689" stopOpacity=".85"/>
+            <stop offset=".55" stopColor="#091a37"/>
+            <stop offset="1" stopColor="#041022"/>
+          </linearGradient>
+          <linearGradient id={'cinema-roof-' + id} x1="0" y1="0" x2="0" y2="1">
+            <stop stopColor="#223b60"/>
+            <stop offset=".4" stopColor="#090f21"/>
+            <stop offset="1" stopColor="#040918"/>
+          </linearGradient>
+          <radialGradient id={'cinema-light-' + id}>
+            <stop stopColor="#ffe6ab" stopOpacity=".94"/>
+            <stop offset=".16" stopColor="#e4a767" stopOpacity=".45"/>
+            <stop offset="1" stopColor="#e4a767" stopOpacity="0"/>
+          </radialGradient>
+          <linearGradient id={'cinema-haze-' + id} x1="0" y1="0" x2="0" y2="1">
+            <stop stopColor="#76b7ff" stopOpacity="0"/>
+            <stop offset=".7" stopColor="#2b6fa8" stopOpacity=".09"/>
+            <stop offset="1" stopColor="#95c9ff" stopOpacity=".19"/>
+          </linearGradient>
+        </defs>
+        {/* Siluetas de bosque y nubes en capas para aumentar profundidad. */}
+        <path d="M0 620L38 564 62 596 106 517 139 573 165 502 204 595 249 543 282 619
+                 342 554 381 628 432 549 480 611 516 574 559 627 612 565 659 621
+                 704 583 760 633 806 562 852 621 920 560 979 614 1057 554
+                 1110 621 1178 561 1230 604 1283 530 1329 622 1380 559
+                 1450 611 1508 533 1572 606 1600 570V930H0Z" fill="#020a19" opacity=".77"/>
+        <path d="M0 699Q196 617 398 683T792 673Q950 626 1160 663T1600 690V930H0Z"
+              fill="#061a36" opacity=".91"/>
+        <path d="M0 737Q200 677 422 725T819 716Q1126 662 1600 735V930H0Z"
+              fill="#06172d" opacity=".89"/>
+        {/* Santuario central con arquitectura japonesa retroiluminada. */}
+        <g transform="translate(800 651)" strokeLinejoin="round">
+          <path d="M-195 -20L-126 -64H126L195 -20L167 -8H-168Z" fill={'url(#cinema-roof-' + id + ')'}
+                stroke="#2a5280" strokeWidth="3"/>
+          <path d="M-140 -7H140V110H-140Z" fill="#08152a" stroke="#1d426d" strokeWidth="3"/>
+          <path d="M-162 -20H162L175 -4H-175Z" fill="#050a1a"/>
+          <path d="M-112 13H112V99H-112Z" fill="#0a1b32" stroke="#345f87"/>
+          <path d="M-67 13V99M0 13V99M67 13V99" stroke="#32516d" strokeWidth="6"/>
+          <path d="M-108 16H108V95H-108Z" fill="#f0ac68" opacity=".12"/>
+          <path d="M-100 22H-74V76H-100ZM-55 22H-8V76H-55ZM8 22H55V76H8ZM74 22H100V76H74Z"
+                fill="#df9857" opacity=".38"/>
+          <path d="M-168 109H168L192 124H-194Z" fill="#0a2744" stroke="#38577b"/>
+          <path d="M-25 12H25V110H-25Z" fill="#040a18" stroke="#4b6383" strokeWidth="2"/>
+          <path d="M-28 109H28V125H-28Z" fill="#0f2848"/>
+          <path d="M-100 -67H100L126 -61H-126Z" fill="#355579" opacity=".42"/>
+          <path d="M-25 -70V-89L0 -99L25 -89V-70Z" fill="#122845" stroke="#3a5579"/>
+        </g>
+        {/* Sendero reflectante con perspectiva y luz dispersa. */}
+        <path d="M648 777L952 777L1485 930H115Z" fill={'url(#cinema-path-' + id + ')'} opacity=".9"/>
+        <path d="M648 777L952 777L1485 930H115Z" fill="none" stroke="#5b91bb" strokeOpacity=".44"/>
+        <g stroke="#6cbbf1" strokeWidth="1" opacity=".22">
+          <path d="M619 795H984M549 819H1043M463 852H1136M362 887H1246M235 922H1398"/>
+          <path d="M790 778L745 930M810 778L845 930M705 779L532 930M890 779L1052 930"/>
+        </g>
+        <path d="M775 779L821 779L866 930H730Z" fill="#8ec7ff" opacity=".09"/>
+        <g stroke="#283f5c" fill="#091322" strokeWidth="3">
+          {[-1,1].map((sign) => (
+            <g key={sign} transform={'translate(' + (800+sign*370) + ' 665)'}>
+              <path d="M-45 -45L0 -75L45 -45L34 -38H-34Z" fill="#0b172c" stroke="#3a5782"/>
+              <rect x="-27" y="-38" width="54" height="60" rx="3"/>
+              <rect x="-18" y="-27" width="36" height="39" fill="#e0a66a" opacity=".74"/>
+              <path d="M0 23V78M-8 78H8" strokeWidth="8"/>
+              <circle cx="0" cy="-4" r="78" fill={'url(#cinema-light-' + id + ')'} stroke="none"/>
+            </g>
+          ))}
+        </g>
+        {Array.from({length:18},(_,i) => {
+          const side=i%2 ? 1 : -1
+          const depth=Math.floor(i/2)
+          const center=800+side*(330-depth*26)
+          const y=697+depth*21
+          const scale=1-depth*.065
+          return <g key={'lamp'+i} transform={'translate('+center+' '+y+') scale('+scale+')'}>
+            <path d="M-17 -10L0 -21L17 -10L14 -5H-14Z" fill="#142943" stroke="#456e9c" strokeWidth="2"/>
+            <rect x="-11" y="-5" width="22" height="25" fill="#ce915c" opacity=".71"/>
+            <path d="M0 19V39" stroke="#183b62" strokeWidth="5"/>
+            <circle r="31" fill={'url(#cinema-light-' + id + ')'} opacity=".9"/>
+          </g>
+        })}
+        <rect y="530" width="1600" height="400" fill={'url(#cinema-haze-' + id + ')'}/>
+
         <rect width="1600" height="930" fill="#000a17" opacity=".10"/>
       </svg>
 
