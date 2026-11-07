@@ -1,6 +1,18 @@
-import { useId } from 'react'
+import { useId, type SyntheticEvent } from 'react'
 
 type Variante = 'acceso' | 'aplicacion'
+
+/** Reintentar una fuente alternativa si falla la ilustración remota. */
+function usarAlternativa(evento: SyntheticEvent<HTMLImageElement>, url: string) {
+  const imagen = evento.currentTarget
+  if (imagen.dataset.alternativa === 'intentada') {
+    imagen.style.display = 'none'
+    return
+  }
+  imagen.dataset.alternativa = 'intentada'
+  imagen.src = url
+}
+
 
 /**
  * Escenografía decorativa. No contiene rutas, estado ni controles.
@@ -124,16 +136,20 @@ export default function ShonenScene({ variante = 'aplicacion' }: { variante?: Va
       {/* Canonical characters from four existing anime, never input controls. */}
       <img className="shonen-character shonen-character--gojo"
         src="https://jujutsukaisen.jp/images/chara_category6/chara_detail1_2nd.png"
-        alt="" decoding="async" loading="lazy" referrerPolicy="no-referrer"/>
+        alt="" decoding="async" loading="lazy" referrerPolicy="no-referrer"
+        onError={evento => usarAlternativa(evento, "https://anibase.net/files/3284b7f9e5f5b3e83893ae921bf8cf8a")}/>
       <img className="shonen-character shonen-character--naruto"
-        src="https://www.pngfind.com/pngs/m/57-574187_naruto-shippuden-naruto-official-art-hd-png-download.png"
-        alt="" decoding="async" loading="lazy" referrerPolicy="no-referrer"/>
+        src="https://pngimg.com/uploads/naruto/naruto_PNG4.png"
+        alt="" decoding="async" loading="lazy" referrerPolicy="no-referrer"
+        onError={evento => usarAlternativa(evento, "https://www.pngfind.com/pngs/m/57-574187_naruto-shippuden-naruto-official-art-hd-png-download.png")}/>
       <img className="shonen-character shonen-character--luffy"
-        src="https://www.pngitem.com/pimgs/m/247-2477271_transparent-one-piece-luffy-png-monkey-d-luffy.png"
-        alt="" decoding="async" loading="lazy" referrerPolicy="no-referrer"/>
+        src="https://toppng.com/uploads/preview/luffy-anime-one-piece-luffy-115628753714bjr6ypxar.png"
+        alt="" decoding="async" loading="lazy" referrerPolicy="no-referrer"
+        onError={evento => usarAlternativa(evento, "https://file.aiquickdraw.com/imgcompressed/img/compressed_3cd7e43437201fdb2b1e917d67afdbdc.webp")}/>
       <img className="shonen-character shonen-character--ichigo"
-        src="https://www.pikpng.com/pngl/m/380-3809628_bleach-anime-puzzle-and-dragons-x-bleach-clipart.png"
-        alt="" decoding="async" loading="lazy" referrerPolicy="no-referrer"/>
+        src="https://www.pngfind.com/pngs/m/79-793358_bleach-ichigo-hd-png-download.png"
+        alt="" decoding="async" loading="lazy" referrerPolicy="no-referrer"
+        onError={evento => usarAlternativa(evento, "https://www.pngkey.com/png/detail/340-3401069_ichigo-kurosaki-render-6-ichigo-kurosaki-face.png")}/>
 
       <div className="shonen-scene__mist"/>
       <div className="shonen-scene__vignette"/>
