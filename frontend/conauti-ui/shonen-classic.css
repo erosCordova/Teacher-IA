@@ -1,0 +1,864 @@
+/*
+ MY TEACHER IA · SHONEN CLÁSICO (opción 1)
+ Escenario azul de noche y personajes de Naruto, Jujutsu Kaisen,
+ One Piece y Bleach. Los derechos de los personajes corresponden
+ a sus respectivos autores/titulares.
+ Capa PRESENTACIONAL: preservar todos los componentes funcionales.
+ Se carga DESPUÉS de aurora-nature.css.
+ */
+html[data-myteacher-theme] {
+  --mtc-bg:#040c1c;
+  --mtc-side:#061227;
+  --mtc-surface:#102748;
+  --mtc-surface-hover:#163b68;
+  --mtc-field:#0a2241;
+  --mtc-text:#eff8ff;
+  --mtc-muted:#b5cfe6;
+  --mtc-border:rgba(129,187,248,.37);
+  --mtc-accent:#71c7ff;
+  --mtc-action:#5cc5ff;
+  --mtc-action-text:#051630;
+  --mtc-blue:#6caeff;
+  --mtc-cyan:#86d7ff;
+  --mtc-green:#72c3ed;
+  --mtc-soft-cyan:rgba(57,110,189,.19);
+  --shonen-main:#06152d;
+  --shonen-panel:rgba(5,19,43,.90);
+  --shonen-glass:rgba(6,20,46,.83);
+  --shonen-edge:rgba(120,182,251,.52);
+  --shonen-glow:#64b9ff;
+  color-scheme:dark;
+}
+html[data-myteacher-theme="light"] {
+  --shonen-main:#0a1c38;
+  --shonen-panel:rgba(10,32,62,.91);
+  --shonen-glass:rgba(12,34,68,.84);
+  --shonen-edge:rgba(127,196,255,.66);
+  --shonen-glow:#88cfff;
+}
+html[data-myteacher-theme] body,
+html[data-myteacher-theme] #root {
+  background:#040c1d!important;
+  color:#ecf8ff!important;
+  font-family:Inter,"Segoe UI",system-ui,sans-serif!important;
+}
+html[data-myteacher-theme] #root :is(button,a,input,textarea,select):focus-visible {
+  outline:2px solid #a9e8ff!important;
+  outline-offset:3px!important;
+}
+
+/* Night ambience: an actual layered landscape, never a screenshot of UI. */
+.shonen-scene {
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  overflow:hidden;
+  pointer-events:none;
+  isolation:isolate;
+  background:radial-gradient(ellipse at 50% 29%,#102e56,#07152d 54%,#040b1c);
+}
+.shonen-scene__landscape {
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;display:block;
+  filter:saturate(.82) contrast(1.10);
+}
+.shonen-scene__mist {
+  position:absolute;inset:0;z-index:4;
+  background:
+    radial-gradient(ellipse at 49% 37%,rgba(29,95,169,.07),transparent 30%),
+    linear-gradient(90deg,rgba(4,11,28,.26),transparent 22%,transparent 79%,rgba(3,10,25,.19));
+}
+.shonen-scene__vignette {
+  position:absolute;inset:0;z-index:5;
+  background:linear-gradient(180deg,rgba(2,8,21,.11),transparent 24%,transparent 63%,rgba(2,8,21,.39)),
+             radial-gradient(ellipse at center,transparent 31%,rgba(1,6,18,.55) 100%);
+}
+.shonen-character {
+  position:absolute;display:block;
+  width:auto;max-width:none;height:auto;
+  transform-origin:50% 75%;
+  filter:drop-shadow(0 16px 25px rgba(0,6,22,.67)) saturate(.88) brightness(.9);
+  user-select:none;
+  object-fit:contain;
+  pointer-events:none;
+  will-change:transform;
+  animation:shonen-character-float 8s ease-in-out infinite alternate;
+}
+.shonen-character--gojo {
+  z-index:2;height:69%;
+  left:-5%;top:-9%;
+  opacity:.88;
+  animation-delay:-2s;
+}
+.shonen-character--naruto {
+  z-index:3;height:69%;
+  left:-8%;bottom:-15%;
+  opacity:.90;
+  animation-delay:-4s;
+}
+.shonen-character--luffy {
+  z-index:2;height:70%;
+  right:-5%;top:-9%;
+  opacity:.92;
+  animation-delay:-1s;
+}
+.shonen-character--ichigo {
+  z-index:3;height:70%;
+  right:-11%;bottom:-18%;
+  opacity:.91;
+  animation-delay:-5s;
+}
+.shonen-petal {
+  animation:shonen-petal-drift 15s ease-in-out infinite alternate;
+}
+@keyframes shonen-character-float {
+  from{transform:translate3d(0,0,0)}
+  to{transform:translate3d(0,-9px,0)}
+}
+@keyframes shonen-petal-drift {
+  from{translate:0 -8px;opacity:.28}
+  to{translate:28px 28px;opacity:.68}
+}
+@keyframes shonen-blue-pulse {
+  0%{box-shadow:0 0 11px rgba(69,177,255,.17),inset 0 1px rgba(215,246,255,.10)}
+  100%{box-shadow:0 0 23px rgba(63,171,255,.44),inset 0 1px rgba(215,246,255,.19)}
+}
+
+/* Standard layout: side navigation remains, main chat stays centered. */
+html[data-myteacher-theme] #root .mtc-app {
+  display:grid!important;
+  grid-template-columns:clamp(228px,19vw,292px) minmax(0,1fr)!important;
+  background:var(--shonen-main)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-content {
+  position:relative;isolation:isolate;
+  overflow:hidden;
+  background:#07142d!important;
+  min-width:0;
+  color:#f0f9ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-content > .shonen-scene {
+  position:absolute;
+  z-index:-1;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-content[data-shonen-page]:not([data-shonen-page="chat"]) .shonen-character {
+  opacity:.17;
+  filter:grayscale(.25) brightness(.65) saturate(.6);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-content[data-shonen-page]:not([data-shonen-page="chat"]) .shonen-scene__vignette {
+  background:linear-gradient(100deg,rgba(3,12,29,.58),rgba(4,13,34,.75));
+}
+
+/* Nav from mockup: a dark floating capsule with quiet cool-blue borders. */
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar {
+  position:relative;
+  z-index:8!important;
+  padding:18px 12px 12px!important;
+  background:
+    radial-gradient(ellipse at 8% 12%,rgba(41,96,172,.19),transparent 43%),
+    linear-gradient(150deg,rgba(4,18,39,.98),rgba(4,13,29,.99))!important;
+  border-right:1px solid rgba(104,175,248,.44)!important;
+  color:#f1f9ff!important;
+  box-shadow:9px 0 34px rgba(1,5,17,.48),inset -2px 0 rgba(48,112,191,.11)!important;
+  gap:8px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-head {
+  border-bottom:1px solid rgba(127,179,242,.24)!important;
+  padding:6px 8px 16px!important;
+  margin-bottom:4px!important;
+  flex:0 0 auto;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-brand {
+  display:flex;align-items:center;gap:11px;
+  color:#f0f9ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-brand strong {
+  color:#f3f8ff!important;
+  font-size:clamp(15px,1.1vw,18px)!important;
+  font-weight:740!important;
+  letter-spacing:-.02em!important;
+  text-shadow:0 0 15px rgba(71,160,255,.22);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-mark {
+  display:grid;place-items:center;
+  width:45px!important;height:45px!important;
+  flex:0 0 45px;
+  background:linear-gradient(145deg,rgba(33,74,127,.72),rgba(8,21,47,.89))!important;
+  color:#d6f1ff!important;
+  border:1px solid rgba(147,203,255,.61)!important;
+  border-radius:12px!important;
+  box-shadow:0 0 18px rgba(79,159,249,.23)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-mark svg {
+  filter:drop-shadow(0 0 7px rgba(112,189,255,.40));
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-new-chat {
+  min-height:46px!important;
+  background:linear-gradient(100deg,rgba(32,84,150,.44),rgba(10,35,79,.65))!important;
+  border:1px solid rgba(114,188,255,.59)!important;
+  border-radius:10px!important;
+  color:#eff8ff!important;
+  font-weight:700!important;
+  font-size:12px!important;
+  letter-spacing:.01em!important;
+  box-shadow:0 0 13px rgba(26,134,255,.14),inset 0 1px rgba(229,250,255,.13)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-new-chat:hover {
+  border-color:#c3edff!important;
+  background:linear-gradient(120deg,rgba(41,112,195,.65),rgba(15,59,114,.75))!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-nav {
+  padding:9px 0 11px!important;
+  display:grid;gap:3px!important;
+  border-bottom:1px solid rgba(97,161,234,.14)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-nav button,
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer button {
+  color:#d8e5f5!important;
+  background:transparent!important;
+  border:1px solid transparent!important;
+  border-radius:10px!important;
+  min-height:45px!important;
+  display:flex!important;align-items:center!important;
+  padding:10px 11px!important;
+  text-align:left!important;
+  font-size:12.5px!important;
+  transition:background .2s,border-color .2s,box-shadow .2s!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-nav button:hover,
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer button:hover {
+  color:#fff!important;
+  background:rgba(43,95,163,.32)!important;
+  border-color:rgba(116,181,242,.23)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-nav button.active,
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer button.active {
+  color:#fff!important;
+  border:1px solid rgba(147,209,255,.78)!important;
+  background:linear-gradient(100deg,rgba(46,108,190,.68),rgba(19,61,123,.69))!important;
+  box-shadow:0 0 16px rgba(60,165,255,.45),inset 0 0 16px rgba(58,141,242,.14)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-nav .av-side-emoji {
+  font-size:18px!important;
+  filter:drop-shadow(0 0 3px rgba(136,183,241,.18));
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-history {
+  min-height:0;
+  color:#dfeeff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-history .historial-avanzado h3 {
+  color:#a4bad7!important;
+  letter-spacing:.10em!important;
+  font-size:10px;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-history :is(.historial-fila button,.historial-fila strong) {
+  color:#dcecff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-history .historial-fila.elegida {
+  border-left:2px solid #79c9ff!important;
+  background:rgba(42,90,166,.26)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-history input {
+  color:#e9f9ff!important;background:#112848!important;
+  border:1px solid rgba(115,172,235,.38)!important;
+  border-radius:9px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer {
+  border-top:1px solid rgba(117,180,245,.25)!important;
+  padding-top:10px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-side-footer .mtc-account {
+  color:#e6f2ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-avatar {
+  background:linear-gradient(120deg,#225a9d,#0d264c)!important;
+  color:#f3fcff!important;
+  border:1px solid rgba(146,206,255,.58)!important;
+  border-radius:50%!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-logout-button {
+  color:#b2c7df!important;
+}
+
+/* Top navigation is translucent and low visual weight. */
+html[data-myteacher-theme] #root .mtc-app .mtc-topbar {
+  position:relative;z-index:4;
+  flex:0 0 73px!important;
+  height:73px!important;min-height:73px!important;
+  padding:0 clamp(20px,2vw,42px)!important;
+  border-bottom:1px solid rgba(118,183,250,.29)!important;
+  background:linear-gradient(90deg,rgba(2,12,28,.72),rgba(5,23,50,.59),rgba(2,13,32,.79))!important;
+  box-shadow:0 12px 27px rgba(0,6,22,.16)!important;
+  color:#f2fbff!important;
+  backdrop-filter:blur(12px);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-title strong,
+html[data-myteacher-theme] #root .mtc-app .aur-topbar-brand {
+  color:#f2fbff!important;
+  font-weight:720!important;
+  letter-spacing:-.015em!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-title small {
+  color:#a9c8e7!important;
+}
+html[data-myteacher-theme] #root .mtc-app .aur-topbar-brand {
+  border:1px solid rgba(108,190,249,.30)!important;
+  border-radius:11px!important;
+  background:rgba(19,45,91,.39)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-topbar :is(.mtc-icon-button,.mtc-back-to-chat) {
+  border-radius:11px!important;
+  background:rgba(15,44,83,.44)!important;
+  border:1px solid rgba(117,190,254,.33)!important;
+  color:#e8f8ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-topbar :is(.mtc-icon-button,.mtc-back-to-chat):hover {
+  border-color:#8bd2ff!important;
+  background:rgba(31,91,164,.49)!important;
+}
+
+/* Main chat: one center column as requested, not a second side dock. */
+html[data-myteacher-theme] #root .mtc-app main.mtc-chat.shonen-chat-centered {
+  position:relative;z-index:2;
+  isolation:isolate;
+  display:flex!important;flex-direction:column!important;
+  width:100%;min-width:0;min-height:0;
+  flex:1 1 auto;
+  margin:0!important;padding:0!important;
+  overflow:hidden!important;
+  background:
+    linear-gradient(90deg,rgba(2,10,28,.05),rgba(2,9,25,.10) 28%,rgba(3,12,29,.19) 50%,rgba(1,9,25,.08) 72%,rgba(1,7,20,.03)),
+    linear-gradient(180deg,rgba(0,6,20,.08),transparent 21%,rgba(1,7,22,.30) 99%)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-scroller {
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  overflow-y:auto;
+  padding:clamp(15px,2vw,26px) clamp(17px,2.5vw,36px) 13px!important;
+  scrollbar-color:rgba(107,180,255,.47) transparent;
+  scrollbar-width:thin;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome {
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;justify-content:center;
+  width:min(100%,790px);
+  min-height:275px;
+  max-height:none;
+  margin:auto!important;
+  padding:20px 24px 30px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:none!important;
+  text-align:center;
+  box-shadow:none!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome::after,
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome::before {
+  display:none!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome-symbol {
+  display:grid!important;
+  place-items:center;
+  width:98px!important;height:98px!important;
+  margin:0 0 15px!important;
+  padding:16px!important;
+  background:rgba(4,23,52,.22)!important;
+  border:0!important;
+  border-radius:9px!important;
+  color:#dcf6ff!important;
+  filter:drop-shadow(0 0 11px rgba(93,176,252,.72));
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome-symbol svg {
+  width:100%;height:100%;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome h1 {
+  margin:0!important;
+  color:#f3faff!important;
+  font-size:clamp(34px,5vw,65px)!important;
+  font-weight:800!important;
+  line-height:1.07;
+  letter-spacing:-.06em!important;
+  text-shadow:0 4px 18px rgba(0,5,17,.92),0 0 26px rgba(63,161,255,.67)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome p {
+  color:#e0ebf9!important;
+  margin:18px 0 0!important;
+  max-width:520px;
+  font-size:clamp(14px,1.18vw,18px)!important;
+  line-height:1.6!important;
+  text-shadow:0 3px 12px rgba(0,5,18,.88);
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .shonen-welcome__caption {
+  display:block;
+  margin-top:29px;
+  font-size:9px;
+  font-weight:760;
+  letter-spacing:.27em;
+  color:#96bcdf;
+  text-shadow:0 3px 9px rgba(0,7,20,.72);
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-messages {
+  width:100%;max-width:880px!important;
+  gap:24px!important;
+  margin:0 auto!important;
+  padding:16px 0 37px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-message-user .mtc-message-body {
+  background:linear-gradient(130deg,rgba(21,70,131,.91),rgba(15,43,87,.95))!important;
+  border:1px solid rgba(109,185,255,.55)!important;
+  border-radius:19px 19px 5px 19px!important;
+  box-shadow:inset 0 1px rgba(220,250,255,.1),0 13px 27px rgba(0,7,24,.29)!important;
+  color:#eef9ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-message-assistant .mtc-message-body {
+  border-left:2px solid rgba(125,199,255,.6)!important;
+  background:linear-gradient(90deg,rgba(9,38,78,.81),rgba(4,21,53,.57),transparent)!important;
+  color:#e7f6ff!important;
+  border-radius:0 13px 13px 0;
+  padding:14px 17px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-message-body :is(p,small,strong) {
+  color:#e7f5ff!important;
+  line-height:1.65!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-ai-mark {
+  background:linear-gradient(130deg,#1e5c9c,#0d2c58)!important;
+  border:1px solid rgba(137,207,255,.53)!important;
+  box-shadow:0 0 12px rgba(55,153,248,.21)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-compose-area {
+  position:relative;z-index:5;
+  flex:0 0 auto;
+  align-self:center;
+  width:calc(100% - 48px)!important;
+  max-width:970px!important;
+  padding:12px 0 16px!important;
+  margin:0 auto!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered form.mtc-composer {
+  min-height:81px;
+  position:relative;
+  overflow:visible!important;
+  border:2px solid rgba(101,187,254,.70)!important;
+  border-radius:22px!important;
+  background:linear-gradient(130deg,rgba(9,35,71,.91),rgba(4,17,43,.96))!important;
+  box-shadow:0 0 22px rgba(57,163,255,.23),inset 0 1px rgba(206,238,255,.15),0 14px 37px rgba(0,8,27,.36)!important;
+  backdrop-filter:blur(17px);
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered form.mtc-composer::before {
+  content:"";
+  position:absolute;left:24%;right:24%;top:-2px;height:2px;
+  background:linear-gradient(90deg,transparent,#a0dcff,transparent);
+  box-shadow:0 0 9px #68baff;
+  pointer-events:none;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered form.mtc-composer textarea {
+  color:#f4fbff!important;
+  background:transparent!important;
+  font-size:14px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered form.mtc-composer textarea::placeholder {
+  color:#9fbbd8!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered form.mtc-composer :is(.mtc-plus,.mtc-voice-button) {
+  background:rgba(27,72,134,.60)!important;
+  color:#d1f3ff!important;
+  border:1px solid rgba(123,203,255,.60)!important;
+  border-radius:12px!important;
+  box-shadow:inset 0 1px rgba(224,248,255,.1)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered form.mtc-composer .mtc-send {
+  background:linear-gradient(130deg,#b9e9ff,#67c2ff 50%,#3d87dc)!important;
+  color:#082244!important;
+  border:1px solid rgba(215,246,255,.77)!important;
+  border-radius:13px!important;
+  box-shadow:0 0 16px rgba(60,153,255,.38)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-tools-menu {
+  color:#f0f9ff!important;
+  background:#0c2244!important;
+  border:1px solid rgba(127,200,255,.56)!important;
+  border-radius:13px!important;
+  box-shadow:0 20px 45px rgba(0,6,25,.63)!important;
+  z-index:100!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-tools-menu button {
+  color:#eaf5ff!important;
+  border-radius:8px!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-tools-menu button:hover {
+  background:rgba(45,102,184,.39)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered :is(.mtc-guidance,.mtc-voice-inline-status) {
+  color:#bdd5ed!important;
+  font-size:10px!important;
+  text-shadow:0 2px 10px #010917;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-notice {
+  position:relative;z-index:5;
+  background:#11315a!important;
+  color:#e6f8ff!important;
+  border-color:rgba(120,199,255,.55)!important;
+}
+
+/* Inner learning pages should match the scene rather than white cards. */
+html[data-myteacher-theme] #root .mtc-app :is(.av-root,.study-center,.mtc-materials,.mtc-secondary) {
+  position:relative;z-index:2;
+  background:linear-gradient(135deg,rgba(3,14,35,.54),rgba(5,17,39,.82))!important;
+  color:#e9f7ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(.av-header,.study-hero,.mtc-materials-heading) {
+  background:
+    radial-gradient(ellipse at 75% 20%,rgba(50,122,204,.20),transparent 52%),
+    linear-gradient(127deg,rgba(10,40,82,.95),rgba(4,17,42,.89))!important;
+  border:1px solid rgba(115,189,252,.47)!important;
+  border-radius:18px!important;
+  box-shadow:0 15px 40px rgba(0,6,24,.31),inset 0 1px rgba(215,250,255,.1)!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(.av-header h1,.study-hero h1,.mtc-materials-heading h1) {
+  color:#eefaff!important;
+  letter-spacing:-.04em!important;
+  text-shadow:0 2px 14px rgba(4,12,26,.7);
+}
+html[data-myteacher-theme] #root .mtc-app :is(.av-header p,.study-hero p,.mtc-materials-heading p) {
+  color:#c9deef!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(.av-header .aur-section-companion,.study-hero .aur-section-companion,.mtc-materials-heading .aur-section-companion) {
+  display:none!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(.av-eyebrow,.study-eyebrow,.mtc-materials-kicker) {
+  color:#96d6ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(
+  .av-game-card,.av-puzzle-experience,.av-quiz-panel,.av-curiosity-panel,.av-achievement-card,
+  .study-route-panel,.study-route-card,.study-flashcards,.study-flashcard,.study-create-box,
+  .study-lab,.study-exam,.study-board,
+  .mtc-materials-card,.mtc-materials-file,.mtc-materials-upload,
+  .myt-estadistica,.myt-bienvenida,.myt-area-practica,.myt-pregunta
+) {
+  background:linear-gradient(140deg,rgba(13,41,80,.92),rgba(4,19,47,.95))!important;
+  border:1px solid rgba(106,165,234,.38)!important;
+  border-radius:15px!important;
+  color:#f0f9ff!important;
+  box-shadow:0 15px 33px rgba(0,6,21,.28),inset 0 1px rgba(166,210,251,.08)!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(
+  .av-game-card,.av-puzzle-experience,.av-quiz-panel,.av-curiosity-panel,.av-achievement-card,
+  .study-route-panel,.study-route-card,.study-flashcards,.study-flashcard,.study-create-box,
+  .study-lab,.study-exam,.study-board,.mtc-materials-card,.mtc-materials-file,.mtc-materials-upload,
+  .myt-estadistica,.myt-bienvenida,.myt-area-practica,.myt-pregunta
+) :is(h2,h3,h4,p,small,strong,label) {color:#d9eafe!important;}
+html[data-myteacher-theme] #root .mtc-app :is(.av-game-card,.study-route-card,.mtc-materials-file):hover {
+  border-color:#9dceff!important;
+  box-shadow:0 0 18px rgba(52,134,241,.17),0 17px 32px rgba(0,7,25,.3)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .myt-evaluaciones {
+  --mt-bg:#0b1e3c;--mt-panel:#142e57;--mt-text:#e6f5ff;
+  --mt-muted:#b0cbe5;--mt-border:rgba(116,178,244,.4);--mt-accent:#9ed4ff;
+  background:linear-gradient(135deg,rgba(11,34,75,.95),rgba(3,17,42,.96))!important;
+  border:1px solid rgba(115,179,253,.48)!important;color:#e6f5ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app :is(.ma-academica,.mt-memoria,.mt-plan,.mt-simulacro,.mt-logros) {
+  --ma-fondo:#0b2348;--ma-panel:#16375e;--ma-texto:#e9f6ff;--ma-muted:#b0c9e2;--ma-borde:rgba(105,171,246,.38);--ma-acento:#8dcfff;
+  --mm-fondo:#0b2348;--mm-suave:#16375e;--mm-texto:#e9f6ff;--mm-secundario:#b0c9e2;--mm-borde:rgba(105,171,246,.38);
+  --mp-bg:#0b2348;--mp-soft:#16375e;--mp-text:#e9f6ff;--mp-muted:#b0c9e2;--mp-line:rgba(105,171,246,.38);--mp-accent:#8dcfff;
+  --ms-bg:#0b2348;--ms-panel:#16375e;--ms-text:#e9f6ff;--ms-muted:#b0c9e2;--ms-border:rgba(105,171,246,.38);--ms-accent:#8dcfff;
+  --ml-fondo:#0b2348;--ml-suave:#16375e;--ml-texto:#e9f6ff;--ml-muted:#b0c9e2;--ml-borde:rgba(105,171,246,.38);--ml-acento:#8dcfff;
+  background:linear-gradient(125deg,rgba(11,35,71,.97),rgba(4,19,45,.97))!important;
+  border-color:rgba(115,179,248,.40)!important;
+  color:#e7f5ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-settings-card {
+  background:linear-gradient(140deg,rgba(8,33,72,.97),rgba(3,17,42,.98))!important;
+  color:#e9f9ff!important;
+  border:1px solid rgba(115,189,248,.43)!important;
+  border-radius:19px!important;
+  box-shadow:0 25px 53px rgba(0,7,25,.36)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-settings-card :is(h1,h2,h3,p,strong,small,label) {
+  color:#e9f6ff!important;
+}
+
+/* Access layout: character artwork on left, unchanged authentication on right. */
+html[data-myteacher-theme] #root .mtc-auth-shell.shonen-auth-shell {
+  position:relative;isolation:isolate;
+  min-height:100dvh!important;
+  grid-template-columns:minmax(0,1.14fr) minmax(355px,.7fr)!important;
+  background:#06132c!important;
+  overflow:hidden;
+}
+#root .shonen-auth-shell>.shonen-scene {
+  position:absolute;inset:0;z-index:-1;
+}
+#root .shonen-auth-shell .shonen-character--naruto {opacity:.55;}
+#root .shonen-auth-shell .shonen-character--gojo {opacity:.66;}
+#root .shonen-auth-shell .shonen-character--luffy {opacity:.15;}
+#root .shonen-auth-shell .shonen-character--ichigo {opacity:.14;}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-showcase {
+  z-index:2;position:relative;
+  display:flex;flex-direction:column;
+  padding:clamp(26px,3vw,48px) clamp(20px,3vw,53px)!important;
+  background:linear-gradient(110deg,rgba(3,13,35,.19),rgba(4,15,35,.32))!important;
+  min-height:100dvh!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-brand {
+  background:rgba(7,26,57,.73)!important;
+  border:1px solid rgba(127,192,246,.45)!important;
+  border-radius:13px!important;
+  backdrop-filter:blur(10px);
+}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-hero {
+  z-index:3;
+  margin:auto 0 7vh clamp(185px,18vw,355px)!important;
+  padding:10px 0 15px!important;
+  max-width:660px!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-hero h1 {
+  color:#f6fbff!important;
+  font-size:clamp(35px,4.5vw,72px)!important;
+  text-shadow:0 4px 23px rgba(1,7,23,.87),0 0 14px rgba(105,172,254,.26);
+}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-hero h1 em {
+  color:#a8d7ff!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-hero > p {
+  color:#dcecf9!important;
+  line-height:1.7!important;
+  text-shadow:0 2px 10px rgba(1,7,23,.86);
+}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-preview,
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-features {
+  display:none!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-access {
+  color:#e7f5ff!important;
+  position:relative;z-index:4;
+  padding:clamp(25px,3vw,45px)!important;
+  max-height:100dvh;overflow-y:auto;
+  background:linear-gradient(150deg,rgba(6,20,44,.90),rgba(3,13,32,.97))!important;
+  border-left:1px solid rgba(130,186,244,.4)!important;
+  backdrop-filter:blur(17px);
+}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-form-panel {
+  max-width:460px!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-form-panel :is(h2,strong,label) {
+  color:#eaf8ff!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell :is(
+  .mtc-auth-subtitle,.mtc-auth-security,.mtc-auth-encouragement,
+  .mtc-auth-google-header small,.mtc-auth-method-pending
+) {color:#b6cde4!important;}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-tabs {
+  background:rgba(15,48,94,.66)!important;
+  border:1px solid rgba(124,185,246,.37)!important;
+  border-radius:10px!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-tabs button {
+  color:#c2ddf3!important;
+  border-radius:8px!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-tabs button.selected {
+  color:#f6faff!important;
+  border:1px solid rgba(139,200,255,.43)!important;
+  background:linear-gradient(112deg,#224f98,#103368)!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell :is(
+  .mtc-auth-google-panel,.mtc-auth-email-form,.mtc-auth-legacy-form
+) {
+  background:rgba(10,35,74,.79)!important;
+  border:1px solid rgba(111,173,247,.46)!important;
+  color:#ecf8ff!important;
+  border-radius:13px!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-email-choice {
+  color:#e9f7ff!important;
+  background:rgba(20,60,116,.62)!important;
+  border:1px solid rgba(122,188,250,.42)!important;
+  border-radius:10px!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell :is(.mtc-auth-email-submit,.mtc-auth-legacy-submit) {
+  background:linear-gradient(122deg,#a8e6ff,#5eb5ee)!important;
+  color:#082644!important;
+  border-radius:11px!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell :is(
+  .mtc-auth-email-form input,.mtc-auth-legacy-form input
+) {
+  background:#09234b!important;
+  color:#e9f7ff!important;
+  border:1px solid rgba(120,179,245,.46)!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-theme {
+  color:#dceeff!important;
+  background:rgba(24,65,120,.57)!important;
+  border:1px solid rgba(118,179,247,.39)!important;
+  border-radius:10px!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-topbar > span,
+html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-links a {
+  color:#bcd5ed!important;
+}
+
+/* Floating microphone / screen share / voice-library dialogs remain readable. */
+html[data-myteacher-theme] .mt-pantalla {
+  --mp-bg:#0b2245;--mp-soft:#153763;--mp-text:#eaf8ff;
+  --mp-muted:#bbd5e9;--mp-line:rgba(113,189,253,.48);
+  --mp-accent:#97d5ff;--mp-bubble:#1c4b76;
+  border:1px solid rgba(143,206,254,.66)!important;
+  border-radius:15px!important;
+  background:linear-gradient(145deg,#112d55,#06182f)!important;
+  color:#edf7ff!important;
+}
+html[data-myteacher-theme] .mt-pantalla .mt-pantalla-top {
+  background:linear-gradient(115deg,#1b4e8d,#0a244b)!important;
+  color:#effaff!important;
+}
+html[data-myteacher-theme] :is(.cv-modal,.myteacher-voices-dialog,.conauti-ajustes-ventana) {
+  border:1px solid rgba(128,200,251,.57)!important;
+  border-radius:17px!important;
+  background:linear-gradient(135deg,#122b53,#071831)!important;
+  color:#e8f7ff!important;
+  box-shadow:0 27px 63px rgba(0,6,22,.51)!important;
+}
+html[data-myteacher-theme] :is(.cv-header,.myteacher-voices-heading,.conauti-ajustes-header) {
+  background:linear-gradient(125deg,#214a81,#0d2853)!important;
+  color:#f0f9ff!important;
+}
+html[data-myteacher-theme] :is(.cv-modal,.myteacher-voices-dialog,.conauti-ajustes-ventana) :is(input,textarea,select) {
+  color:#eaf7ff!important;
+  border:1px solid rgba(137,194,252,.48)!important;
+  background:#0a2a51!important;
+}
+
+/* Interactions must never be obstructed by decorative images. */
+#root .mtc-app .shonen-scene,
+#root .mtc-auth-shell .shonen-scene,
+#root .mtc-app .shonen-character,
+#root .mtc-auth-shell .shonen-character {
+  pointer-events:none!important;
+}
+
+/* Device-specific layout. Characters shift away from text and input. */
+@media(min-width:1550px) {
+  .shonen-character--gojo {height:79%;left:-4%;top:-11%;}
+  .shonen-character--naruto {height:80%;left:-8%;bottom:-18%;}
+  .shonen-character--luffy {height:81%;right:-5%;top:-12%;}
+  .shonen-character--ichigo {height:81%;right:-10%;bottom:-18%;}
+}
+@media(max-width:1320px) {
+  .shonen-character--gojo {height:56%;left:-9%;}
+  .shonen-character--naruto {height:61%;left:-13%;}
+  .shonen-character--luffy {height:59%;right:-10%;}
+  .shonen-character--ichigo {height:61%;right:-16%;}
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome h1 {
+    font-size:clamp(30px,4.5vw,54px)!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome {
+    width:min(100%,640px);
+    padding:20px!important;
+  }
+}
+@media(max-width:1060px) {
+  .shonen-character--gojo {height:52%;left:-19%;opacity:.57;}
+  .shonen-character--naruto {height:51%;left:-18%;opacity:.6;}
+  .shonen-character--luffy {height:54%;right:-18%;opacity:.58;}
+  .shonen-character--ichigo {height:54%;right:-21%;opacity:.56;}
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome {
+    max-width:560px;
+    background:rgba(2,12,29,.28)!important;
+    border-radius:22px!important;
+    backdrop-filter:blur(2px);
+  }
+  html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-hero {
+    margin-left:clamp(120px,15vw,240px)!important;
+  }
+}
+@media(max-width:900px) {
+  html[data-myteacher-theme] #root .mtc-app {grid-template-columns:1fr!important;}
+  html[data-myteacher-theme] #root .mtc-auth-shell.shonen-auth-shell {
+    grid-template-columns:1fr!important;
+    overflow:visible;
+  }
+  html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-showcase {
+    min-height:355px!important;
+    padding:22px!important;
+  }
+  html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-hero {
+    margin:25px 5% 10px 38%!important;
+  }
+  html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-hero h1 {
+    font-size:clamp(29px,5vw,47px)!important;
+  }
+  html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-access {
+    border-left:0!important;
+    border-top:1px solid rgba(129,192,249,.35);
+    max-height:none!important;
+  }
+  #root .shonen-auth-shell .shonen-character--gojo {left:-6%;top:-4%;height:37%;}
+  #root .shonen-auth-shell .shonen-character--naruto {left:-6%;bottom:27%;height:32%;}
+}
+@media(max-width:680px) {
+  html[data-myteacher-theme] #root .mtc-app .mtc-topbar {
+    height:64px!important;min-height:64px!important;flex-basis:64px!important;
+    padding:0 14px!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .aur-topbar-brand {display:none!important;}
+  .shonen-character--gojo {height:39%;left:-27%;top:0;opacity:.38;}
+  .shonen-character--naruto {height:46%;left:-31%;bottom:-8%;opacity:.40;}
+  .shonen-character--luffy {height:39%;right:-24%;top:-2%;opacity:.41;}
+  .shonen-character--ichigo {height:43%;right:-31%;bottom:-8%;opacity:.43;}
+  .shonen-scene__vignette {background:linear-gradient(180deg,rgba(2,11,27,.1),rgba(1,6,16,.34));}
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-scroller {
+    padding:13px 13px 12px!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome {
+    min-height:240px!important;
+    width:min(100%,475px);
+    padding:22px 12px!important;
+    background:rgba(2,11,29,.37)!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome-symbol {
+    width:65px!important;height:65px!important;padding:9px!important;margin-bottom:12px!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome h1 {
+    font-size:clamp(30px,9vw,42px)!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome p {
+    font-size:12px!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .shonen-welcome__caption {
+    font-size:8px;letter-spacing:.14em;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-compose-area {
+    width:calc(100% - 22px)!important;
+    padding:7px 0 11px!important;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered form.mtc-composer {
+    border-radius:16px!important;
+    min-height:72px;
+  }
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered form.mtc-composer textarea {
+    font-size:12px!important;
+  }
+  html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-showcase {min-height:340px!important;}
+  html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-hero {margin-left:30%!important;}
+  html[data-myteacher-theme] #root .shonen-auth-shell .mtc-auth-hero > p {font-size:11px!important;}
+}
+@media(max-width:390px) {
+  html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome h1 {
+    font-size:29px!important;
+  }
+  #root .shonen-auth-shell .shonen-character--naruto {left:-13%;opacity:.35;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .shonen-character,.shonen-petal {
+    animation:none!important;
+  }
+}

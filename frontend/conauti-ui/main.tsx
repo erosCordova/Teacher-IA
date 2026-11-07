@@ -4,7 +4,7 @@ import AventuraEducativa from "./AventuraEducativa";
 import MaterialesEstudio from "./MaterialesEstudio";
 import CentroEstudio from "./CentroEstudio";
 import MarcaMyTeacher from "./MarcaMyTeacher";
-import { NatureScenery, NatureCompanion } from './NatureWorld'
+import ShonenScene from './ShonenScene'
 import { validarImagen, dimensionesImagen, LIMITE_ENVIO } from "./ImagenEducativa";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -19,6 +19,7 @@ import './chatgpt-layout.css'
 import './auth-premium.css'
 import './ConfiguracionGlobal'
 import './aurora-nature.css'
+import './shonen-classic.css'
 
 type User = {
   id: string
@@ -935,10 +936,9 @@ function App() {
 
   if (!token || !user) {
     return (
-      <main className="mtc-auth-shell aur-auth-shell">
-        <NatureScenery />
+      <main className="mtc-auth-shell shonen-auth-shell">
+        <ShonenScene variante="acceso" />
         <section className="mtc-auth-showcase" aria-label="Descubre My Teacher IA">
-          <span className="aur-auth-companion" aria-hidden="true"><NatureCompanion /></span>
           <div className="mtc-auth-decoration mtc-auth-decoration-one" aria-hidden="true" />
           <div className="mtc-auth-decoration mtc-auth-decoration-two" aria-hidden="true" />
           <header className="mtc-auth-brand">
@@ -1201,8 +1201,8 @@ function App() {
         </div>
       </aside>
 
-      <div className="mtc-content">
-        <NatureScenery />
+      <div className="mtc-content" data-shonen-page={page}>
+        <ShonenScene />
         <header className="mtc-topbar">
           <div className="mtc-topbar-left">
             <button type="button" className="mtc-icon-button mtc-mobile-menu"
@@ -1238,7 +1238,7 @@ function App() {
         )}
 
         {page === 'chat' && (
-          <main className="mtc-chat aur-chat-centered">
+          <main className="mtc-chat shonen-chat-centered">
             <div className="mtc-scroller" ref={conversationScroll}>
               {loadingMessages ? (
                 <p className="mtc-loading" role="status">Cargando conversación...</p>
@@ -1246,8 +1246,9 @@ function App() {
                 <section className="mtc-welcome">
 
                   <div className="mtc-welcome-symbol" aria-hidden="true"><MarcaMyTeacher /></div>
-                  <h1>¿Qué quieres aprender hoy?</h1>
-                  <p>Haz una pregunta. Te ayudaré a descubrir la respuesta paso a paso.</p>
+                  <h1>My Teacher IA</h1>
+                  <p>Estoy aquí para guiarte, resolver tus dudas y ayudarte a aprender paso a paso.</p>
+                  <span className="shonen-welcome__caption" aria-hidden="true">TU AVENTURA DE APRENDIZAJE COMIENZA AQUÍ</span>
                 </section>
               ) : (
                 <div className="mtc-messages" aria-live="polite">
