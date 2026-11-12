@@ -1,0 +1,56 @@
+html[data-myteacher-platform="android"] #root .mtc-model-card {
+  width:100%;
+  margin:20px 0 0;
+  padding:18px;
+  border:1px solid #9cc8ee;
+  border-radius:16px;
+  background:linear-gradient(135deg,#f5fbff,#e9f6ff);
+  color:#0b2c57;
+}
+html[data-myteacher-platform="android"][data-myteacher-theme="dark"] #root .mtc-model-card {
+  color:#f5fbff;
+  background:linear-gradient(135deg,#0b2751,#091c3d);
+  border-color:#31598f;
+}
+html[data-myteacher-platform="android"] #root .mtc-model-card header {
+  display:flex;align-items:center;gap:12px;
+}
+html[data-myteacher-platform="android"] #root .mtc-model-card header>span{
+  font-size:29px;color:#176fc9;
+}
+html[data-myteacher-platform="android"] #root .mtc-model-card h2 {
+  margin:0;color:inherit!important;font-size:17px;line-height:1.4;
+}
+html[data-myteacher-platform="android"] #root .mtc-model-card header p{
+  margin:3px 0 0;font-size:12px;color:inherit!important;opacity:.75;
+}
+html[data-myteacher-platform="android"] #root .mtc-model-note {
+  margin:14px 0;font-size:13px;color:inherit!important;line-height:1.65;
+}
+html[data-myteacher-platform="android"] #root .mtc-model-status {
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  gap:10px;margin-top:12px;font-size:12px;
+}
+html[data-myteacher-platform="android"] #root .mtc-model-status span{
+  font-variant-numeric:tabular-nums;opacity:.74;
+}
+html[data-myteacher-platform="android"] #root .mtc-model-actions {
+  display:flex;justify-content:flex-start;flex-wrap:wrap;margin-top:16px;gap:8px;
+}
+html[data-myteacher-platform="android"] #root .mtc-model-actions button{
+  padding:11px 15px;border:1px solid #176fc9;
+  border-radius:10px;background:#176fc9;color:#fff;font-weight:680;
+}
+html[data-myteacher-platform="android"] #root .mtc-model-progress{margin-top:15px}
+html[data-myteacher-platform="android"] #root .mtc-model-track {
+  height:9px;background:#9cc8ee;border-radius:999px;overflow:hidden;
+}
+html[data-myteacher-platform="android"] #root .mtc-model-track>div{
+  height:100%;background:#176fc9;transition:width .18s;
+}
+html[data-myteacher-platform="android"] #root .mtc-model-progress small{
+  display:block;margin-top:7px;color:inherit;opacity:.75;
+}
+html[data-myteacher-platform="android"] #root .mtc-model-error {
+  color:#b93838!important;font-size:12px;line-height:1.5;
+}

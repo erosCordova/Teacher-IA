@@ -1,5 +1,6 @@
 import { apiFetch } from './apiFetch'
 import { sesionNativaDisponible, recuperarSesionAndroid, protegerSesionAndroid, eliminarSesionAndroid } from './SesionNativa'
+import ModeloSinConexion from './ModeloSinConexion'
 import PantallaCompartida from "./PantallaCompartida";
 import AventuraEducativa from "./AventuraEducativa";
 import MaterialesEstudio from "./MaterialesEstudio";
@@ -26,6 +27,7 @@ import './shonen-cinema-reference.css'
 import './shonen-asset-repair.css'
 import './vision-ia-palette.css'
 import './vision-no-anime.css'
+import './AndroidLayout.css'
 
 type User = {
   id: string
@@ -160,6 +162,9 @@ function App() {
     () => sessionStorage.getItem('conauti_token')
   )
   const [restaurandoSesionMovil, setRestaurandoSesionMovil] = useState(sesionNativaDisponible)
+  useEffect(() => {
+    document.documentElement.dataset.myteacherPlatform = sesionNativaDisponible() ? 'android' : 'web'
+  }, [])
   const [user, setUser] = useState<User | null>(null)
   const [roles, setRoles] = useState<string[]>([])
   const [checking, setChecking] = useState(true)
@@ -1144,6 +1149,7 @@ function App() {
             <div className="mtc-auth-encouragement"><span aria-hidden="true">✦</span>
               Una mejor forma de aprender empieza con una pregunta.
             </div>
+            <ModeloSinConexion />
           </div>
           <nav className="mtc-auth-links" aria-label="Información de My Teacher IA">
             <a href="/acerca-de/">Sobre el proyecto</a>
@@ -1535,7 +1541,7 @@ function App() {
                   <a href="/terminos/">Condiciones</a>
                 </div>
               </div>
-
+              <ModeloSinConexion />
             </section>
           </main>
         )}

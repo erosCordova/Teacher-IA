@@ -111,6 +111,17 @@ def main():
         print("Android Keystore puente nativo:", native)
         assert native == {"stored": "token_dummy_no_real_2026", "removed": None}, native
 
+        # El instalador se consulta sin descargar 484 MB en cada ejecución CI.
+        model = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const v = c?.Plugins?.ModeloEducativo ?? c?.registerPlugin?.('ModeloEducativo');
+          if (!v) return {error:'Instalador no disponible'};
+          return v.estado();
+        })().catch(e => ({error:String(e)}))""", 16)
+        print("Modelo local:", model)
+        assert model and model.get("modelId") == "qwen3-0.6b-q4_k_m", model
+        assert model.get("engineAvailable") is False, model
+
         # La API está en Render y puede necesitar despertarse; esto ejercita
         # EXACTAMENTE el fetch del WebView, no una petición de Python en CI.
         expression = """fetch('https://my-teacher-ia-api.onrender.com/api/health',
@@ -135,7 +146,7 @@ def main():
         assert auth and auth.get("status") in (401, 403), auth
 
         report = {"device": "emulator x86_64 API35", "page": current,
-                  "secure_session_tested": True,
+                  "secure_session_tested": True, "model_installer_detected": True,
                   "api_health": result, "unauthorized_auth_request": auth,
                   "authenticated_chat_tested": False, "offline_inference_tested": False}
         (OUT / "reporte.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

@@ -56,6 +56,7 @@ jobs:
           mkdir -p "$JAVA_DIR"
           cp mobile/native/android/MainActivity.java "$JAVA_DIR/MainActivity.java"
           cp mobile/native/android/SesionSeguraPlugin.java "$JAVA_DIR/SesionSeguraPlugin.java"
+          cp mobile/native/android/ModeloEducativoPlugin.java "$JAVA_DIR/ModeloEducativoPlugin.java"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
