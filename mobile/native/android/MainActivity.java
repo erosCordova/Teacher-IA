@@ -11,6 +11,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(ModeloEducativoPlugin.class);
         registerPlugin(MotorLocalPlugin.class);
         registerPlugin(HistorialLocalPlugin.class);
+        registerPlugin(VozLocalPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }
