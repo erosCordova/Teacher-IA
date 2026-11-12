@@ -134,7 +134,17 @@ def main():
         })().catch(e => ({error:String(e)}))""", 16)
         print("Modelo local:", model)
         assert model and model.get("modelId") == "qwen3-0.6b-q4_k_m", model
-        assert model.get("engineAvailable") is False, model
+        assert model.get("engineAvailable") is True, model
+
+        engine = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const v = c?.Plugins?.MotorLocal ?? c?.registerPlugin?.('MotorLocal');
+          if (!v) return {error:'Puente IA no disponible'};
+          return v.estado();
+        })().catch(e => ({error:String(e)}))""", 17)
+        print("Motor local JNI:", engine)
+        assert engine and engine.get("engineAvailable") is True, engine
+        assert engine.get("modelInstalled") is False, engine
 
         # La API está en Render y puede necesitar despertarse; esto ejercita
         # EXACTAMENTE el fetch del WebView, no una petición de Python en CI.
@@ -160,7 +170,7 @@ def main():
         assert auth and auth.get("status") in (401, 403), auth
 
         report = {"device": "emulator x86_64 API35", "page": current,
-                  "secure_session_tested": True, "model_installer_detected": True,
+                  "secure_session_tested": True, "model_installer_detected": True, "jni_library_loaded": True,
                   "api_health": result, "unauthorized_auth_request": auth,
                   "authenticated_chat_tested": False, "offline_inference_tested": False}
         (OUT / "reporte.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
