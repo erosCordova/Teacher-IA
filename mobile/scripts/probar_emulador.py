@@ -84,7 +84,7 @@ def main():
     adb("forward", "tcp:9222", f"localabstract:{socket_name}")
     target = get_target()
     print("WebView:", target.get("url"), target.get("title"))
-    ws = create_connection(target["webSocketDebuggerUrl"], timeout=40, origin="http://localhost")
+    ws = create_connection(target["webSocketDebuggerUrl"], timeout=40, suppress_origin=True)
     try:
         current = eval_js(ws, """({
           origin: location.origin,
