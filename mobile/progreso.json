@@ -1,7 +1,7 @@
 {
   "project": "My Teacher IA — Android + IA sin conexión",
   "measurement": "Suma ponderada exclusivamente de funciones verificadas en CI o emulador; los subhitos no probados no cuentan.",
-  "progress_percent": 45,
+  "progress_percent": 50,
   "updated_at": "2026-11-12",
   "milestones": [
     {
@@ -77,9 +77,16 @@
       "status": "pending"
     },
     {
-      "id": "6",
-      "name": "Reconocimiento y síntesis de voz sin conexión en Android",
-      "weight": 10,
+      "id": "6a",
+      "name": "Puente nativo Android para voz local y detección de capacidades de síntesis y reconocimiento",
+      "weight": 3,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118"
+    },
+    {
+      "id": "6b",
+      "name": "Dictado y lectura oral real en español verificados sin conexión en teléfonos",
+      "weight": 7,
       "status": "pending"
     },
     {
@@ -89,9 +96,16 @@
       "status": "pending"
     },
     {
-      "id": "8",
-      "name": "Firma AAB y preparación para Google Play",
-      "weight": 5,
+      "id": "8a",
+      "name": "Android App Bundle (AAB) sin firma compilado y validado",
+      "weight": 2,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118"
+    },
+    {
+      "id": "8b",
+      "name": "Firma final, paquete Google Play y revisión de publicación",
+      "weight": 3,
       "status": "pending"
     }
   ],
@@ -102,6 +116,8 @@
     "offline_model_included": false,
     "on_device_inference_tested": false,
     "ready_for_release": false,
-    "android_apk_debug": "https://github.com/erosCordova/Teacher-IA/actions/runs/43290997673/artifacts/13977062644"
+    "android_apk_debug": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118/artifacts/13980200600",
+    "android_voice_and_aab": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118",
+    "aab_unsigned": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118/artifacts/13979118597"
   }
 }
