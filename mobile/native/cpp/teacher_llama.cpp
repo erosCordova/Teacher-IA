@@ -37,7 +37,7 @@ static std::string infer(const std::string & path, const std::string & question,
         if (!g_model_cache) return "ERROR: No se pudo cargar el archivo GGUF.";
         g_model_path = path;
     }
-    const llama_model * model = g_model_cache.get();
+    llama_model * model = g_model_cache.get();
     const llama_vocab * vocab = llama_model_get_vocab(model);
     if (!vocab) return "ERROR: El modelo no tiene un vocabulario válido.";
 
