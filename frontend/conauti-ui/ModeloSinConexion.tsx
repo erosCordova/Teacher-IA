@@ -13,6 +13,14 @@ type EstadoModelo = {
   engineAvailable: boolean
 }
 type Progreso = { received: number; expected: number; percentage: number }
+type MotorLocalAPI = {
+  responder(args: { texto: string; maxTokens: number }): Promise<{ texto: string; origen: string }>
+}
+function motorAndroid(): MotorLocalAPI | undefined {
+  const c = window.Capacitor
+  return (c?.Plugins as unknown as { MotorLocal?: MotorLocalAPI } | undefined)?.MotorLocal
+    ?? c?.registerPlugin?.('MotorLocal') as unknown as MotorLocalAPI | undefined
+}
 type Suscripcion = { remove(): Promise<void> }
 type ModeloEducativoAPI = {
   estado(): Promise<EstadoModelo>
@@ -36,6 +44,9 @@ export default function ModeloSinConexion() {
   const [avance, setAvance] = useState<Progreso | null>(null)
   const [trabajando, setTrabajando] = useState(false)
   const [error, setError] = useState('')
+  const [pregunta, setPregunta] = useState('')
+  const [respuesta, setRespuesta] = useState('')
+  const [respondiendo, setRespondiendo] = useState(false)
   const available = sesionNativaDisponible()
 
   useEffect(() => {
@@ -86,6 +97,19 @@ export default function ModeloSinConexion() {
     try {setEstado(await model.eliminar());setAvance(null);setError('')}
     catch(e){setError(String(e))}
   }
+  async function probarIA() {
+    const motor = motorAndroid()
+    if (!motor || respondiendo || !pregunta.trim()) return
+    setRespondiendo(true); setRespuesta(''); setError('')
+    try {
+      const resultado = await motor.responder({ texto: pregunta.trim(), maxTokens: 180 })
+      setRespuesta(resultado.texto)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setRespondiendo(false)
+    }
+  }
   const downloaded = avance?.received ?? estado?.downloadBytes ?? 0
   const percentage = avance?.percentage ?? -1
   return (
@@ -99,7 +123,9 @@ export default function ModeloSinConexion() {
       </header>
       <p className="mtc-model-note">
         {estado?.installed
-          ? 'Archivo GGUF descargado y verificado. La conversación sin Internet se activará cuando integremos el motor de IA local.'
+          ? estado.engineAvailable
+            ? 'El motor nativo está instalado. Puedes probar una pregunta privada, sin enviar su texto a Internet. El chat completo y el historial sin conexión siguen pendientes.'
+            : 'Modelo almacenado, pero este dispositivo no puede cargar el motor local de IA.'
           : 'Puedes preparar el modelo local. Descargarlo todavía no habilita las respuestas sin Internet: el motor de IA sigue en desarrollo.'}
       </p>
       <div className="mtc-model-status" role="status">
@@ -115,6 +141,20 @@ export default function ModeloSinConexion() {
             <div style={{width: (percentage >= 0 ? percentage : 0) + '%'}}/>
           </div>
           <small>{percentage >= 0 ? percentage + '% descargado' : readable(downloaded) + ' descargados'}</small>
+        </div>
+      )}
+      {estado?.installed && estado.engineAvailable && (
+        <div className="mtc-model-local-preview">
+          <label htmlFor="mtc-model-pregunta">Prueba experimental de la IA del dispositivo</label>
+          <textarea id="mtc-model-pregunta" rows={3} maxLength={800}
+            value={pregunta} onChange={e => setPregunta(e.target.value)}
+            placeholder="¿Cómo puedo entender las fracciones?" disabled={respondiendo}/>
+          <button type="button" onClick={() => void probarIA()}
+            disabled={respondiendo || !pregunta.trim()}>
+            {respondiendo ? 'Generando en este dispositivo…' : 'Probar respuesta sin Internet'}
+          </button>
+          {respuesta && <p className="mtc-model-local-answer" role="status">{respuesta}</p>}
+          <small>No se sincroniza esta prueba ni se envía el texto a un servidor.</small>
         </div>
       )}
       {error && <p className="mtc-model-error" role="alert">{error}</p>}
