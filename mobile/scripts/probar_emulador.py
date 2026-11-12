@@ -191,6 +191,20 @@ def main():
         assert isinstance(voice.get("reconocimientoDisponible"), bool), voice
         assert voice.get("rejectedEmpty") is True, voice
 
+        # Sintetizar una frase de prueba con una voz que Android declara local.
+        # Esto verifica aceptación de la síntesis, no la audición humana.
+        if voice.get("sintesisDisponible"):
+            spoken = eval_js(ws, """(async () => {
+              const c = window.Capacitor;
+              const v = c?.Plugins?.VozLocal ?? c?.registerPlugin?.('VozLocal');
+              await v.hablar({texto:'Hola, soy tu tutor educativo sin conexión.'});
+              await new Promise(resolve => setTimeout(resolve, 650));
+              await v.detener();
+              return {sintesisLocalAceptada:true};
+            })().catch(e => ({error:String(e)}))""", 22)
+            print("Síntesis de voz sin red aceptada:", spoken)
+            assert spoken == {"sintesisLocalAceptada": True}, spoken
+
         # Desde la pantalla de acceso debe poder abrirse el tutor local
         # sin enviar contraseñas ni pedir autorización al backend.
         offline = eval_js(ws, """(async () => {
@@ -240,7 +254,7 @@ def main():
         assert auth and auth.get("status") in (401, 403), auth
 
         report = {"device": "emulator x86_64 API35", "page": current,
-                  "secure_session_tested": True, "offline_history_encrypted": True, "offline_entry_tested": True, "voice_native_bridge_tested": True, "voice_capabilities": voice, "model_installer_detected": True, "jni_library_loaded": True,
+                  "secure_session_tested": True, "offline_history_encrypted": True, "offline_entry_tested": True, "voice_native_bridge_tested": True, "voice_capabilities": voice, "voice_synthesis_accepted": bool(voice.get("sintesisDisponible")), "model_installer_detected": True, "jni_library_loaded": True,
                   "api_health": result, "unauthorized_auth_request": auth,
                   "authenticated_chat_tested": False, "offline_inference_tested": False}
         (OUT / "reporte.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
