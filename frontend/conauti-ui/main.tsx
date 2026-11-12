@@ -4,7 +4,6 @@ import AventuraEducativa from "./AventuraEducativa";
 import MaterialesEstudio from "./MaterialesEstudio";
 import CentroEstudio from "./CentroEstudio";
 import MarcaMyTeacher from "./MarcaMyTeacher";
-import ShonenScene from './ShonenScene'
 import { validarImagen, dimensionesImagen, LIMITE_ENVIO } from "./ImagenEducativa";
 import EvaluacionesAcademicas from "./EvaluacionesAcademicas";
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -25,6 +24,7 @@ import './shonen-characters-2026.css'
 import './shonen-cinema-reference.css'
 import './shonen-asset-repair.css'
 import './vision-ia-palette.css'
+import './vision-no-anime.css'
 
 type User = {
   id: string
@@ -942,7 +942,6 @@ function App() {
   if (!token || !user) {
     return (
       <main className="mtc-auth-shell shonen-auth-shell">
-        <ShonenScene variante="acceso" />
         <section className="mtc-auth-showcase" aria-label="Descubre My Teacher IA">
           <div className="mtc-auth-decoration mtc-auth-decoration-one" aria-hidden="true" />
           <div className="mtc-auth-decoration mtc-auth-decoration-two" aria-hidden="true" />
@@ -1207,7 +1206,6 @@ function App() {
       </aside>
 
       <div className="mtc-content" data-shonen-page={page}>
-        <ShonenScene />
         <header className="mtc-topbar">
           <div className="mtc-topbar-left">
             <button type="button" className="mtc-icon-button mtc-mobile-menu"

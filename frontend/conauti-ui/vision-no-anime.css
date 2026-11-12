@@ -1,0 +1,167 @@
+/*
+ * My Teacher IA — sin imágenes de anime.
+ * Se conservan los colores originales de VISION-AI y la funcionalidad,
+ * con un fondo abstracto de CSS (sin fotos ni ilustraciones externas).
+ * Esta hoja se carga al final para anular los decorados anteriores.
+ */
+html[data-myteacher-theme="dark"] {
+  --vision-background:#07162f;
+  --vision-background-2:#0b2751;
+  --vision-panel:#0c2a50;
+  --vision-border:#31598f;
+  --vision-accent:#176fc9;
+  --vision-foreground:#e9f5ff;
+}
+html[data-myteacher-theme="light"] {
+  --vision-background:#d9eeff;
+  --vision-background-2:#f5fbff;
+  --vision-panel:#e9f6ff;
+  --vision-border:#9cc8ee;
+  --vision-accent:#176fc9;
+  --vision-foreground:#0b2c57;
+}
+/* Background used in all authenticated pages. No anime scene or character. */
+html[data-myteacher-theme] #root .mtc-app .mtc-content,
+html[data-myteacher-theme] #root .mtc-app .mtc-content[data-shonen-page],
+html[data-myteacher-theme] #root .mtc-app .mtc-content[data-shonen-page]:not([data-shonen-page="chat"]) {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .mtc-content,
+html[data-myteacher-theme="dark"] #root .mtc-app .mtc-content[data-shonen-page],
+html[data-myteacher-theme="dark"] #root .mtc-app .mtc-content[data-shonen-page]:not([data-shonen-page="chat"]) {
+  background:
+    radial-gradient(ellipse 68% 55% at 73% 2%,rgba(41,127,218,.20),transparent 70%),
+    radial-gradient(ellipse 55% 51% at 12% 91%,rgba(37,85,175,.13),transparent 80%),
+    linear-gradient(145deg,#07162f 0%,#0b2751 52%,#091c3d 100%)!important;
+  color:#e9f5ff!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-content,
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-content[data-shonen-page],
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-content[data-shonen-page]:not([data-shonen-page="chat"]) {
+  background:
+    radial-gradient(ellipse 68% 35% at 100% 0%,#b8deff 0%,transparent 82%),
+    radial-gradient(ellipse 55% 27% at 0% 100%,#c8e5ff 0%,transparent 95%),
+    linear-gradient(145deg,#eef8ff 0%,#d9eeff 53%,#c6e4ff 100%)!important;
+  color:#0b2c57!important;
+}
+/* Minimal, subtle abstract light lines; not a themed illustration. */
+html[data-myteacher-theme] #root .mtc-app .mtc-content::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse 34% 23% at 52% 18%,rgba(104,173,248,.09),transparent 80%),
+    repeating-linear-gradient(125deg,transparent 0px,transparent 139px,rgba(90,158,239,.025) 140px,transparent 141px);
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-content::before {
+  background:
+    radial-gradient(ellipse 40% 30% at 72% 23%,rgba(132,193,255,.18),transparent 77%),
+    repeating-linear-gradient(125deg,transparent 0px,transparent 139px,rgba(60,127,205,.028) 140px,transparent 141px);
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-content > :not(.shonen-scene) {
+  position:relative;
+  z-index:1;
+}
+/* Restore chat header placement without bringing back decorative cards. */
+html[data-myteacher-theme] #root .mtc-app .mtc-content:has(>main.shonen-chat-centered) > .mtc-topbar {
+  position:absolute!important;
+  z-index:8!important;
+}
+html[data-myteacher-theme] #root .mtc-app main.shonen-chat-centered {
+  position:relative;
+  z-index:2;
+  background:transparent!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome {
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .shonen-chat-centered .mtc-welcome h1 {
+  color:#f5fbff!important;text-shadow:0 3px 14px rgba(3,16,42,.36)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered .mtc-welcome h1 {
+  color:#0b2c57!important;text-shadow:none!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .shonen-chat-centered .mtc-welcome p.shonen-cinema-subtitle {
+  color:#dceeff!important;text-shadow:none!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered .mtc-welcome p.shonen-cinema-subtitle {
+  color:#365d86!important;text-shadow:none!important;
+}
+/* Remove glow-heavy anime styling in favor of VISION-AI blue. */
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome-symbol {
+  color:#529df0!important;
+  filter:drop-shadow(0 4px 12px rgba(39,123,210,.18))!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-welcome h1::after {
+  background:linear-gradient(90deg,transparent,#176fc9,transparent)!important;
+  box-shadow:none!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-cinema-greeting {
+  background:linear-gradient(145deg,#f8fcff,#e9f6ff)!important;
+  border:1px solid #9cc8ee!important;
+  box-shadow:0 11px 31px rgba(30,82,141,.12)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .shonen-cinema-greeting {
+  background:linear-gradient(135deg,rgba(11,44,87,.93),rgba(7,22,47,.95))!important;
+  border:1px solid #31598f!important;
+  box-shadow:0 12px 31px rgba(1,10,30,.22)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered form.mtc-composer {
+  border-radius:20px!important;
+  box-shadow:0 8px 24px rgba(16,65,120,.14)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .shonen-chat-centered form.mtc-composer {
+  border:1px solid #5794d6!important;
+  background:#0b2751!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered form.mtc-composer {
+  border:1px solid #9cc8ee!important;
+  background:#f5fbff!important;
+}
+/* Login and registration: matching VISION-AI gradients, no anime wallpaper. */
+html[data-myteacher-theme] #root .mtc-auth-shell.shonen-auth-shell {
+  isolation:isolate;
+  overflow:hidden;
+}
+html[data-myteacher-theme="dark"] #root .mtc-auth-shell.shonen-auth-shell {
+  background:
+    radial-gradient(ellipse 50% 60% at 16% 15%,rgba(27,107,196,.19),transparent 75%),
+    linear-gradient(150deg,#07162f,#0b2751 55%,#091c3d)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-auth-shell.shonen-auth-shell {
+  background:
+    radial-gradient(ellipse 60% 45% at 10% 8%,#b8deff,transparent 75%),
+    linear-gradient(145deg,#eef8ff,#d9eeff 55%,#c6e4ff)!important;
+}
+html[data-myteacher-theme="dark"] #root .shonen-auth-shell .mtc-auth-showcase {
+  background:linear-gradient(120deg,rgba(7,22,47,.65),rgba(11,39,81,.28))!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-auth-shell .mtc-auth-showcase {
+  background:linear-gradient(115deg,rgba(217,238,255,.46),rgba(245,251,255,.27))!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-auth-shell .mtc-auth-hero :is(h1,p) {
+  color:#0b2c57!important;text-shadow:none!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-auth-shell .mtc-auth-hero h1 em {
+  color:#176fc9!important;
+}
+html[data-myteacher-theme="dark"] #root .shonen-auth-shell .mtc-auth-hero :is(h1,p) {
+  color:#f5fbff!important;
+}
+/* Keep non-chat content above the abstract background. */
+html[data-myteacher-theme] #root .mtc-app .mtc-content > main:not(.shonen-chat-centered) {
+  position:relative;
+  z-index:2;
+}
+@media(max-width:850px) {
+  html[data-myteacher-theme] #root .mtc-app .mtc-content::before {opacity:.42;}
+}
+@media(prefers-reduced-motion:reduce) {
+  html[data-myteacher-theme] #root .mtc-app .mtc-content::before {animation:none!important;}
+}
