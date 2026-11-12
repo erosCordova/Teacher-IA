@@ -70,6 +70,20 @@ def eval_js(ws, expr, seq):
         return result.get("result", {}).get("result", {}).get("value")
 
 
+def capture_diagnostics():
+    try:
+        logs = subprocess.run(
+            ["adb", "logcat", "-d", "-t", "1600", "*:E"],
+            capture_output=True, text=True, timeout=30
+        )
+        (OUT / "errores-android.txt").write_text(logs.stdout, encoding="utf-8")
+        print("Últimos errores de Android:", logs.stdout[-9500:])
+        activity = adb("shell", "dumpsys", "activity", "activities", check=False)
+        (OUT / "actividad-android.txt").write_text(activity, encoding="utf-8")
+    except Exception as error:
+        print("No se pudieron recopilar registros:", error)
+
+
 def main():
     assert APK.exists(), f"No existe APK de prueba: {APK}"
     print("Instalando APK:", APK.stat().st_size, "bytes")
@@ -156,4 +170,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        capture_diagnostics()
+        raise
