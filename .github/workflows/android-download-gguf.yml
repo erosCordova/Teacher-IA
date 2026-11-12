@@ -1,0 +1,117 @@
+name: My Teacher IA - Instalación y reanudación GGUF Android
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'mobile/scripts/probar_descarga_real.py'
+      - 'mobile/native/android/ModeloEducativoPlugin.java'
+      - '.github/workflows/android-download-gguf.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gguf-descarga-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android-debug:
+    name: 'GGUF Android: instalar, cancelar y reanudar desde React'
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Instalar dependencias del frontend
+        working-directory: frontend
+        run: npm ci
+      - name: Compilar My Teacher IA web integrada
+        working-directory: frontend
+        run: npm run build:conauti
+      - name: Verificar versión y dependencias móviles
+        working-directory: mobile
+        run: |
+          npm install --no-audit --no-fund
+          npm run mobile:check
+      - name: Generar plataforma nativa Android
+        working-directory: mobile
+        run: |
+          npm run android:init
+          npm run android:sync
+      - name: Incorporar almacenamiento seguro nativo
+        run: |
+          JAVA_DIR=mobile/android/app/src/main/java/pe/myteacheria/alumno
+          mkdir -p "$JAVA_DIR"
+          cp mobile/native/android/MainActivity.java "$JAVA_DIR/MainActivity.java"
+          cp mobile/native/android/SesionSeguraPlugin.java "$JAVA_DIR/SesionSeguraPlugin.java"
+          cp mobile/native/android/ModeloEducativoPlugin.java "$JAVA_DIR/ModeloEducativoPlugin.java"
+          cp mobile/native/android/MotorLocalPlugin.java "$JAVA_DIR/MotorLocalPlugin.java"
+          cp mobile/native/android/HistorialLocalPlugin.java "$JAVA_DIR/HistorialLocalPlugin.java"
+          cp mobile/native/android/VozLocalPlugin.java "$JAVA_DIR/VozLocalPlugin.java"
+      - name: Integrar llama.cpp nativo (ARM64 y emulador x86_64)
+        run: bash mobile/scripts/preparar_motor_android.sh
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Preparar SDK Android del runner
+        run: |
+          test -n "$ANDROID_HOME"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "Plataformas disponibles:"
+          ls "$ANDROID_HOME/platforms" || true
+          # El runner incluye SDK; Gradle instala las plataformas que le falten.
+          # No instalar el antiguo paquete "tools", retirado del repositorio Android.
+      - name: Compilar APK debug
+        working-directory: mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Recuperar GGUF de caché SHA256
+        uses: actions/cache@v4
+        with:
+          path: mobile/cache/qwen3-0.6b-q4_k_m.gguf
+          key: qwen3-06b-28b1c721c1e476d3e41c629d5993c0aaeca0f3b747afdbab667f5a4bc8e37665
+      - name: Descargar y comprobar SHA256 de GGUF real (484 MB)
+        run: |
+          mkdir -p mobile/cache
+          if [ ! -s mobile/cache/qwen3-0.6b-q4_k_m.gguf ]; then
+            curl --fail --location --retry 3 --connect-timeout 25 --max-time 1200 \
+              -o mobile/cache/qwen3-0.6b-q4_k_m.gguf \
+              https://huggingface.co/Antigma/Qwen3-0.6B-GGUF/resolve/main/qwen3-0.6b-q4_k_m.gguf
+          fi
+          echo '28b1c721c1e476d3e41c629d5993c0aaeca0f3b747afdbab667f5a4bc8e37665  mobile/cache/qwen3-0.6b-q4_k_m.gguf' | sha256sum --check
+      - name: Habilitar emulador Android en GitHub Actions
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Verificar descarga HTTPS real, cancelación y reanudación en interfaz Android
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          cores: 4
+          ram-size: 4096M
+          heap-size: 512M
+          disk-size: 8G
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: |
+            python3 -m pip install --user websocket-client
+            # La inferencia local no debe depender de Render o de Google.
+            python3 mobile/scripts/probar_descarga_real.py
+      - name: Guardar evidencia de prueba Android
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-teacher-ia-android-evidencia
+          path: mobile/evidencias/
+          if-no-files-found: ignore
+          retention-days: 7
