@@ -9,6 +9,13 @@ type MotorLocal = {
   estado(): Promise<MotorEstado>
   responder(args: { texto: string; maxTokens: number }): Promise<{ texto: string; origen: string }>
 }
+type VozLocal = {
+  estado(): Promise<{ sintesisDisponible: boolean; reconocimientoDisponible: boolean; soloDispositivo: boolean }>
+  escuchar(): Promise<{ texto: string; origen: string }>
+  cancelarEscucha(): Promise<void>
+  hablar(options: { texto: string }): Promise<void>
+  detener(): Promise<void>
+}
 type HistorialLocal = {
   leer(): Promise<{ datos: string }>
   guardar(args: { datos: string }): Promise<void>
@@ -43,6 +50,11 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
   const [historialListo, setHistorialListo] = useState(false)
   const [pregunta, setPregunta] = useState('')
   const [ocupado, setOcupado] = useState(false)
+  const [vozEstado, setVozEstado] = useState<{
+    sintesisDisponible: boolean; reconocimientoDisponible: boolean
+  } | null>(null)
+  const [escuchando, setEscuchando] = useState(false)
+  const [leerRespuestas, setLeerRespuestas] = useState(false)
   const [aviso, setAviso] = useState('')
   const [tema, setTema] = useState<'dark' | 'light'>(() => {
     try { return localStorage.getItem('myteacher.ui.theme') === 'light' ? 'light' : 'dark' }
@@ -76,6 +88,8 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
       }
     }
     void iniciar()
+    void puente<VozLocal>('VozLocal')?.estado()
+      .then(estado => { if (live) setVozEstado(estado) }).catch(() => {})
     return () => { live = false }
   }, [])
 
@@ -103,6 +117,44 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
     }
   }
 
+  async function comprobarVoz() {
+    try {
+      const voz = puente<VozLocal>('VozLocal')
+      if (!voz) throw new Error('La voz nativa no está instalada.')
+      const estado = await voz.estado()
+      setVozEstado(estado)
+      if (!estado.sintesisDisponible && !estado.reconocimientoDisponible) {
+        setAviso('Descarga las voces y el reconocimiento de español sin conexión desde los ajustes de Android.')
+      } else setAviso('')
+    } catch (e) {
+      setAviso(e instanceof Error ? e.message : String(e))
+    }
+  }
+
+  async function escucharPregunta() {
+    const voz = puente<VozLocal>('VozLocal')
+    if (!voz || escuchando || ocupado) return
+    setEscuchando(true)
+    setAviso('')
+    try {
+      const resultado = await voz.escuchar()
+      if (resultado.origen !== 'dispositivo') throw new Error('El reconocimiento no se hizo localmente.')
+      setPregunta(p => [p, resultado.texto].filter(Boolean).join(' ').slice(0, 800))
+    } catch (e) {
+      setAviso(e instanceof Error ? e.message : String(e))
+    } finally { setEscuchando(false) }
+  }
+
+  async function cancelarEscucha() {
+    try { await puente<VozLocal>('VozLocal')?.cancelarEscucha() }
+    catch (e) { setAviso(e instanceof Error ? e.message : String(e)) }
+  }
+
+  async function escucharRespuesta(texto: string) {
+    try { await puente<VozLocal>('VozLocal')?.hablar({ texto }) }
+    catch (e) { setAviso(e instanceof Error ? e.message : String(e)) }
+  }
+
   async function enviar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const texto = pregunta.trim()
@@ -118,6 +170,9 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
       const resultado = await motor.responder({ texto, maxTokens: 180 })
       setMensajes(previous => [...previous,
         { id: id + 1, rol: 'tutor' as const, texto: resultado.texto }].slice(-80))
+      if (leerRespuestas && vozEstado?.sintesisDisponible) {
+        void escucharRespuesta(resultado.texto)
+      }
     } catch (error) {
       setAviso(error instanceof Error ? error.message : 'El motor no pudo responder.')
     } finally {
@@ -193,12 +248,30 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
                 <div key={m.id} className={'mtc-offline-msg mtc-offline-msg-' + m.rol}>
                   <strong>{m.rol === 'estudiante' ? 'Tú' : 'My Teacher IA'}</strong>
                   <p>{m.texto}</p>
+                  {m.rol === 'tutor' && vozEstado?.sintesisDisponible && (
+                    <button type="button" className="mtc-offline-speak"
+                      onClick={() => void escucharRespuesta(m.texto)}>
+                      Escuchar respuesta
+                    </button>
+                  )}
                 </div>
               ))}
               {ocupado && <p className="mtc-offline-thinking" role="status">Generando la respuesta dentro del teléfono…</p>}
               <div ref={finalChat}/>
             </div>
             <form onSubmit={event => void enviar(event)} className="mtc-offline-composer">
+              <div className="mtc-offline-voice-controls">
+                <button type="button" disabled={ocupado || !vozEstado?.reconocimientoDisponible}
+                  onClick={() => void (escuchando ? cancelarEscucha() : escucharPregunta())}>
+                  {escuchando ? 'Detener micrófono' : 'Dictar pregunta'}
+                </button>
+                <button type="button" disabled={!vozEstado?.sintesisDisponible}
+                  aria-pressed={leerRespuestas}
+                  onClick={() => setLeerRespuestas(v => !v)}>
+                  Voz en respuestas: {leerRespuestas ? 'Sí' : 'No'}
+                </button>
+                <button type="button" onClick={() => void comprobarVoz()}>Comprobar voz</button>
+              </div>
               <label htmlFor="mtc-offline-input">Escribe tu pregunta</label>
               <textarea id="mtc-offline-input" value={pregunta} maxLength={800} rows={2}
                 onChange={event => setPregunta(event.target.value)}
@@ -213,7 +286,8 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
         {aviso && <p className="mtc-offline-notice" role="status">{aviso}</p>}
         <p className="mtc-offline-disclaimer">
           Versión experimental: la calidad y velocidad de respuesta dependen del teléfono.
-          La sincronización y la voz sin conexión todavía están en desarrollo.
+          El micrófono y la lectura de respuestas solo funcionan cuando Android tiene
+          instaladas las voces y el reconocimiento local en español. No se utiliza la nube.
         </p>
       </section>
     </main>
