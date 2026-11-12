@@ -27,7 +27,7 @@ type ModeloEducativoAPI = {
   descargar(): Promise<EstadoModelo>
   cancelar(): Promise<void>
   eliminar(): Promise<EstadoModelo>
-  addListener(name: 'progreso', callback: (progress: Progreso) => void): Promise<Suscripcion>
+  addListener(name: 'progreso', callback: (progress: Progreso) => void): Suscripcion | Promise<Suscripcion>
 }
 function modeloAndroid(): ModeloEducativoAPI | undefined {
   const c = window.Capacitor
@@ -66,10 +66,19 @@ export default function ModeloSinConexion({
       if (live) setError(String(e))
     })
     let subscription: Suscripcion | undefined
-    void model.addListener('progreso', p => {
-      if (live) setAvance(p)
-    }).then(value => { if (live) subscription = value; else void value.remove() })
-      .catch(() => {})
+    try {
+      // Capacitor 8 puede entregar el listener directamente o como Promise.
+      // No encadenar .then al valor sin normalizar: bloqueaba la interfaz.
+      const listener = model.addListener('progreso', p => {
+        if (live) setAvance(p)
+      })
+      void Promise.resolve(listener).then(value => {
+        if (live) subscription = value
+        else void value.remove()
+      }).catch(() => {})
+    } catch (e) {
+      if (live) setError('No se pudo activar el seguimiento de descarga: ' + String(e))
+    }
     return () => {
       live = false
       if (subscription) void subscription.remove()
