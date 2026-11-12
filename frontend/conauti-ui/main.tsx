@@ -1548,6 +1548,18 @@ function App() {
                   <a href="/terminos/">Condiciones</a>
                 </div>
               </div>
+              {sesionNativaDisponible() && (
+                <div className="mtc-settings-row">
+                  <div>
+                    <strong>Estudiar sin Internet</strong>
+                    <small>Abre el tutor privado del teléfono. Tu cuenta en línea y los datos locales permanecen separados.</small>
+                  </div>
+                  <button type="button"
+                    onClick={() => window.dispatchEvent(new Event('myteacher:modo-local'))}>
+                    Abrir tutor local
+                  </button>
+                </div>
+              )}
               <ModeloSinConexion />
             </section>
           </main>
