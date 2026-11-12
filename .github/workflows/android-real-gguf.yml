@@ -89,7 +89,7 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           script: |
             python3 -m pip install --user websocket-client
-            python3 mobile/scripts/probar_emulador.py
+            # La inferencia local no debe depender de Render o de Google.
             python3 mobile/scripts/probar_modelo_real.py
       - name: Guardar evidencia de prueba Android
         if: always()
