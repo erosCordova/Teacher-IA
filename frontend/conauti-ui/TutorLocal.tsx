@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import ModeloSinConexion from './ModeloSinConexion'
+import SincronizarLocal, { ID_CONVERSACION_LOCAL } from './SincronizarLocal'
 import './TutorLocal.css'
 
 type Mensaje = { id: number; rol: 'estudiante' | 'tutor'; texto: string }
@@ -190,6 +191,8 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
       await guardados.current
       await puente<HistorialLocal>('HistorialLocal')?.borrar()
       setMensajes([])
+      // Al empezar otra conversación, usar un ID distinto de sincronización.
+      try { localStorage.removeItem(ID_CONVERSACION_LOCAL) } catch { /* no afecta al cifrado nativo */ }
       setAviso('Historial local eliminado.')
     } catch (error) {
       setAviso(error instanceof Error ? error.message : String(error))
@@ -295,6 +298,9 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
               </button>
             </form>
           </section>
+        )}
+        {cargado && historialListo && mensajes.length > 0 && (
+          <SincronizarLocal mensajes={mensajes} ocupado={ocupado} />
         )}
         {aviso && <p className="mtc-offline-notice" role="status">{aviso}</p>}
         <p className="mtc-offline-disclaimer">
