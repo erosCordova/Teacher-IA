@@ -1,61 +1,104 @@
 {
   "project": "My Teacher IA — Android + IA sin conexión",
-  "measurement": "Solo hitos completos y verificables; avance ponderado, no tiempo transcurrido.",
+  "measurement": "Suma ponderada exclusivamente de funciones verificadas en CI o emulador; los subhitos no probados no cuentan.",
+  "progress_percent": 34,
+  "updated_at": "2026-11-12",
   "milestones": [
     {
-      "id": 1,
-      "name": "Proyecto Android con Capacitor y compilación verificable",
+      "id": "1",
+      "name": "Proyecto Android Capacitor y APK de depuración compilado",
       "weight": 15,
-      "status": "completed"
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43252557288"
     },
     {
-      "id": 2,
-      "name": "Inicio de sesión y chat en línea desde Android",
-      "weight": 15,
+      "id": "2a",
+      "name": "Acceso HTTPS y CORS desde WebView Android hacia la API",
+      "weight": 8,
       "status": "in_progress"
     },
     {
-      "id": 3,
-      "name": "Motor GGUF nativo integrado (llama.cpp)",
-      "weight": 20,
+      "id": "2b",
+      "name": "Autenticación real y chat online verificados en Android",
+      "weight": 7,
       "status": "pending"
     },
     {
-      "id": 4,
-      "name": "Entrega, descarga y verificación de un modelo local",
-      "weight": 15,
-      "status": "pending"
+      "id": "3a",
+      "name": "llama.cpp compilado y biblioteca JNI cargada en Android",
+      "weight": 10,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078611"
     },
     {
-      "id": 5,
-      "name": "Chat pedagógico offline con historial local y sincronización",
-      "weight": 15,
-      "status": "pending"
-    },
-    {
-      "id": 6,
-      "name": "Voz sin conexión y permisos móviles",
+      "id": "3b",
+      "name": "Inferencia GGUF real sin red y respuesta pedagógica validada en Android",
       "weight": 10,
       "status": "pending"
     },
     {
-      "id": 7,
-      "name": "Pruebas en móviles, rendimiento y privacidad",
+      "id": "4a",
+      "name": "Gestor de modelos Android y verificación SHA-256 implementados",
+      "weight": 4,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078611"
+    },
+    {
+      "id": "4b",
+      "name": "Descarga completa y verificación del modelo real en un dispositivo",
+      "weight": 11,
+      "status": "pending"
+    },
+    {
+      "id": "5a",
+      "name": "Historial privado cifrado con Android Keystore: guardar, leer y borrar",
+      "weight": 5,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078611"
+    },
+    {
+      "id": "5b",
+      "name": "Entrar y salir del tutor local sin iniciar sesión ni conectarse al backend",
+      "weight": 3,
+      "status": "pending"
+    },
+    {
+      "id": "5c",
+      "name": "Chat pedagógico offline funcional con historial persistente",
+      "weight": 3,
+      "status": "pending"
+    },
+    {
+      "id": "5d",
+      "name": "Sincronización segura de conversaciones tras reconexión",
+      "weight": 4,
+      "status": "pending"
+    },
+    {
+      "id": "6",
+      "name": "Reconocimiento y síntesis de voz sin conexión en Android",
+      "weight": 10,
+      "status": "pending"
+    },
+    {
+      "id": "7",
+      "name": "Pruebas en teléfonos ARM64, rendimiento, batería y privacidad",
       "weight": 5,
       "status": "pending"
     },
     {
-      "id": 8,
-      "name": "Firma, AAB y preparación de Google Play",
+      "id": "8",
+      "name": "Firma AAB y preparación para Google Play",
       "weight": 5,
       "status": "pending"
     }
   ],
   "evidence": {
-    "android_debug_build": "https://github.com/erosCordova/Teacher-IA/actions/runs/43252557288",
-    "ci_web_backend_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43252557141",
-    "android_artifact": "my-teacher-ia-android-debug",
+    "android_native_jni_and_encrypted_history": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078611",
+    "full_frontend_backend_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078621",
+    "last_android_emulator_result": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078611",
     "offline_model_included": false,
-    "on_device_inference_tested": false
+    "on_device_inference_tested": false,
+    "ready_for_release": false
   }
 }
