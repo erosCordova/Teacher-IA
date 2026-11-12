@@ -50,6 +50,12 @@ jobs:
         run: |
           npm run android:init
           npm run android:sync
+      - name: Incorporar almacenamiento seguro nativo
+        run: |
+          JAVA_DIR=mobile/android/app/src/main/java/pe/myteacheria/alumno
+          mkdir -p "$JAVA_DIR"
+          cp mobile/native/android/MainActivity.java "$JAVA_DIR/MainActivity.java"
+          cp mobile/native/android/SesionSeguraPlugin.java "$JAVA_DIR/SesionSeguraPlugin.java"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

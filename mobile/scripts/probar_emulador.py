@@ -97,6 +97,20 @@ def main():
         assert "My Teacher IA" in current["title"], current
         assert current["authPage"] or current["appPage"], "No se montó React."
 
+        # Prueba puente Java <-> JS: token ficticio, almacenamiento cifrado.
+        native = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const v = c?.Plugins?.SesionSegura ?? c?.registerPlugin?.('SesionSegura');
+          if (!v) return { error:'Plugin nativo no disponible' };
+          await v.guardar({token:'token_dummy_no_real_2026'});
+          const read = await v.leer();
+          await v.borrar();
+          const removed = await v.leer();
+          return {stored:read?.token,removed:removed?.token ?? null};
+        })().catch(e => ({error:String(e)}))""", 15)
+        print("Android Keystore puente nativo:", native)
+        assert native == {"stored": "token_dummy_no_real_2026", "removed": None}, native
+
         # La API está en Render y puede necesitar despertarse; esto ejercita
         # EXACTAMENTE el fetch del WebView, no una petición de Python en CI.
         expression = """fetch('https://my-teacher-ia-api.onrender.com/api/health',
@@ -121,6 +135,7 @@ def main():
         assert auth and auth.get("status") in (401, 403), auth
 
         report = {"device": "emulator x86_64 API35", "page": current,
+                  "secure_session_tested": True,
                   "api_health": result, "unauthorized_auth_request": auth,
                   "authenticated_chat_tested": False, "offline_inference_tested": False}
         (OUT / "reporte.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

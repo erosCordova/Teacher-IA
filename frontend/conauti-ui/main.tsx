@@ -1,4 +1,5 @@
 import { apiFetch } from './apiFetch'
+import { sesionNativaDisponible, recuperarSesionAndroid, protegerSesionAndroid, eliminarSesionAndroid } from './SesionNativa'
 import PantallaCompartida from "./PantallaCompartida";
 import AventuraEducativa from "./AventuraEducativa";
 import MaterialesEstudio from "./MaterialesEstudio";
@@ -158,6 +159,7 @@ function App() {
   const [token, setToken] = useState<string | null>(
     () => sessionStorage.getItem('conauti_token')
   )
+  const [restaurandoSesionMovil, setRestaurandoSesionMovil] = useState(sesionNativaDisponible)
   const [user, setUser] = useState<User | null>(null)
   const [roles, setRoles] = useState<string[]>([])
   const [checking, setChecking] = useState(true)
@@ -327,8 +329,25 @@ function App() {
     })
   }, [messages, page])
 
+  // Recuperar la credencial cifrada del Keystore antes de validar la sesión.
+  useEffect(() => {
+    if (!sesionNativaDisponible()) return
+    let active = true
+    void recuperarSesionAndroid()
+      .then(restored => {
+        if (!active || !restored || sessionStorage.getItem('conauti_token')) return
+        sessionStorage.setItem('conauti_token', restored)
+        setToken(restored)
+      })
+      .catch(() => { /* Token inaccesible: se solicitará iniciar sesión otra vez. */ })
+      .finally(() => { if (active) setRestaurandoSesionMovil(false) })
+    return () => { active = false }
+  }, [])
+
   useEffect(() => {
     let valid = true
+
+    if (restaurandoSesionMovil) return
 
     if (!token) {
       setChecking(false)
@@ -357,6 +376,7 @@ function App() {
       .catch(error => {
         if (!valid) return
         sessionStorage.removeItem('conauti_token')
+        void eliminarSesionAndroid().catch(() => {})
         setToken(null)
         setUser(null)
         setNotice(errorText(error))
@@ -366,7 +386,7 @@ function App() {
     return () => {
       valid = false
     }
-  }, [token])
+  }, [token, restaurandoSesionMovil])
 
   async function refresh(key: string) {
     const data = await api<Conversation[]>(
@@ -378,6 +398,9 @@ function App() {
 
   function completeSignIn(tokenValue: string) {
     sessionStorage.setItem('conauti_token', tokenValue)
+    void protegerSesionAndroid(tokenValue).catch(() => {
+      setNotice('No se pudo guardar la sesión de forma segura. Es posible que debas iniciar sesión de nuevo.')
+    })
     setPassword('')
     setChecking(true)
     setToken(tokenValue)
@@ -576,6 +599,7 @@ function App() {
   async function logout() {
     const key = token
     sessionStorage.removeItem('conauti_token')
+    await eliminarSesionAndroid().catch(() => {})
     setToken(null)
     setUser(null)
     setProfileName('')
