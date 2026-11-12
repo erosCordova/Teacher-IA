@@ -84,8 +84,8 @@ public final class ModeloEducativoPlugin extends Plugin {
 
     @PluginMethod
     public void eliminar(PluginCall call) {
-        if (busy.get()) {
-            call.reject("Cancela la descarga antes de eliminar el modelo");
+        if (busy.get() || MotorLocalPlugin.estaOcupado()) {
+            call.reject("Termina la descarga o la respuesta de IA antes de eliminar el modelo");
             return;
         }
         try {
@@ -114,8 +114,12 @@ public final class ModeloEducativoPlugin extends Plugin {
                 File dir = modelDirectory();
                 File finalModel = new File(dir, MODEL_NAME);
                 if (finalModel.isFile() && finalModel.length() > MIN_BYTES) {
-                    call.resolve(info(dir));
-                    return;
+                    // No reutilizar un fichero final sin comprobar su integridad.
+                    if (sha256Matches(finalModel)) {
+                        call.resolve(info(dir));
+                        return;
+                    }
+                    if (!finalModel.delete()) throw new IOException("Modelo local dañado");
                 }
                 if (dir.getUsableSpace() < RECOMMENDED_FREE) {
                     throw new IOException("Libera al menos 650 MB antes de descargar el modelo");
@@ -211,7 +215,7 @@ public final class ModeloEducativoPlugin extends Plugin {
         });
     }
 
-    private static boolean sha256Matches(File file) throws Exception {
+    static boolean sha256Matches(File file) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         try (FileInputStream in = new FileInputStream(file)) {
             byte[] buffer = new byte[256 * 1024];
