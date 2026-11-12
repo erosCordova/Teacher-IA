@@ -18,7 +18,9 @@ credentials = (
     ("android_ci_alumno_a", "ClaveAndroidCI_2026_AlumnoA"),
     ("android_ci_alumno_b", "ClaveAndroidCI_2026_AlumnoB"),
 )
-with psycopg.connect(url) as conn:
+with psycopg.connect(url, autocommit=True) as conn:
+    migration = Path("backend/migrations/conauti_001_up.sql").read_text(encoding="utf-8")
+    conn.execute(migration)
     for username, password in credentials:
         conn.execute(
             "INSERT INTO conauti_users(username,password_hash) VALUES (%s,%s)"
