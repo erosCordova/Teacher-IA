@@ -169,7 +169,7 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
       if (!motor) throw new Error('El motor local no se encuentra disponible.')
       const contexto = mensajes.slice(-8)
         .map(m => (m.rol === 'tutor' ? 'Tutor' : 'Estudiante') + ': ' + m.texto.slice(0, 250))
-        .join('\\n').slice(-1400)
+        .join('\n').slice(-1400)
       const resultado = await motor.responder({ texto, contexto, maxTokens: 180 })
       setMensajes(previous => [...previous,
         { id: id + 1, rol: 'tutor' as const, texto: resultado.texto }].slice(-80))
