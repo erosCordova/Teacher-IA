@@ -113,6 +113,13 @@ public final class MotorLocalPlugin extends Plugin {
                 if (answer.startsWith("ERROR:")) {
                     throw new IllegalStateException(answer.substring(6).trim());
                 }
+                // Qwen puede emitir etiquetas de pensamiento internas.
+                // La interfaz del estudiante debe mostrar solo la respuesta educativa.
+                answer = answer.replaceAll("(?s)<think>.*?</think>", "").trim();
+                answer = answer.replaceAll("(?s)<think>.*", "").trim();
+                if (answer.isEmpty()) {
+                    throw new IllegalStateException("El modelo no generó una pista visible. Vuelve a intentarlo.");
+                }
                 JSObject output = new JSObject();
                 output.put("texto", answer);
                 output.put("origen", "dispositivo");
