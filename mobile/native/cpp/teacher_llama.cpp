@@ -9,6 +9,13 @@
 
 // Una inferencia por proceso: llama.cpp consume memoria significativa en móvil.
 static std::mutex g_inference_mutex;
+// Mantener pesos del modelo en el proceso y reutilizarlos entre mensajes.
+// Cada solicitud crea un contexto KV independiente; no se comparte la sesión
+// del usuario con otros procesos ni con servidores.
+static bool g_backend_initialized = false;
+static std::unique_ptr<llama_model, decltype(&llama_model_free)>
+    g_model_cache(nullptr, llama_model_free);
+static std::string g_model_path;
 
 static jbyteArray to_java(JNIEnv * env, const std::string & text) {
     jbyteArray result = env->NewByteArray(static_cast<jsize>(text.size()));
@@ -20,17 +27,18 @@ static jbyteArray to_java(JNIEnv * env, const std::string & text) {
 }
 
 static std::string infer(const std::string & path, const std::string & question, int max_tokens) {
-    struct Backend {
-        Backend() { llama_backend_init(); }
-        ~Backend() { llama_backend_free(); }
-    } backend;
-
-    auto model = std::unique_ptr<llama_model, decltype(&llama_model_free)>(
-        llama_model_load_from_file(path.c_str(), llama_model_default_params()),
-        llama_model_free
-    );
-    if (!model) return "ERROR: No se pudo cargar el archivo GGUF.";
-    const llama_vocab * vocab = llama_model_get_vocab(model.get());
+    if (!g_backend_initialized) {
+        llama_backend_init();
+        g_backend_initialized = true;
+    }
+    if (!g_model_cache || g_model_path != path) {
+        g_model_cache.reset(llama_model_load_from_file(
+            path.c_str(), llama_model_default_params()));
+        if (!g_model_cache) return "ERROR: No se pudo cargar el archivo GGUF.";
+        g_model_path = path;
+    }
+    const llama_model * model = g_model_cache.get();
+    const llama_vocab * vocab = llama_model_get_vocab(model);
     if (!vocab) return "ERROR: El modelo no tiene un vocabulario válido.";
 
     const std::string system =
@@ -41,7 +49,7 @@ static std::string infer(const std::string & path, const std::string & question,
     const llama_chat_message messages[] = {
         { "system", system.c_str() }, { "user", user.c_str() }
     };
-    const char * tmpl = llama_model_chat_template(model.get(), nullptr);
+    const char * tmpl = llama_model_chat_template(model, nullptr);
     if (!tmpl) return "ERROR: El GGUF no contiene una plantilla de conversación.";
     int size = static_cast<int>((system.size() + user.size() + 512) * 3);
     std::vector<char> prompt_buffer(size, 0);
@@ -78,7 +86,7 @@ static std::string infer(const std::string & path, const std::string & question,
         return "ERROR: La pregunta es demasiado extensa para este teléfono.";
     }
     auto context = std::unique_ptr<llama_context, decltype(&llama_free)>(
-        llama_init_from_model(model.get(), params), llama_free);
+        llama_init_from_model(model, params), llama_free);
     if (!context) return "ERROR: Memoria insuficiente para iniciar la IA.";
 
     for (size_t index = 0; index < tokens.size(); index += 256) {
@@ -125,7 +133,7 @@ Java_pe_myteacheria_alumno_MotorLocalPlugin_generarNativo(
     const std::string path(path_chars);
     env->ReleaseStringUTFChars(path_value, path_chars);
     const jsize n = env->GetArrayLength(question_value);
-    if (n <= 0 || n > 3200) return to_java(env, "ERROR: Pregunta inválida.");
+    if (n <= 0 || n > 10000) return to_java(env, "ERROR: Pregunta inválida.");
     std::string question(static_cast<size_t>(n), '\0');
     env->GetByteArrayRegion(question_value, 0, n, reinterpret_cast<jbyte *>(&question[0]));
     std::lock_guard<std::mutex> guard(g_inference_mutex);
