@@ -1,7 +1,7 @@
 {
   "project": "My Teacher IA — Android + IA sin conexión",
   "measurement": "Suma ponderada exclusivamente de funciones verificadas en CI o emulador; los subhitos no probados no cuentan.",
-  "progress_percent": 72,
+  "progress_percent": 75,
   "updated_at": "2026-11-12",
   "milestones": [
     {
@@ -77,7 +77,9 @@
       "id": "5c",
       "name": "Chat pedagógico offline funcional con historial persistente",
       "weight": 3,
-      "status": "pending"
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43303896571",
+      "note": "React Android envió una pregunta real a Qwen3 0.6B, mostró la respuesta, cifró ambas intervenciones y restauró el chat tras recargar WebView."
     },
     {
       "id": "5d1",
@@ -146,6 +148,7 @@
     "real_gguf_android_test": "https://github.com/erosCordova/Teacher-IA/actions/runs/43301708400",
     "real_gguf_sha256": "28b1c721c1e476d3e41c629d5993c0aaeca0f3b747afdbab667f5a4bc8e37665",
     "real_gguf_inference_elapsed_ms_emulator": 117309,
-    "offline_sync_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43304665847"
+    "offline_sync_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43304665847",
+    "offline_chat_real": "https://github.com/erosCordova/Teacher-IA/actions/runs/43303896571"
   }
 }
