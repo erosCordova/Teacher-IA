@@ -159,6 +159,16 @@ public final class ModeloEducativoPlugin extends Plugin {
                         if (status != 200 && status != 206) {
                             throw new IOException("Servidor respondió HTTP " + status);
                         }
+                        // Si se reanuda, comprobar que el servidor continúa
+                        // exactamente desde el byte esperado. Nunca mezclar bloques
+                        // equivocados en un archivo GGUF parcial.
+                        if (status == 206) {
+                            String range = connection.getHeaderField("Content-Range");
+                            String prefix = "bytes " + received + "-";
+                            if (range == null || !range.startsWith(prefix)) {
+                                throw new IOException("El servidor devolvió un rango inesperado");
+                            }
+                        }
                         boolean append = status == 206 && received > 0;
                         if (!append) received = 0;
                         long content = connection.getContentLengthLong();
@@ -170,7 +180,7 @@ public final class ModeloEducativoPlugin extends Plugin {
                             byte[] buffer = new byte[64 * 1024];
                             int read;
                             while ((read = in.read(buffer)) != -1) {
-                                if (cancelled.get()) throw new IOException("Descarga cancelada");
+                                if (cancelled.get()) throw new IOException("Descarga cancelada; puedes reanudarla después");
                                 received += read;
                                 if (received > MAX_BYTES) throw new IOException("Límite de tamaño superado");
                                 out.write(buffer, 0, read);
