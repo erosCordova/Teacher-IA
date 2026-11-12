@@ -1,6 +1,7 @@
 import { apiFetch } from './apiFetch'
 import { sesionNativaDisponible, recuperarSesionAndroid, protegerSesionAndroid, eliminarSesionAndroid } from './SesionNativa'
 import ModeloSinConexion from './ModeloSinConexion'
+import TutorLocal from './TutorLocal'
 import PantallaCompartida from "./PantallaCompartida";
 import AventuraEducativa from "./AventuraEducativa";
 import MaterialesEstudio from "./MaterialesEstudio";
@@ -1149,7 +1150,13 @@ function App() {
             <div className="mtc-auth-encouragement"><span aria-hidden="true">✦</span>
               Una mejor forma de aprender empieza con una pregunta.
             </div>
-            <ModeloSinConexion />
+            {sesionNativaDisponible() && (
+              <button type="button" className="mtc-auth-local-choice"
+                onClick={() => window.dispatchEvent(new Event('myteacher:modo-local'))}>
+                <strong>Estudiar sin conexión</strong>
+                <small>Entra al tutor privado de tu celular, sin una cuenta en línea.</small>
+              </button>
+            )}
           </div>
           <nav className="mtc-auth-links" aria-label="Información de My Teacher IA">
             <a href="/acerca-de/">Sobre el proyecto</a>
@@ -1621,6 +1628,25 @@ function App() {
   )
 }
 
+function AndroidEntry() {
+  const [local, setLocal] = useState(() => {
+    if (!sesionNativaDisponible()) return false
+    try { return localStorage.getItem('myteacher.android.mode') === 'local' }
+    catch { return false }
+  })
+  const cambiarModo = useCallback((modoLocal: boolean) => {
+    try { localStorage.setItem('myteacher.android.mode', modoLocal ? 'local' : 'online') }
+    catch { /* modo activo mientras la app permanezca abierta */ }
+    setLocal(modoLocal)
+  }, [])
+  useEffect(() => {
+    const activar = () => cambiarModo(true)
+    window.addEventListener('myteacher:modo-local', activar)
+    return () => window.removeEventListener('myteacher:modo-local', activar)
+  }, [cambiarModo])
+  return local ? <TutorLocal onVolverOnline={() => cambiarModo(false)}/> : <App />
+}
+
 createRoot(
   document.getElementById('root')!
-).render(<App />)
+).render(<AndroidEntry />)
