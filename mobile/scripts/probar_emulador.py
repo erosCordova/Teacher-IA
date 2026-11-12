@@ -146,6 +146,46 @@ def main():
         assert engine and engine.get("engineAvailable") is True, engine
         assert engine.get("modelInstalled") is False, engine
 
+        # El historial no se guarda en localStorage: Android Keystore lo cifra.
+        history = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const v = c?.Plugins?.HistorialLocal ?? c?.registerPlugin?.('HistorialLocal');
+          if (!v) return {error:'No hay historial privado'};
+          const original = JSON.stringify([{id:1,rol:'estudiante',texto:'¿Qué es una fracción?'}]);
+          await v.guardar({datos:original});
+          const stored = await v.leer();
+          await v.borrar();
+          const cleared = await v.leer();
+          return {same:stored.datos===original,empty:cleared.datos==='[]'};
+        })().catch(e => ({error:String(e)}))""", 18)
+        print("Historial cifrado Android:", history)
+        assert history == {"same": True, "empty": True}, history
+
+        # Desde la pantalla de acceso debe poder abrirse el tutor local
+        # sin enviar contraseñas ni pedir autorización al backend.
+        offline = eval_js(ws, """(async () => {
+          const button = Array.from(document.querySelectorAll('button'))
+            .find(b => b.textContent?.includes('Estudiar sin conexión'));
+          if (!button) return {error:'No existe el acceso local'};
+          button.click();
+          await new Promise(resolve => setTimeout(resolve, 1200));
+          return {offline:!!document.querySelector('.mtc-offline-app'),
+                  title:document.querySelector('.mtc-offline-lead h1')?.textContent};
+        })().catch(e => ({error:String(e)}))""", 19)
+        print("Acceso sin cuenta a modo offline:", offline)
+        assert offline and offline.get("offline") is True, offline
+
+        # Comprobar que es posible regresar a la cuenta web sin reiniciar Android.
+        back = eval_js(ws, """(async () => {
+          const button = Array.from(document.querySelectorAll('button'))
+            .find(b => b.textContent?.includes('Usar mi cuenta en línea'));
+          if (!button) return false;
+          button.click();
+          await new Promise(resolve => setTimeout(resolve, 1200));
+          return !!document.querySelector('.mtc-auth-shell');
+        })()""", 20)
+        assert back is True, "No se pudo regresar del tutor local al inicio de sesión"
+
         # La API está en Render y puede necesitar despertarse; esto ejercita
         # EXACTAMENTE el fetch del WebView, no una petición de Python en CI.
         expression = """fetch('https://my-teacher-ia-api.onrender.com/api/health',
@@ -170,7 +210,7 @@ def main():
         assert auth and auth.get("status") in (401, 403), auth
 
         report = {"device": "emulator x86_64 API35", "page": current,
-                  "secure_session_tested": True, "model_installer_detected": True, "jni_library_loaded": True,
+                  "secure_session_tested": True, "offline_history_encrypted": True, "offline_entry_tested": True, "model_installer_detected": True, "jni_library_loaded": True,
                   "api_health": result, "unauthorized_auth_request": auth,
                   "authenticated_chat_tested": False, "offline_inference_tested": False}
         (OUT / "reporte.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
