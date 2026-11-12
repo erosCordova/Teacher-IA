@@ -8,10 +8,13 @@ del plugin ni se sustituye el servidor de Hugging Face.
 """
 import hashlib
 import json
+import re
+import subprocess
 import time
+import urllib.request
 from pathlib import Path
 from websocket import create_connection
-from probar_emulador import APK, adb, eval_js, get_target, wait_for_debug_socket
+from probar_emulador import APK, adb, eval_js
 
 ROOT = Path(__file__).resolve().parents[1]
 GGUF = ROOT / "cache" / "qwen3-0.6b-q4_k_m.gguf"
@@ -20,6 +23,46 @@ PKG = "pe.myteacheria.alumno"
 NAME = "qwen3-0.6b-q4_k_m.gguf"
 HASH = "28b1c721c1e476d3e41c629d5993c0aaeca0f3b747afdbab667f5a4bc8e37665"
 PART_BYTES = 460 * 1048576
+
+def find_android_webview():
+    """Explorar sockets reales: el último no siempre pertenece a la app."""
+    for attempt in range(38):
+        socket_list = adb("shell", "cat", "/proc/net/unix", timeout=35, check=False)
+        sockets = list(dict.fromkeys(re.findall(
+            r"webview_devtools_remote_\\d+", socket_list)))
+        for socket in reversed(sockets):
+            try:
+                adb("forward", "tcp:9222", "localabstract:" + socket,
+                    timeout=12)
+                with urllib.request.urlopen(
+                        "http://127.0.0.1:9222/json", timeout=3) as resp:
+                    pages = json.load(resp)
+                for page in pages:
+                    if page.get("type") != "page":
+                        continue
+                    if page.get("webSocketDebuggerUrl") and (
+                            page.get("url", "").startswith("http://localhost")
+                            or "My Teacher IA" in page.get("title", "")):
+                        return page
+            except (OSError, ValueError, KeyError):
+                continue
+        if attempt in (0, 8, 20, 30):
+            print("Buscando WebView de My Teacher IA:", attempt,
+                  "sockets:", sockets, flush=True)
+            current = adb("shell", "dumpsys", "activity", "activities",
+                          check=False, timeout=25)
+            print("Actividad Android:", current[-650:], flush=True)
+            # Si el sistema perdió la actividad tras copiar 484 MB, reabrir.
+            adb("shell", "am", "start", "-n", PKG + "/.MainActivity",
+                check=False, timeout=20)
+        time.sleep(3)
+    OUT.mkdir(exist_ok=True)
+    errors = subprocess.run(
+        ["adb", "logcat", "-d", "-t", "800", "*:E"],
+        capture_output=True, text=True, timeout=35)
+    (OUT / "fallo-webview-android.txt").write_text(
+        errors.stdout[-20000:], encoding="utf-8")
+    raise RuntimeError("WebView Android no accesible; consultar fallo-webview-android.txt")
 
 def main():
     assert APK.exists(), "APK no compilado"
@@ -46,11 +89,11 @@ def main():
                "no_backup/modelos/" + NAME + ".part", timeout=40)
     assert int(size) == PART_BYTES, f"El fichero parcial no coincide: {size}"
 
-    adb("shell", "am", "start", "-W", "-n", PKG + "/.MainActivity", timeout=90)
+    activity = adb("shell", "am", "start", "-W", "-n",
+                   PKG + "/.MainActivity", timeout=90)
+    print("Arranque de actividad:", activity[:1000], flush=True)
     time.sleep(8)
-    socket = wait_for_debug_socket()
-    adb("forward", "tcp:9222", "localabstract:" + socket)
-    target = get_target()
+    target = find_android_webview()
     ws = create_connection(target["webSocketDebuggerUrl"], timeout=40, suppress_origin=True)
     ws.settimeout(35)
     try:
