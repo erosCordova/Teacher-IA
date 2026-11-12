@@ -93,3 +93,15 @@ html[data-myteacher-theme="light"] .mtc-offline-chat { background:#ffffffc7; }
   .mtc-offline-content { padding-top:25px; }
   .mtc-offline-msg { max-width:100%; }
 }
+
+/* Controles de voz aislados del chat web. */
+.mtc-offline-voice-controls {
+  grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap;
+}
+.mtc-offline-voice-controls button { font-size: 12px; min-height: 40px; }
+.mtc-offline-voice-controls button[aria-pressed="true"] {
+  border-color: var(--mtc-local-accent); background: #3979d63a;
+}
+.mtc-offline-speak {
+  margin-top: 8px; font-size: 12px!important; padding: 6px 10px!important;
+}
