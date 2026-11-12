@@ -100,16 +100,29 @@ def main():
     print("WebView:", target.get("url"), target.get("title"))
     ws = create_connection(target["webSocketDebuggerUrl"], timeout=40, suppress_origin=True)
     try:
-        current = eval_js(ws, """({
-          origin: location.origin,
-          title: document.title,
-          authPage: !!document.querySelector('.mtc-auth-shell'),
-          appPage: !!document.querySelector('.mtc-app')
-        })""", 1)
+        current = None
+        for attempt in range(30):
+            current = eval_js(ws, """({
+              origin: location.origin,
+              title: document.title,
+              authPage: !!document.querySelector('.mtc-auth-shell'),
+              appPage: !!document.querySelector('.mtc-app'),
+              localPage: !!document.querySelector('.mtc-offline-app'),
+              readyState: document.readyState,
+              body: document.body?.innerText?.slice(0, 320) || '',
+              root: document.getElementById('root')?.innerHTML?.slice(0, 280) || ''
+            })""", 50 + attempt)
+            if current["authPage"] or current["appPage"] or current["localPage"]:
+                break
+            if attempt in (0, 5, 15):
+                print("Esperando interfaz React:", current)
+            time.sleep(2)
         print("Página montada:", current)
         assert current["origin"] == "http://localhost", current
         assert "My Teacher IA" in current["title"], current
-        assert current["authPage"] or current["appPage"], "No se montó React."
+        assert current["authPage"] or current["appPage"] or current["localPage"], (
+            "No se montó React. Último diagnóstico: " + str(current)
+        )
 
         # Prueba puente Java <-> JS: token ficticio, almacenamiento cifrado.
         native = eval_js(ws, """(async () => {
