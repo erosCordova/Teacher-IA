@@ -1,0 +1,314 @@
+/*
+  MY TEACHER IA — PALETA OFICIAL VISION-AI (global-ice.css)
+  Adaptación visual de colores únicamente. No sustituye ningún
+  componente, imagen, ruta ni manejador de eventos.
+  Fuente: erosCordova/VISION-AI/src/styles/global-ice.css
+  Modo claro = azul hielo y navegación marina;
+  Modo oscuro = azul noche con azul real, sin verde/cian verdoso.
+*/
+html[data-myteacher-theme] {
+  --vision-ice:#d9eeff;
+  --vision-paper:#f5fbff;
+  --vision-panel:#e9f6ff;
+  --vision-border:#9cc8ee;
+  --vision-navy:#0b2c57;
+  --vision-primary:#176fc9;
+  --vision-muted:#486b95;
+  --vision-violet:#6a5bc8;
+  --vision-sidebar-top:#07162f;
+  --vision-sidebar-bottom:#091c3d;
+  --vision-soft-blue:#b8deff;
+  --vision-white:#ffffff;
+}
+html[data-myteacher-theme="dark"] {
+  --mtc-bg:#060f21;
+  --mtc-side:#07162f;
+  --mtc-surface:#0d2a50;
+  --mtc-surface-hover:#143e72;
+  --mtc-field:#0c2446;
+  --mtc-text:#eef7ff;
+  --mtc-muted:#b0cbe7;
+  --mtc-border:#31598f;
+  --mtc-accent:#66adf5;
+  --mtc-action:#176fc9;
+  --mtc-action-text:#ffffff;
+  --shonen-main:#07162f;
+  --shonen-panel:rgba(11,39,81,.94);
+  --shonen-glass:rgba(8,27,56,.91);
+  --shonen-edge:#5794d6;
+  --shonen-glow:#458fe2;
+  color-scheme:dark!important;
+}
+html[data-myteacher-theme="dark"] body,
+html[data-myteacher-theme="dark"] #root,
+html[data-myteacher-theme="dark"] #root .mtc-app,
+html[data-myteacher-theme="dark"] #root .mtc-app .mtc-content {
+  background:#07162f!important;
+  color:#eef7ff!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .shonen-scene {
+  background:radial-gradient(ellipse at 50% 22%,#163d70 0%,#0b2c57 39%,#07162f 75%,#060e21 100%)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .shonen-scene__landscape {
+  filter:saturate(.94) hue-rotate(2deg) brightness(.88)!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .shonen-scene__vignette {
+  background:linear-gradient(90deg,rgba(5,15,36,.18),transparent 30%,transparent 70%,rgba(4,13,34,.18)),
+    linear-gradient(180deg,rgba(4,12,29,.1),transparent 60%,rgba(4,12,29,.31))!important;
+}
+html[data-myteacher-theme="light"] {
+  --mtc-bg:#d9eeff;
+  --mtc-side:#07162f;
+  --mtc-surface:#f5fbff;
+  --mtc-surface-hover:#e9f6ff;
+  --mtc-field:#f8fcff;
+  --mtc-text:#0b2c57;
+  --mtc-muted:#486b95;
+  --mtc-border:#9cc8ee;
+  --mtc-accent:#176fc9;
+  --mtc-action:#176fc9;
+  --mtc-action-text:#ffffff;
+  --shonen-main:#d9eeff;
+  --shonen-panel:rgba(245,251,255,.97);
+  --shonen-glass:rgba(233,246,255,.94);
+  --shonen-edge:#9cc8ee;
+  --shonen-glow:#176fc9;
+  color-scheme:light!important;
+}
+html[data-myteacher-theme="light"] body,
+html[data-myteacher-theme="light"] #root,
+html[data-myteacher-theme="light"] #root .mtc-app,
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-content {
+  background:#d9eeff!important;
+  color:#0b2c57!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .mtc-content>.shonen-scene {
+  background:
+    radial-gradient(ellipse 68% 35% at 100% 0%,#b8deff 0%,transparent 82%),
+    radial-gradient(ellipse 55% 27% at 0% 100%,#c8e5ff 0%,transparent 95%),
+    linear-gradient(145deg,#eef8ff 0%,#d9eeff 53%,#c6e4ff 100%)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-scene__landscape {
+  opacity:.16!important;filter:saturate(.5) brightness(1.9)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-scene__vignette {
+  background:linear-gradient(180deg,rgba(245,251,255,.24),rgba(233,246,255,.46))!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-scene__mist {
+  background:linear-gradient(90deg,rgba(217,238,255,.38),rgba(245,251,255,.62) 38%,rgba(245,251,255,.62) 62%,rgba(217,238,255,.38))!important;
+}
+/* Navigation matches VISION-AI in BOTH themes. */
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar {
+  background:radial-gradient(ellipse 120% 55% at 10% 3%,rgba(38,51,105,.23),transparent 80%),
+    linear-gradient(180deg,#07162f 0%,#0b2751 65%,#091c3d 100%)!important;
+  border-right:1px solid #2d599a!important;
+  color:#e9f5ff!important;
+  box-shadow:8px 0 31px rgba(3,23,43,.29)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar :is(.mtc-brand,.mtc-brand strong,.mtc-side-nav button,.mtc-side-footer button,.mtc-history,.mtc-side-footer .mtc-account) {
+  color:#e9f5ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar .mtc-brand strong {
+  color:#f5fbff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar .mtc-side-nav button.active {
+  background:linear-gradient(105deg,#1462bd,#2f7edb)!important;
+  border-color:#57a8f2!important;
+  color:#ffffff!important;
+  box-shadow:inset 3px 0 #b3dffe,0 7px 23px rgba(3,23,43,.38)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar .mtc-side-nav button:hover {
+  background:#17447d!important;
+  border-color:#5794d6!important;color:#fff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar .mtc-new-chat {
+  background:linear-gradient(105deg,#1462bd,#2f7edb)!important;
+  border-color:#57a8f2!important;
+  box-shadow:0 7px 24px rgba(23,111,201,.24)!important;
+  color:#ffffff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar :is(.mtc-mark,.mtc-mark svg,.mtc-avatar) {
+  color:#b9e4ff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar .mtc-history input {
+  background:#102c51!important;color:#e9f5ff!important;border-color:#2d599a!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar .mtc-side-footer {
+  border-top-color:#31598f!important;
+}
+html[data-myteacher-theme] #root .mtc-app .mtc-sidebar .mtc-new-chat:focus-visible,
+html[data-myteacher-theme] #root .mtc-app button:focus-visible {
+  outline-color:#5794d6!important;
+}
+/* Main chat keeps its familiar centered structure. */
+html[data-myteacher-theme="dark"] #root .mtc-app main.shonen-chat-centered {
+  background:linear-gradient(90deg,rgba(4,13,31,.08),rgba(5,19,42,.21),rgba(4,13,31,.08))!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app main.shonen-chat-centered {
+  background:linear-gradient(90deg,rgba(217,238,255,.22),rgba(245,251,255,.64) 50%,rgba(217,238,255,.22))!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered .mtc-welcome {
+  background:radial-gradient(ellipse,#f5fbffba,#e9f6ff66 72%,transparent)!important;
+  text-shadow:none!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered .mtc-welcome h1,
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered .mtc-welcome p.shonen-cinema-subtitle {
+  color:#0b2c57!important;text-shadow:none!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .shonen-chat-centered .mtc-welcome h1,
+html[data-myteacher-theme="dark"] #root .mtc-app .shonen-chat-centered .mtc-welcome p.shonen-cinema-subtitle {
+  color:#f5fbff!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-cinema-greeting {
+  color:#0b2c57!important;
+  background:linear-gradient(145deg,#f8fcff,#e9f6ff)!important;
+  border-color:#9cc8ee!important;
+  box-shadow:inset 0 1px #fff,0 11px 35px rgba(19,79,141,.14)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-cinema-greeting :is(strong,small) {
+  color:#0b2c57!important;text-shadow:none!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-cinema-greeting__star {
+  color:#176fc9!important;text-shadow:none!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .shonen-cinema-greeting {
+  background:linear-gradient(135deg,rgba(11,44,87,.95),rgba(7,22,47,.94))!important;
+  border-color:#5794d6!important;
+  box-shadow:0 11px 34px rgba(3,23,43,.38)!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-compose-area {
+  max-width:860px!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered form.mtc-composer {
+  background:#f5fbff!important;
+  border:1px solid #9cc8ee!important;
+  box-shadow:0 9px 28px rgba(19,79,141,.17),inset 0 1px #fff!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .shonen-chat-centered form.mtc-composer {
+  background:linear-gradient(115deg,#0b2751,#071a38)!important;
+  border:1px solid #5794d6!important;
+  box-shadow:0 11px 32px rgba(3,23,43,.37)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered form.mtc-composer textarea {
+  color:#0b2c57!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered form.mtc-composer textarea::placeholder {
+  color:#486b95!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .shonen-chat-centered form.mtc-composer textarea {
+  color:#f5fbff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered form.mtc-composer .mtc-send {
+  color:#ffffff!important;background:linear-gradient(110deg,#176acc,#287fdf)!important;
+  border-color:#3188e2!important;box-shadow:0 7px 24px rgba(39,108,189,.23)!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered form.mtc-composer :is(.mtc-plus,.mtc-voice-button) {
+  color:#176fc9!important;background:#e9f6ff!important;border-color:#9cc8ee!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .shonen-chat-centered form.mtc-composer :is(.mtc-plus,.mtc-voice-button) {
+  color:#b9e4ff!important;background:#0e3969!important;border-color:#5794d6!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered .mtc-guidance {
+  color:#486b95!important;text-shadow:none!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered .mtc-messages {
+  background:transparent!important;color:#0b2c57!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-app .shonen-chat-centered .mtc-message-assistant .mtc-message-body {
+  background:linear-gradient(120deg,rgba(11,44,87,.95),rgba(7,22,47,.83))!important;
+  border-left-color:#5794d6!important;color:#eef7ff!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered .mtc-message-assistant .mtc-message-body {
+  background:#f5fbff!important;border:1px solid #9cc8ee!important;
+  color:#0b2c57!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app .shonen-chat-centered .mtc-message-assistant .mtc-message-body :is(p,strong,small) {
+  color:#0b2c57!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-message-user .mtc-message-body {
+  background:linear-gradient(105deg,#1462bd,#2f7edb)!important;
+  border-color:#5794d6!important;
+  color:#ffffff!important;
+}
+html[data-myteacher-theme] #root .mtc-app .shonen-chat-centered .mtc-message-user .mtc-message-body :is(p,strong,small) {
+  color:#ffffff!important;
+}
+/* VISION-AI colors extend to other learning sections. */
+html[data-myteacher-theme="light"] #root .mtc-app :is(
+  .av-root,.study-center,.mtc-materials,.mtc-secondary,.mtc-settings-card,.myt-evaluaciones,
+  .av-header,.study-hero,.mtc-materials-heading
+) {
+  background:linear-gradient(145deg,#f5fbff,#e9f6ff)!important;
+  border-color:#9cc8ee!important;color:#0b2c57!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app :is(
+  .av-game-card,.av-quiz-panel,.av-achievement-card,.av-puzzle-experience,
+  .study-route-card,.study-flashcard,.study-route-panel,.study-create-box,
+  .mtc-materials-card,.mtc-materials-file,.mtc-materials-upload
+) {
+  background:linear-gradient(140deg,#f8fcff,#e9f6ff)!important;
+  border-color:#9cc8ee!important;color:#0b2c57!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app :is(
+  .av-root,.study-center,.mtc-materials,.mtc-secondary,.mtc-settings-card,.myt-evaluaciones,
+  .av-header,.study-hero,.mtc-materials-heading,.av-game-card,.av-quiz-panel,.av-achievement-card,
+  .study-route-card,.study-flashcard,.mtc-materials-card
+) :is(h1,h2,h3,h4,p,small,strong,label) {
+  color:#0b2c57!important;text-shadow:none!important;
+}
+html[data-myteacher-theme="light"] #root .mtc-app :is(
+  .mtc-auth-access,.mtc-auth-form-panel,.mtc-auth-email-form,.mtc-auth-legacy-form,
+  .mtc-auth-google-panel
+) {
+  color:#0b2c57!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-auth-shell .mtc-auth-access {
+  background:linear-gradient(145deg,#f5fbff,#e9f6ff)!important;
+  border-color:#9cc8ee!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-auth-shell .mtc-auth-form-panel :is(h1,h2,h3,label,strong,p,small) {
+  color:#0b2c57!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-auth-shell :is(.mtc-auth-email-form,.mtc-auth-legacy-form,.mtc-auth-google-panel) {
+  background:#f5fbff!important;border-color:#9cc8ee!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-auth-shell :is(.mtc-auth-email-form input,.mtc-auth-legacy-form input) {
+  background:#fff!important;border-color:#9cc8ee!important;color:#0b2c57!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-auth-shell .mtc-auth-tabs {
+  background:#d9eeff!important;border-color:#9cc8ee!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-auth-shell .mtc-auth-tabs button {
+  color:#0b2c57!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-auth-shell .mtc-auth-tabs button.selected {
+  background:linear-gradient(105deg,#1462bd,#2f7edb)!important;color:#fff!important;
+}
+html[data-myteacher-theme="light"] #root .shonen-auth-shell :is(.mtc-auth-email-choice,.mtc-auth-theme) {
+  color:#0b2c57!important;background:#e9f6ff!important;border-color:#9cc8ee!important;
+}
+html[data-myteacher-theme] #root .shonen-auth-shell :is(.mtc-auth-email-submit,.mtc-auth-legacy-submit) {
+  background:linear-gradient(110deg,#176acc,#287fdf)!important;color:#fff!important;
+}
+html[data-myteacher-theme="dark"] #root .shonen-auth-shell .mtc-auth-access {
+  background:linear-gradient(150deg,#0b2751,#07162f)!important;
+  border-color:#31598f!important;
+}
+/* Restores legible theme switcher in both modes. */
+html[data-myteacher-theme="light"] #root .mtc-content:has(>main.shonen-chat-centered) .mtc-topbar-right>.mtc-icon-button {
+  background:#f5fbff!important;border-color:#9cc8ee!important;color:#176fc9!important;
+}
+html[data-myteacher-theme="dark"] #root .mtc-content:has(>main.shonen-chat-centered) .mtc-topbar-right>.mtc-icon-button {
+  background:#0b2751!important;border-color:#5794d6!important;color:#e9f5ff!important;
+}
+/* All visual images remain non-interactive, preserving normal chat controls. */
+html[data-myteacher-theme] #root .shonen-scene,
+html[data-myteacher-theme] #root .shonen-character {
+  pointer-events:none!important;
+}
+@media(max-width:850px) {
+  html[data-myteacher-theme] #root .mtc-app {grid-template-columns:1fr!important;}
+  html[data-myteacher-theme] #root .mtc-app .mtc-sidebar {
+    background:linear-gradient(180deg,#07162f,#0b2751)!important;
+  }
+}
