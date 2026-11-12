@@ -36,7 +36,9 @@ public final class MotorLocalPlugin extends Plugin {
     }
 
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
-    private final AtomicBoolean busy = new AtomicBoolean(false);
+    private static final AtomicBoolean busy = new AtomicBoolean(false);
+
+    public static boolean estaOcupado() { return busy.get(); }
 
     public static boolean estaDisponible() {
         return ENGINE_READY;
@@ -87,6 +89,9 @@ public final class MotorLocalPlugin extends Plugin {
         final int maxTokens = Math.max(32, Math.min(256, requested));
         worker.execute(() -> {
             try {
+                if (!ModeloEducativoPlugin.sha256Matches(model)) {
+                    throw new IllegalStateException("El modelo no supera su verificación SHA-256.");
+                }
                 // El motor se ejecuta en un hilo independiente de la interfaz Android.
                 byte[] result = generarNativo(
                     model.getAbsolutePath(),
