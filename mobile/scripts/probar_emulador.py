@@ -174,6 +174,23 @@ def main():
         print("Historial cifrado Android:", history)
         assert history == {"same": True, "empty": True}, history
 
+        # Comprobar el módulo de voz: jamás debe usar reconocimiento en nube.
+        voice = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const v = c?.Plugins?.VozLocal ?? c?.registerPlugin?.('VozLocal');
+          if (!v) return {error:'VozLocal no registrado'};
+          const state = await v.estado();
+          let rejectedEmpty = false;
+          try { await v.hablar({texto:''}); }
+          catch (e) { rejectedEmpty = true; }
+          return {...state,rejectedEmpty};
+        })().catch(e => ({error:String(e)}))""", 21)
+        print("Voz del dispositivo:", voice)
+        assert voice.get("soloDispositivo") is True, voice
+        assert isinstance(voice.get("sintesisDisponible"), bool), voice
+        assert isinstance(voice.get("reconocimientoDisponible"), bool), voice
+        assert voice.get("rejectedEmpty") is True, voice
+
         # Desde la pantalla de acceso debe poder abrirse el tutor local
         # sin enviar contraseñas ni pedir autorización al backend.
         offline = eval_js(ws, """(async () => {
@@ -223,7 +240,7 @@ def main():
         assert auth and auth.get("status") in (401, 403), auth
 
         report = {"device": "emulator x86_64 API35", "page": current,
-                  "secure_session_tested": True, "offline_history_encrypted": True, "offline_entry_tested": True, "model_installer_detected": True, "jni_library_loaded": True,
+                  "secure_session_tested": True, "offline_history_encrypted": True, "offline_entry_tested": True, "voice_native_bridge_tested": True, "voice_capabilities": voice, "model_installer_detected": True, "jni_library_loaded": True,
                   "api_health": result, "unauthorized_auth_request": auth,
                   "authenticated_chat_tested": False, "offline_inference_tested": False}
         (OUT / "reporte.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
