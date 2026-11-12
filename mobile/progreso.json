@@ -1,7 +1,7 @@
 {
   "project": "My Teacher IA — Android + IA sin conexión",
   "measurement": "Suma ponderada exclusivamente de funciones verificadas en CI o emulador; los subhitos no probados no cuentan.",
-  "progress_percent": 50,
+  "progress_percent": 53,
   "updated_at": "2026-11-12",
   "milestones": [
     {
@@ -84,9 +84,16 @@
       "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118"
     },
     {
-      "id": "6b",
-      "name": "Dictado y lectura oral real en español verificados sin conexión en teléfonos",
-      "weight": 7,
+      "id": "6b1",
+      "name": "Síntesis de voz española sin Internet aceptada por el motor local de Android en emulador",
+      "weight": 3,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43297862516"
+    },
+    {
+      "id": "6b2",
+      "name": "Dictado offline en español y reproducción audible comprobados en teléfonos físicos",
+      "weight": 4,
       "status": "pending"
     },
     {
@@ -118,6 +125,7 @@
     "ready_for_release": false,
     "android_apk_debug": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118/artifacts/13980200600",
     "android_voice_and_aab": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118",
-    "aab_unsigned": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118/artifacts/13979118597"
+    "aab_unsigned": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118/artifacts/13979118597",
+    "android_voice_tts_test": "https://github.com/erosCordova/Teacher-IA/actions/runs/43297862516"
   }
 }
