@@ -91,6 +91,10 @@ app.include_router(conauti_privacy_router)
 from app.conauti_history import router as conauti_history_router
 app.include_router(conauti_history_router)
 
+# Importación explícita de historial de aprendizaje generado sin red.
+from app.conauti_offline_sync import router as conauti_offline_sync_router
+app.include_router(conauti_offline_sync_router)
+
 
 from app.conauti_ai import router as conauti_ai_router
 app.include_router(conauti_ai_router)
