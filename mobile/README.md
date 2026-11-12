@@ -1,6 +1,6 @@
 # My Teacher IA — edición Android (desarrollo)
 
-Estado: **50 % de subhitos ponderados y verificados**; no significa que el tutor offline ya esté completo. La compilación Android de prueba está verificada; la aplicación con motor GGUF local **todavía no está terminada**.
+Estado: **72 % de subhitos ponderados y verificados**; no significa que el tutor offline ya esté completo. La compilación Android de prueba está verificada; la aplicación con motor GGUF local **todavía no está terminada**.
 
 Este directorio prepara una app Android mediante Capacitor sin duplicar el frontend React ni modificar la publicación web de Render.
 
@@ -39,7 +39,7 @@ La web pública mantiene su funcionamiento normal. La app Android empaquetada re
 
 - [APK de depuración compilado en GitHub Actions](https://github.com/erosCordova/Teacher-IA/actions/runs/43252557288).
 - [CI general de frontend, backend y PostgreSQL](https://github.com/erosCordova/Teacher-IA/actions/runs/43252557141).
-- Avance global ponderado y medible en `progreso.json`: **50 %** (Android, JNI, historial cifrado, navegación, voz nativa y AAB sin firma comprobados).
+- Avance global ponderado y medible en `progreso.json`: **72 %** (Android, JNI, historial cifrado, navegación, voz nativa y AAB sin firma comprobados).
 - **Fase 2 en curso:** acceso y chat en Android usando backend HTTPS remoto.
 
 ## Novedades de la rama móvil
@@ -49,3 +49,11 @@ La web pública mantiene su funcionamiento normal. La app Android empaquetada re
 - Tutor local independiente de FastAPI con historial cifrado Keystore; cambio de modo local/online probado.
 - Inferencia GGUF real en emulador: en prueba profunda, no computada todavía como completada.
 - AAB de CI **sin firma**, no instalar ni publicar como versión Google Play.
+
+### Avance actualizado y comprobaciones
+
+- **72% ponderado:** consultar `mobile/progreso.json` como fuente de verdad.
+- GGUF Qwen3 0.6B probado generando una pregunta orientadora en Android emulado sin conexión al backend (ejecución 43301708400).
+- La API de importación voluntaria de conversaciones fue verificada con PostgreSQL efímero, sin duplicados y con aislamiento de cuentas (ejecución 43304665847).
+- Integración extremo a extremo de la pantalla del chat con historial y sincronización autenticada: pendiente de pruebas.
+- La versión para Play Store y un APK de producción todavía no están listos.
