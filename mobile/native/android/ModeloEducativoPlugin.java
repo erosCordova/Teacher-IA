@@ -63,7 +63,7 @@ public final class ModeloEducativoPlugin extends Plugin {
         state.put("downloadBytes", new File(dir, MODEL_NAME + ".part").length());
         state.put("approximateBytes", 484_000_000);
         state.put("downloading", busy.get());
-        state.put("engineAvailable", false); // Solo el instalador está integrado.
+        state.put("engineAvailable", MotorLocalPlugin.estaDisponible()); // Biblioteca JNI real por ABI.
         return state;
     }
 
