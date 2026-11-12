@@ -11,6 +11,14 @@ const config = readJSON('capacitor.config.json')
 const pkg = readJSON('package.json')
 const progress = readJSON('progreso.json')
 assert.equal(config.appName, 'My Teacher IA')
+for (const path of [
+  'native/android/MotorLocalPlugin.java',
+  'native/cpp/CMakeLists.txt',
+  'native/cpp/teacher_llama.cpp',
+  'scripts/preparar_motor_android.sh'
+]) {
+  assert(existsSync(resolve(mobile, path)), 'Falta el motor local: ' + path)
+}
 assert.equal(config.webDir, '../frontend/dist-conauti')
 assert.equal(config.server?.hostname, 'localhost')
 assert.equal(config.server?.androidScheme, 'http')
