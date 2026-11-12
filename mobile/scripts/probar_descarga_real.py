@@ -58,7 +58,7 @@ def find_android_webview():
         time.sleep(3)
     OUT.mkdir(exist_ok=True)
     errors = subprocess.run(
-        ["adb", "logcat", "-d", "-t", "800", "*:E"],
+        ["adb", "logcat", "-d", "-t", "6000"],
         capture_output=True, text=True, timeout=35)
     (OUT / "fallo-webview-android.txt").write_text(
         errors.stdout[-20000:], encoding="utf-8")
@@ -72,6 +72,15 @@ def main():
     print("Preparando prueba de reanudación con GGUF completo y verificado", flush=True)
     adb("install", "-r", str(APK), timeout=160)
     adb("shell", "am", "force-stop", PKG, check=False)
+    # En API35 inicializar WebView antes de copiar cientos de megabytes.
+    # Es el mismo orden que la prueba GGUF real previamente aprobada.
+    first_start = adb("shell", "am", "start", "-W", "-n",
+                      PKG + "/.MainActivity", timeout=90)
+    print("Arranque inicial Android:", first_start, flush=True)
+    time.sleep(9)
+    pid = adb("shell", "pidof", PKG, check=False)
+    print("Proceso Android inicial:", pid, flush=True)
+    assert pid.strip(), "Android no arrancó My Teacher IA antes del fichero parcial"
     adb("shell", "run-as", PKG, "mkdir", "-p", "no_backup/modelos")
     staging = "/data/local/tmp/myteacher-full-download-verify.gguf"
     print("Transfiriendo fichero real temporalmente al emulador…", flush=True)
@@ -89,10 +98,12 @@ def main():
                "no_backup/modelos/" + NAME + ".part", timeout=40)
     assert int(size) == PART_BYTES, f"El fichero parcial no coincide: {size}"
 
-    activity = adb("shell", "am", "start", "-W", "-n",
-                   PKG + "/.MainActivity", timeout=90)
-    print("Arranque de actividad:", activity[:1000], flush=True)
-    time.sleep(8)
+    pid_after = adb("shell", "pidof", PKG, check=False)
+    print("Proceso Android tras copiar GGUF:", pid_after, flush=True)
+    if not pid_after.strip():
+        activity = adb("shell", "am", "start", "-W", "-n",
+                       PKG + "/.MainActivity", timeout=90)
+        print("Reinicio tras copiar modelo parcial:", activity, flush=True)
     target = find_android_webview()
     ws = create_connection(target["webSocketDebuggerUrl"], timeout=40, suppress_origin=True)
     ws.settimeout(35)
