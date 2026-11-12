@@ -6,13 +6,13 @@
       "id": 1,
       "name": "Proyecto Android con Capacitor y compilación verificable",
       "weight": 15,
-      "status": "in_progress"
+      "status": "completed"
     },
     {
       "id": 2,
       "name": "Inicio de sesión y chat en línea desde Android",
       "weight": 15,
-      "status": "pending"
+      "status": "in_progress"
     },
     {
       "id": 3,
@@ -50,5 +50,12 @@
       "weight": 5,
       "status": "pending"
     }
-  ]
+  ],
+  "evidence": {
+    "android_debug_build": "https://github.com/erosCordova/Teacher-IA/actions/runs/43252557288",
+    "ci_web_backend_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43252557141",
+    "android_artifact": "my-teacher-ia-android-debug",
+    "offline_model_included": false,
+    "on_device_inference_tested": false
+  }
 }

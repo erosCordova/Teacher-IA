@@ -1,6 +1,6 @@
 # My Teacher IA — edición Android (desarrollo)
 
-Estado: **fase 1 de 8**, la aplicación Android con motor GGUF local **todavía no está terminada**.
+Estado: **15 % de avance total — fase 1 de 8 completada**. La compilación Android de prueba está verificada; la aplicación con motor GGUF local **todavía no está terminada**.
 
 Este directorio prepara una app Android mediante Capacitor sin duplicar el frontend React ni modificar la publicación web de Render.
 
@@ -34,3 +34,10 @@ La web pública mantiene su funcionamiento normal. La app Android empaquetada re
 7. Crear paquete AAB firmado, política de privacidad y ficha para Play Store.
 
 **No empaquetar tokens, llaves de producción ni secretos en el APK.**
+
+## Evidencia fase 1
+
+- [APK de depuración compilado en GitHub Actions](https://github.com/erosCordova/Teacher-IA/actions/runs/43252557288).
+- [CI general de frontend, backend y PostgreSQL](https://github.com/erosCordova/Teacher-IA/actions/runs/43252557141).
+- Avance global ponderado y medible en `progreso.json`: **15 %**.
+- **Fase 2 en curso:** acceso y chat en Android usando backend HTTPS remoto.
