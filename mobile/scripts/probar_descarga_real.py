@@ -30,6 +30,8 @@ def find_android_webview():
         socket_list = adb("shell", "cat", "/proc/net/unix", timeout=35, check=False)
         sockets = list(dict.fromkeys(re.findall(
             r"webview_devtools_remote_\\d+", socket_list)))
+        if attempt == 0:
+            print("Estado /proc/net/unix:", socket_list[:650], flush=True)
         for socket in reversed(sockets):
             try:
                 adb("forward", "tcp:9222", "localabstract:" + socket,
@@ -57,6 +59,13 @@ def find_android_webview():
                 check=False, timeout=20)
         time.sleep(3)
     OUT.mkdir(exist_ok=True)
+    screenshot = subprocess.run(
+        ["adb", "shell", "screencap", "-p", "/sdcard/teacher-webview-error.png"],
+        capture_output=True, text=True, timeout=35)
+    if screenshot.returncode == 0:
+        subprocess.run(["adb", "pull", "/sdcard/teacher-webview-error.png",
+                       str(OUT / "pantalla-webview-error.png")],
+                       capture_output=True, timeout=35)
     errors = subprocess.run(
         ["adb", "logcat", "-d", "-t", "6000"],
         capture_output=True, text=True, timeout=35)
@@ -80,6 +89,10 @@ def main():
     time.sleep(9)
     pid = adb("shell", "pidof", PKG, check=False)
     print("Proceso Android inicial:", pid, flush=True)
+    initial_sockets = adb("shell", "cat", "/proc/net/unix",
+                          timeout=30, check=False)
+    print("Sockets WebView tras iniciar:",
+          re.findall(r"webview_devtools_remote_\\d+", initial_sockets), flush=True)
     assert pid.strip(), "Android no arrancó My Teacher IA antes del fichero parcial"
     adb("shell", "run-as", PKG, "mkdir", "-p", "no_backup/modelos")
     staging = "/data/local/tmp/myteacher-full-download-verify.gguf"
