@@ -106,16 +106,33 @@ def click(needle, *, scroll_page=False, timeout=70):
 
 
 def file_bytes(name):
+    location = "no_backup/modelos/" + name
     out = adb("shell", "run-as", PKG, "stat", "-c", "%s",
-              "no_backup/modelos/" + name, timeout=35, check=False)
-    match = re.search(r"\\b(\\d+)\\b", out)
-    return int(match[1]) if match else 0
+              location, timeout=35, check=False)
+    if out.isdigit():
+        return int(out)
+    # Android toybox stat no está disponible de manera uniforme en SDK35.
+    listing = adb("shell", "run-as", PKG, "ls", "-ln",
+                  location, timeout=35, check=False)
+    cols = listing.split()
+    if len(cols) >= 5 and cols[4].isdigit():
+        return int(cols[4])
+    print("Archivo privado no encontrado (stat/ls):",
+          repr(out), repr(listing), flush=True)
+    return 0
 
 
 def dd_partial(staging, mib):
-    adb("shell", "run-as", PKG, "dd", "if=" + staging,
-        "of=no_backup/modelos/" + NAME + ".part",
-        "bs=1048576", "count=" + str(mib), timeout=170)
+    cmd = ["adb", "shell", "run-as", PKG, "dd", "if=" + staging,
+           "of=no_backup/modelos/" + NAME + ".part",
+           "bs=1048576", "count=" + str(mib)]
+    cp = subprocess.run(cmd, capture_output=True, text=True, timeout=190)
+    print("DD Android:", cp.returncode, cp.stdout[:550],
+          cp.stderr[:900], flush=True)
+    assert cp.returncode == 0, "No se pudo sembrar la parte real de GGUF"
+    listing = adb("shell", "run-as", PKG, "ls", "-ln",
+                  "no_backup/modelos", check=False)
+    print("Ficheros privados Android:", listing[:650], flush=True)
     expected = mib * 1048576
     actual = file_bytes(NAME + ".part")
     assert actual == expected, f"Parte GGUF: {actual} en lugar de {expected}"
