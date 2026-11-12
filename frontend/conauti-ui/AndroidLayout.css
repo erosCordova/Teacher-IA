@@ -72,3 +72,12 @@ html[data-myteacher-platform="android"] #root .mtc-sidebar {
     font-size:13px!important;line-height:1.55!important;
   }
 }
+
+html[data-myteacher-platform="android"] .mtc-auth-local-choice {
+  display:grid; width:100%; text-align:left; gap:4px; padding:15px 17px;
+  margin-top:16px; background:rgba(47,107,219,.12);
+  border:1px solid rgba(66,123,229,.55); border-radius:12px;
+  color:inherit; cursor:pointer;
+}
+html[data-myteacher-platform="android"] .mtc-auth-local-choice strong { font-size:14px; }
+html[data-myteacher-platform="android"] .mtc-auth-local-choice small { opacity:.8; line-height:1.45; }
