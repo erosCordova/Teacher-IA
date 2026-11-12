@@ -6,6 +6,7 @@ on:
     paths:
       - 'mobile/scripts/probar_descarga_real.py'
       - 'mobile/native/android/ModeloEducativoPlugin.java'
+      - 'mobile/native/android/MainActivity.java'
       - '.github/workflows/android-download-gguf.yml'
 
 permissions:
