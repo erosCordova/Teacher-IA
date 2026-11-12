@@ -50,6 +50,7 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
   const [historialListo, setHistorialListo] = useState(false)
   const [pregunta, setPregunta] = useState('')
   const [ocupado, setOcupado] = useState(false)
+  const [limiteTokens, setLimiteTokens] = useState<32 | 96 | 180>(32)
   const [vozEstado, setVozEstado] = useState<{
     sintesisDisponible: boolean; reconocimientoDisponible: boolean
   } | null>(null)
@@ -170,7 +171,7 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
       const contexto = mensajes.slice(-8)
         .map(m => (m.rol === 'tutor' ? 'Tutor' : 'Estudiante') + ': ' + m.texto.slice(0, 250))
         .join('\n').slice(-1400)
-      const resultado = await motor.responder({ texto, contexto, maxTokens: 180 })
+      const resultado = await motor.responder({ texto, contexto, maxTokens: limiteTokens })
       setMensajes(previous => [...previous,
         { id: id + 1, rol: 'tutor' as const, texto: resultado.texto }].slice(-80))
       if (leerRespuestas && vozEstado?.sintesisDisponible) {
@@ -274,6 +275,15 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
                   Voz en respuestas: {leerRespuestas ? 'Sí' : 'No'}
                 </button>
                 <button type="button" onClick={() => void comprobarVoz()}>Comprobar voz</button>
+              </div>
+              <div className="mtc-offline-answer-mode">
+                <label htmlFor="mtc-offline-mode">Extensión de la respuesta</label>
+                <select id="mtc-offline-mode" value={limiteTokens} disabled={ocupado}
+                  onChange={event => setLimiteTokens(Number(event.target.value) as 32 | 96 | 180)}>
+                  <option value={32}>Rápida · pistas breves</option>
+                  <option value={96}>Equilibrada</option>
+                  <option value={180}>Detallada · más lenta</option>
+                </select>
               </div>
               <label htmlFor="mtc-offline-input">Escribe tu pregunta</label>
               <textarea id="mtc-offline-input" value={pregunta} maxLength={800} rows={2}
