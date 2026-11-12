@@ -58,7 +58,9 @@
     "offline_model_included": false,
     "on_device_inference_tested": false,
     "local_gguf_importer_source": "mobile/native/ModelFilesPlugin.java",
-    "local_gguf_importer_compiled": false,
-    "local_gguf_inference_ready": false
+    "local_gguf_importer_compiled": true,
+    "local_gguf_inference_ready": false,
+    "local_gguf_importer_ci": "https://github.com/erosCordova/Teacher-IA/actions/runs/43265472698",
+    "general_ci": "https://github.com/erosCordova/Teacher-IA/actions/runs/43265472695"
   }
 }
