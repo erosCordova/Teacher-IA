@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   android-debug:
-    name: Compilar APK de prueba (no es versión Play)
+    name: GGUF real en Android: integridad y respuesta local
     runs-on: ubuntu-latest
     timeout-minutes: 100
     steps:
@@ -92,13 +92,17 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Verificar apertura de My Teacher IA y red en Android
+      - name: Probar GGUF real en Android privado sin usar backend
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
           target: google_apis
           arch: x86_64
           profile: pixel_6
+          cores: 4
+          ram-size: 4096M
+          heap-size: 512M
+          disk-size: 8G
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           script: |
             python3 -m pip install --user websocket-client
