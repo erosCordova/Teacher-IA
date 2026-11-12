@@ -8,7 +8,8 @@
     "android:init": "cap add android",
     "android:sync": "cap sync android",
     "android:debug": "cd android && ./gradlew assembleDebug",
-    "mobile:check": "node scripts/verificar.mjs"
+    "mobile:check": "node scripts/verificar.mjs",
+    "android:plugins": "node scripts/instalar-plugins.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.6.0",

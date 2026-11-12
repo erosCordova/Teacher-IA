@@ -50,6 +50,7 @@ jobs:
         run: |
           npm run android:init
           npm run android:sync
+          npm run android:plugins
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

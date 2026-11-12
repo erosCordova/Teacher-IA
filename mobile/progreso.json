@@ -56,6 +56,9 @@
     "ci_web_backend_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43252557141",
     "android_artifact": "my-teacher-ia-android-debug",
     "offline_model_included": false,
-    "on_device_inference_tested": false
+    "on_device_inference_tested": false,
+    "local_gguf_importer_source": "mobile/native/ModelFilesPlugin.java",
+    "local_gguf_importer_compiled": false,
+    "local_gguf_inference_ready": false
   }
 }

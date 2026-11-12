@@ -41,3 +41,9 @@ La web pública mantiene su funcionamiento normal. La app Android empaquetada re
 - [CI general de frontend, backend y PostgreSQL](https://github.com/erosCordova/Teacher-IA/actions/runs/43252557141).
 - Avance global ponderado y medible en `progreso.json`: **15 %**.
 - **Fase 2 en curso:** acceso y chat en Android usando backend HTTPS remoto.
+
+## Avance técnico: biblioteca GGUF local
+
+El plugin nativo `ModelFilesPlugin.java` proporciona selección de archivo mediante el selector seguro de Android, validación de cabecera GGUF, límite de tamaño, SHA-256, almacenamiento en el directorio privado de la app, listado y eliminación. Se genera y registra automáticamente en `cap add android` con `npm run android:plugins`.
+
+**No existe aún motor de inferencia:** importar un modelo no significa poder conversar con él. El plugin indica explícitamente `inferenceAvailable: false` y no debe ofrecerse como tutor offline hasta que llama.cpp y las pruebas en un teléfono estén terminados.
