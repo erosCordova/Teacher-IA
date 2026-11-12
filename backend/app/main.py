@@ -13,6 +13,9 @@ def conauti_cors_origins():
         "http://127.0.0.1:5174",
         "http://localhost:5175",
         "http://127.0.0.1:5175",
+        # Capacitor Android WebView. Solo localhost del contenedor nativo.
+        "http://localhost",
+        "https://localhost",
         # Demo temporal verificada para la presentación: solo este origen.
         "https://my-teacher-ia-presentacion.onrender.com",
     ]
