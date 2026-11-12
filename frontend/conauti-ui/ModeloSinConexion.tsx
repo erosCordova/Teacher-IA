@@ -91,7 +91,7 @@ export default function ModeloSinConexion({
     const model = modeloAndroid()
     if (!model || trabajando) return
     if (!window.confirm('El modelo educativo ocupa aproximadamente 484 MB y se descargará por Internet. ¿Deseas continuar? Se recomienda Wi-Fi y al menos 650 MB libres.')) return
-    setTrabajando(true);setError('')
+    setTrabajando(true);setError('');setAvance(null)
     try {
       const result = await model.descargar()
       setEstado(result)
@@ -137,9 +137,9 @@ export default function ModeloSinConexion({
       <p className="mtc-model-note">
         {estado?.installed
           ? estado.engineAvailable
-            ? 'El motor nativo está instalado. Puedes probar una pregunta privada, sin enviar su texto a Internet. El chat completo y el historial sin conexión siguen pendientes.'
+            ? 'El modelo y el motor están listos. En Android puedes conversar sin Internet y conservar un historial cifrado en el dispositivo.'
             : 'Modelo almacenado, pero este dispositivo no puede cargar el motor local de IA.'
-          : 'Puedes preparar el modelo local. Descargarlo todavía no habilita las respuestas sin Internet: el motor de IA sigue en desarrollo.'}
+          : 'Descarga el modelo educativo una sola vez con Internet. Después podrás usar el tutor local sin conexión, con respuestas más rápidas o más detalladas.'}
       </p>
       <div className="mtc-model-status" role="status">
         <strong>{estado?.installed ? 'Modelo almacenado' : trabajando ? 'Descargando modelo' : 'Modelo pendiente'}</strong>
