@@ -5,6 +5,8 @@ on:
   push:
     paths:
       - 'mobile/scripts/probar_modelo_real.py'
+      - 'mobile/scripts/probar_chat_real.py'
+      - 'frontend/conauti-ui/TutorLocal.tsx'
       - 'mobile/native/cpp/teacher_llama.cpp'
       - 'mobile/native/android/MotorLocalPlugin.java'
       - '.github/workflows/android-real-gguf.yml'
@@ -108,6 +110,7 @@ jobs:
             python3 -m pip install --user websocket-client
             # La inferencia local no debe depender de Render o de Google.
             python3 mobile/scripts/probar_modelo_real.py
+            python3 mobile/scripts/probar_chat_real.py
       - name: Guardar evidencia de prueba Android
         if: always()
         uses: actions/upload-artifact@v4
