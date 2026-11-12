@@ -53,7 +53,7 @@ def dump_ui():
 
 def tap(node):
     match = re.fullmatch(
-        r"\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]",
+        r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]",
         node["bounds"])
     if not match:
         raise AssertionError("Sin coordenadas para: " + str(node))
@@ -64,7 +64,7 @@ def tap(node):
 
 def scroll(up=True):
     size = adb("shell", "wm", "size", check=False)
-    dim = re.search(r"(\\d+)x(\\d+)", size)
+    dim = re.search(r"(\d+)x(\d+)", size)
     w, h = (int(dim[1]), int(dim[2])) if dim else (1080, 2400)
     start, end = ((0.80, 0.32) if up else (0.32, 0.80))
     adb("shell", "input", "swipe",
