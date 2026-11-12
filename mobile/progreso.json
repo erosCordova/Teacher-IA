@@ -1,7 +1,7 @@
 {
   "project": "My Teacher IA — Android + IA sin conexión",
   "measurement": "Suma ponderada exclusivamente de funciones verificadas en CI o emulador; los subhitos no probados no cuentan.",
-  "progress_percent": 53,
+  "progress_percent": 70,
   "updated_at": "2026-11-12",
   "milestones": [
     {
@@ -35,7 +35,9 @@
       "id": "3b",
       "name": "Inferencia GGUF real sin red y respuesta pedagógica validada en Android",
       "weight": 10,
-      "status": "pending"
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43301708400",
+      "note": "Qwen3 0.6B generó pregunta orientadora en español sin usar fetch; 117309 ms en emulador."
     },
     {
       "id": "4a",
@@ -45,9 +47,16 @@
       "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078611"
     },
     {
-      "id": "4b",
-      "name": "Descarga completa y verificación del modelo real en un dispositivo",
-      "weight": 11,
+      "id": "4b1",
+      "name": "Modelo GGUF real obtenido, instalado y SHA-256 verificado en almacenamiento privado de emulador Android",
+      "weight": 7,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43301708400"
+    },
+    {
+      "id": "4b2",
+      "name": "Descarga desde la interfaz Android, cancelación y reanudación verificadas con el modelo real",
+      "weight": 4,
       "status": "pending"
     },
     {
@@ -121,11 +130,14 @@
     "full_frontend_backend_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078621",
     "last_android_emulator_result": "https://github.com/erosCordova/Teacher-IA/actions/runs/43290997673",
     "offline_model_included": false,
-    "on_device_inference_tested": false,
+    "on_device_inference_tested": true,
     "ready_for_release": false,
     "android_apk_debug": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118/artifacts/13980200600",
     "android_voice_and_aab": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118",
     "aab_unsigned": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118/artifacts/13979118597",
-    "android_voice_tts_test": "https://github.com/erosCordova/Teacher-IA/actions/runs/43297862516"
+    "android_voice_tts_test": "https://github.com/erosCordova/Teacher-IA/actions/runs/43297862516",
+    "real_gguf_android_test": "https://github.com/erosCordova/Teacher-IA/actions/runs/43301708400",
+    "real_gguf_sha256": "28b1c721c1e476d3e41c629d5993c0aaeca0f3b747afdbab667f5a4bc8e37665",
+    "real_gguf_inference_elapsed_ms_emulator": 117309
   }
 }
