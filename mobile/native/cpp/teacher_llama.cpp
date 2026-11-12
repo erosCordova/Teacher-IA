@@ -133,11 +133,11 @@ static std::string infer(const std::string & path, const std::string & question,
         }
         answer.erase(start, (end + std::strlen("</think>")) - start);
     }
-    const auto first = answer.find_first_not_of(" \\t\\r\\n");
+    const auto first = answer.find_first_not_of(" \t\r\n");
     if (first == std::string::npos) {
         return "ERROR: El modelo no devolvió contenido pedagógico visible.";
     }
-    const auto last = answer.find_last_not_of(" \\t\\r\\n");
+    const auto last = answer.find_last_not_of(" \t\r\n");
     answer = answer.substr(first, last - first + 1);
     return answer;
 }
