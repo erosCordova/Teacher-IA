@@ -26,7 +26,7 @@ jobs:
   android-debug:
     name: Compilar APK de prueba (no es versión Play)
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -57,6 +57,9 @@ jobs:
           cp mobile/native/android/MainActivity.java "$JAVA_DIR/MainActivity.java"
           cp mobile/native/android/SesionSeguraPlugin.java "$JAVA_DIR/SesionSeguraPlugin.java"
           cp mobile/native/android/ModeloEducativoPlugin.java "$JAVA_DIR/ModeloEducativoPlugin.java"
+          cp mobile/native/android/MotorLocalPlugin.java "$JAVA_DIR/MotorLocalPlugin.java"
+      - name: Integrar llama.cpp nativo (ARM64 y emulador x86_64)
+        run: bash mobile/scripts/preparar_motor_android.sh
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
