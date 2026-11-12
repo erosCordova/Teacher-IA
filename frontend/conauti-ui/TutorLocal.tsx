@@ -7,7 +7,7 @@ type Mensaje = { id: number; rol: 'estudiante' | 'tutor'; texto: string }
 type MotorEstado = { engineAvailable: boolean; modelInstalled: boolean; busy: boolean }
 type MotorLocal = {
   estado(): Promise<MotorEstado>
-  responder(args: { texto: string; maxTokens: number }): Promise<{ texto: string; origen: string }>
+  responder(args: { texto: string; maxTokens: number; contexto?: string }): Promise<{ texto: string; origen: string }>
 }
 type VozLocal = {
   estado(): Promise<{ sintesisDisponible: boolean; reconocimientoDisponible: boolean; soloDispositivo: boolean }>
@@ -167,7 +167,10 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
     try {
       const motor = puente<MotorLocal>('MotorLocal')
       if (!motor) throw new Error('El motor local no se encuentra disponible.')
-      const resultado = await motor.responder({ texto, maxTokens: 180 })
+      const contexto = mensajes.slice(-8)
+        .map(m => (m.rol === 'tutor' ? 'Tutor' : 'Estudiante') + ': ' + m.texto.slice(0, 250))
+        .join('\\n').slice(-1400)
+      const resultado = await motor.responder({ texto, contexto, maxTokens: 180 })
       setMensajes(previous => [...previous,
         { id: id + 1, rol: 'tutor' as const, texto: resultado.texto }].slice(-80))
       if (leerRespuestas && vozEstado?.sintesisDisponible) {
