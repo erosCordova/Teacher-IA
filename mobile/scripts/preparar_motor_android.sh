@@ -35,4 +35,10 @@ android {
 }
 GRADLE
 
+MANIFEST="$APP/src/main/AndroidManifest.xml"
+test -f "$MANIFEST"
+if ! grep -q 'android.permission.RECORD_AUDIO' "$MANIFEST"; then
+  sed -i '/<application/i\    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-feature android:name="android.hardware.microphone" android:required="false" />\n    <queries>\n      <intent><action android:name="android.speech.RecognitionService" /></intent>\n      <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>\n    </queries>' "$MANIFEST"
+fi
+
 echo "Motor de IA local preparado: llama.cpp b12248, Android ABI ARM64 + x86_64."
