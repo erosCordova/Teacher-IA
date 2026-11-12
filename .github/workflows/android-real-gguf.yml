@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   android-debug:
-    name: GGUF real en Android: integridad y respuesta local
+    name: 'GGUF real en Android: integridad y respuesta local'
     runs-on: ubuntu-latest
     timeout-minutes: 100
     steps:
