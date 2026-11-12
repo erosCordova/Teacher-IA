@@ -84,6 +84,20 @@ def find_text(needle, *, scroll_page=False, timeout=60):
         ]
         if matching:
             return matching[0]
+        # Algunos emuladores muestran un ANR de Pixel Launcher al iniciar.
+        # No pertenece a My Teacher IA; cerrarlo en lugar de bloquear el test.
+        if any("isn't responding" in n["text"].lower()
+               or "no responde" in n["text"].lower()
+               for n in nodes):
+            waiting = next((n for n in nodes
+                            if n["text"].strip().lower() in ("wait", "esperar")), None)
+            if waiting:
+                tap(waiting)
+                print("ANR de Pixel Launcher: se eligió Esperar", flush=True)
+                adb("shell", "am", "start", "-n",
+                    PKG + "/.MainActivity", timeout=25, check=False)
+                time.sleep(3)
+                continue
         if scans == 0 or scans % 5 == 0:
             print("Buscando botón", needle, "nodos visibles:",
                   [n["text"][:40] for n in nodes if n["text"]][:22],
@@ -160,7 +174,8 @@ def main():
     start = adb("shell", "am", "start", "-W", "-n",
                 PKG + "/.MainActivity", timeout=90)
     print("Inicio Android:", start, flush=True)
-    time.sleep(6)
+    adb("shell", "input", "keyevent", "82", timeout=20, check=False)
+    time.sleep(12)
     assert adb("shell", "pidof", PKG, check=False), "La app no arrancó"
     capture("inicio-descarga.png")
 
