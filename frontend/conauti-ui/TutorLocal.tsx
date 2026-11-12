@@ -40,6 +40,7 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
   const [motorEstado, setMotorEstado] = useState<MotorEstado | null>(null)
   const [mensajes, setMensajes] = useState<Mensaje[]>([])
   const [cargado, setCargado] = useState(false)
+  const [historialListo, setHistorialListo] = useState(false)
   const [pregunta, setPregunta] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [aviso, setAviso] = useState('')
@@ -67,6 +68,7 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
         if (!live) return
         setMotorEstado(info)
         setMensajes(mensajesValidos(JSON.parse(local.datos)))
+        setHistorialListo(true)
       } catch (error) {
         if (live) setAviso(error instanceof Error ? error.message : 'No se pudo abrir el tutor privado.')
       } finally {
@@ -78,7 +80,7 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
   }, [])
 
   useEffect(() => {
-    if (!cargado) return
+    if (!cargado || !historialListo) return
     const historial = puente<HistorialLocal>('HistorialLocal')
     if (!historial) return
     // Secuencia de guardado: una respuesta tardía nunca sobrescribe otra nueva.
@@ -86,7 +88,7 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
     guardados.current = guardados.current.catch(() => {}).then(async () => {
       await historial.guardar({ datos: copia })
     }).catch(() => setAviso('No se pudo guardar el historial cifrado.'))
-  }, [mensajes, cargado])
+  }, [mensajes, cargado, historialListo])
 
   useEffect(() => {
     finalChat.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
@@ -135,7 +137,7 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
     }
   }
 
-  const listo = motorEstado?.engineAvailable && motorEstado?.modelInstalled
+  const listo = motorEstado?.engineAvailable && motorEstado?.modelInstalled && historialListo
   return (
     <main className="mtc-offline-app" aria-label="Tutor educativo sin conexión">
       <header className="mtc-offline-topbar">
@@ -158,7 +160,10 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
             no comparte las conversaciones con tu cuenta en línea.</p>
         </div>
         {!cargado && <p role="status">Abriendo almacenamiento cifrado del dispositivo…</p>}
-        {cargado && !listo && (
+        {cargado && !historialListo && (
+          <p role="alert" className="mtc-offline-notice">El historial cifrado no está accesible. No se sobrescribirá hasta resolver el problema.</p>
+        )}
+        {cargado && historialListo && !listo && (
           <div className="mtc-offline-setup">
             <h2>Preparar la IA sin conexión</h2>
             <p>Necesitas descargar el modelo una sola vez con Internet. Después podrás
