@@ -67,6 +67,30 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Habilitar emulador Android en GitHub Actions
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Verificar apertura de My Teacher IA y red en Android
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: |
+            python3 -m pip install --user websocket-client
+            python3 mobile/scripts/probar_emulador.py
+      - name: Guardar evidencia de prueba Android
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-teacher-ia-android-evidencia
+          path: mobile/evidencias/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Guardar APK de prueba
         uses: actions/upload-artifact@v4
         with:
