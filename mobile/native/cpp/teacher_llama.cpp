@@ -121,7 +121,25 @@ static std::string infer(const std::string & path, const std::string & question,
             }
         }
     }
-    return answer.empty() ? "ERROR: El modelo devolvió una respuesta vacía." : answer;
+    // Qwen3 puede insertar bloques internos de razonamiento entre <think>
+    // y </think>. No mostrarlos ni pronunciarlos en la interfaz del alumno.
+    while (true) {
+        const auto start = answer.find("<think>");
+        if (start == std::string::npos) break;
+        const auto end = answer.find("</think>", start);
+        if (end == std::string::npos) {
+            answer.erase(start);
+            break;
+        }
+        answer.erase(start, (end + std::strlen("</think>")) - start);
+    }
+    const auto first = answer.find_first_not_of(" \\t\\r\\n");
+    if (first == std::string::npos) {
+        return "ERROR: El modelo no devolvió contenido pedagógico visible.";
+    }
+    const auto last = answer.find_last_not_of(" \\t\\r\\n");
+    answer = answer.substr(first, last - first + 1);
+    return answer;
 }
 
 extern "C" JNIEXPORT jbyteArray JNICALL
