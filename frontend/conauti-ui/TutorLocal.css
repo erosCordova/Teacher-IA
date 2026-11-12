@@ -105,3 +105,23 @@ html[data-myteacher-theme="light"] .mtc-offline-chat { background:#ffffffc7; }
 .mtc-offline-speak {
   margin-top: 8px; font-size: 12px!important; padding: 6px 10px!important;
 }
+
+.mtc-offline-answer-mode {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.mtc-offline-answer-mode label { font-weight: 700; }
+.mtc-offline-answer-mode select {
+  color: inherit;
+  background: rgba(100, 135, 190, .18);
+  border: 1px solid rgba(127, 145, 176, .45);
+  border-radius: 10px;
+  padding: 9px 12px;
+  max-width: 100%;
+}
+.mtc-offline-answer-mode select option { color: #142743; background: #eff5ff; }
+.mtc-offline-answer-mode select:disabled { opacity: .55; }
