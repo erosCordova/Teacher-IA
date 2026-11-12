@@ -1,0 +1,54 @@
+{
+  "project": "My Teacher IA — Android + IA sin conexión",
+  "measurement": "Solo hitos completos y verificables; avance ponderado, no tiempo transcurrido.",
+  "milestones": [
+    {
+      "id": 1,
+      "name": "Proyecto Android con Capacitor y compilación verificable",
+      "weight": 15,
+      "status": "in_progress"
+    },
+    {
+      "id": 2,
+      "name": "Inicio de sesión y chat en línea desde Android",
+      "weight": 15,
+      "status": "pending"
+    },
+    {
+      "id": 3,
+      "name": "Motor GGUF nativo integrado (llama.cpp)",
+      "weight": 20,
+      "status": "pending"
+    },
+    {
+      "id": 4,
+      "name": "Entrega, descarga y verificación de un modelo local",
+      "weight": 15,
+      "status": "pending"
+    },
+    {
+      "id": 5,
+      "name": "Chat pedagógico offline con historial local y sincronización",
+      "weight": 15,
+      "status": "pending"
+    },
+    {
+      "id": 6,
+      "name": "Voz sin conexión y permisos móviles",
+      "weight": 10,
+      "status": "pending"
+    },
+    {
+      "id": 7,
+      "name": "Pruebas en móviles, rendimiento y privacidad",
+      "weight": 5,
+      "status": "pending"
+    },
+    {
+      "id": 8,
+      "name": "Firma, AAB y preparación de Google Play",
+      "weight": 5,
+      "status": "pending"
+    }
+  ]
+}

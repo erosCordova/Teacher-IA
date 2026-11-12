@@ -74,3 +74,6 @@ coverage/
 **/*.zip
 **/*.7z
 **/*.tar.gz
+
+# Capacitor Android generado en CI (el código fuente de configuración está en mobile/)
+mobile/android/

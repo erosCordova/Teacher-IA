@@ -1,0 +1,13 @@
+{
+  "appId": "pe.myteacheria.alumno",
+  "appName": "My Teacher IA",
+  "webDir": "../frontend/dist-conauti",
+  "bundledWebRuntime": false,
+  "server": {
+    "hostname": "localhost",
+    "androidScheme": "http"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

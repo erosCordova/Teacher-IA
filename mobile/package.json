@@ -1,0 +1,20 @@
+{
+  "name": "my-teacher-ia-android",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Aplicación Android My Teacher IA con Capacitor; futura inferencia GGUF local",
+  "scripts": {
+    "android:init": "cap add android",
+    "android:sync": "cap sync android",
+    "android:debug": "cd android && ./gradlew assembleDebug",
+    "mobile:check": "node scripts/verificar.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.6.0",
+    "@capacitor/core": "8.6.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.0"
+  }
+}
