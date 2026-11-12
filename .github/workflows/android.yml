@@ -54,7 +54,14 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
+      - name: Preparar SDK Android del runner
+        run: |
+          test -n "$ANDROID_HOME"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "Plataformas disponibles:"
+          ls "$ANDROID_HOME/platforms" || true
+          # El runner incluye SDK; Gradle instala las plataformas que le falten.
+          # No instalar el antiguo paquete "tools", retirado del repositorio Android.
       - name: Compilar APK debug
         working-directory: mobile/android
         run: |
