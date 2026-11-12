@@ -54,3 +54,32 @@ html[data-myteacher-platform="android"] #root .mtc-model-progress small{
 html[data-myteacher-platform="android"] #root .mtc-model-error {
   color:#b93838!important;font-size:12px;line-height:1.5;
 }
+
+/* Prueba aislada del motor local, exclusiva de la app Android. */
+.mtc-model-local-preview {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 15px;
+  border: 1px solid var(--mtc-border, rgba(120,140,175,.32));
+  border-radius: 14px;
+  background: rgba(100,130,190,.06);
+}
+.mtc-model-local-preview label { font-weight: 700; font-size: 14px; }
+.mtc-model-local-preview textarea {
+  display: block; width: 100%; min-height: 82px; box-sizing: border-box;
+  resize: vertical; padding: 12px; border-radius: 10px;
+  background: var(--mtc-input-bg, rgba(127,145,176,.12)); color: inherit;
+  border: 1px solid rgba(127,145,176,.4); font: inherit;
+}
+.mtc-model-local-preview button {
+  min-height: 44px; border: 0; border-radius: 9px;
+  padding: 10px 14px; color: #fff; background: #2857a7;
+  font: inherit; font-weight: 700; cursor: pointer;
+}
+.mtc-model-local-preview button:disabled { opacity: .5; cursor: not-allowed; }
+.mtc-model-local-preview small { opacity: .8; font-size: 12px; }
+.mtc-model-local-answer {
+  white-space: pre-wrap; line-height: 1.55; margin: 0;
+  padding: 12px; border-radius: 10px; background: rgba(100,135,195,.12);
+}
