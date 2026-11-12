@@ -12,7 +12,7 @@ import subprocess
 import time
 from pathlib import Path
 from websocket import create_connection
-from probar_emulador import adb, eval_js, get_target, wait_for_debug_socket
+from probar_emulador import APK, adb, eval_js, get_target, wait_for_debug_socket
 
 ROOT = Path(__file__).resolve().parents[1]
 GGUF = ROOT / "cache" / "qwen3-0.6b-q4_k_m.gguf"
@@ -25,6 +25,12 @@ def main():
     digest = hashlib.file_digest(GGUF.open("rb"), "sha256").hexdigest()
     assert digest == SHA256, "SHA-256 no coincide con el fichero de Hugging Face"
     print("Modelo real verificado:", GGUF.stat().st_size, "bytes", digest)
+    assert APK.is_file(), "No hay APK de prueba para instalar"
+    print("Instalando APK Android:", adb("install", "-r", str(APK), timeout=160))
+    adb("shell", "am", "force-stop", PKG, check=False)
+    print("Abriendo My Teacher IA:", adb("shell", "am", "start", "-W",
+          "-n", PKG + "/.MainActivity", timeout=90)[:500])
+    time.sleep(6)
     print("Espacio Android:", adb("shell", "df", "-h", "/data", check=False)[:500])
     adb("shell", "run-as", PKG, "mkdir", "-p", "no_backup/modelos")
     target = "/data/local/tmp/myteacher-model-check.gguf"
@@ -38,7 +44,8 @@ def main():
         adb("shell", "rm", "-f", target, check=False, timeout=90)
 
     # Comprobar JNI con transporte HTTP deliberadamente bloqueado en la WebView.
-    wait_for_debug_socket()
+    socket = wait_for_debug_socket()
+    adb("forward", "tcp:9222", "localabstract:" + socket)
     target_page = get_target()
     ws = create_connection(target_page["webSocketDebuggerUrl"],
                            timeout=480, suppress_origin=True)
