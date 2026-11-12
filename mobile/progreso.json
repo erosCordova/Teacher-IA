@@ -1,7 +1,7 @@
 {
   "project": "My Teacher IA — Android + IA sin conexión",
   "measurement": "Suma ponderada exclusivamente de funciones verificadas en CI o emulador; los subhitos no probados no cuentan.",
-  "progress_percent": 34,
+  "progress_percent": 45,
   "updated_at": "2026-11-12",
   "milestones": [
     {
@@ -15,13 +15,14 @@
       "id": "2a",
       "name": "Acceso HTTPS y CORS desde WebView Android hacia la API",
       "weight": 8,
-      "status": "in_progress"
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43290997673"
     },
     {
       "id": "2b",
       "name": "Autenticación real y chat online verificados en Android",
       "weight": 7,
-      "status": "pending"
+      "status": "in_progress"
     },
     {
       "id": "3a",
@@ -60,7 +61,8 @@
       "id": "5b",
       "name": "Entrar y salir del tutor local sin iniciar sesión ni conectarse al backend",
       "weight": 3,
-      "status": "pending"
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43290997673"
     },
     {
       "id": "5c",
@@ -96,9 +98,10 @@
   "evidence": {
     "android_native_jni_and_encrypted_history": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078611",
     "full_frontend_backend_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078621",
-    "last_android_emulator_result": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078611",
+    "last_android_emulator_result": "https://github.com/erosCordova/Teacher-IA/actions/runs/43290997673",
     "offline_model_included": false,
     "on_device_inference_tested": false,
-    "ready_for_release": false
+    "ready_for_release": false,
+    "android_apk_debug": "https://github.com/erosCordova/Teacher-IA/actions/runs/43290997673/artifacts/13977062644"
   }
 }
