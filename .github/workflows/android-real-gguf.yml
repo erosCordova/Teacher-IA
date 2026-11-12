@@ -5,10 +5,16 @@ on:
   push:
     paths:
       - 'mobile/scripts/probar_modelo_real.py'
+      - 'mobile/native/cpp/teacher_llama.cpp'
+      - 'mobile/native/android/MotorLocalPlugin.java'
       - '.github/workflows/android-real-gguf.yml'
 
 permissions:
   contents: read
+
+concurrency:
+  group: gguf-real-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   android-debug:
@@ -67,12 +73,19 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Recuperar GGUF de caché SHA256
+        uses: actions/cache@v4
+        with:
+          path: mobile/cache/qwen3-0.6b-q4_k_m.gguf
+          key: qwen3-06b-28b1c721c1e476d3e41c629d5993c0aaeca0f3b747afdbab667f5a4bc8e37665
       - name: Descargar y comprobar SHA256 de GGUF real (484 MB)
         run: |
           mkdir -p mobile/cache
-          curl --fail --location --retry 3 --connect-timeout 25 --max-time 1200 \
-            -o mobile/cache/qwen3-0.6b-q4_k_m.gguf \
-            https://huggingface.co/Antigma/Qwen3-0.6B-GGUF/resolve/main/qwen3-0.6b-q4_k_m.gguf
+          if [ ! -s mobile/cache/qwen3-0.6b-q4_k_m.gguf ]; then
+            curl --fail --location --retry 3 --connect-timeout 25 --max-time 1200 \
+              -o mobile/cache/qwen3-0.6b-q4_k_m.gguf \
+              https://huggingface.co/Antigma/Qwen3-0.6B-GGUF/resolve/main/qwen3-0.6b-q4_k_m.gguf
+          fi
           echo '28b1c721c1e476d3e41c629d5993c0aaeca0f3b747afdbab667f5a4bc8e37665  mobile/cache/qwen3-0.6b-q4_k_m.gguf' | sha256sum --check
       - name: Habilitar emulador Android en GitHub Actions
         run: |
