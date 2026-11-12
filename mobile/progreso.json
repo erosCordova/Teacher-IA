@@ -1,7 +1,7 @@
 {
   "project": "My Teacher IA — Android + IA sin conexión",
   "measurement": "Suma ponderada exclusivamente de funciones verificadas en CI o emulador; los subhitos no probados no cuentan.",
-  "progress_percent": 70,
+  "progress_percent": 72,
   "updated_at": "2026-11-12",
   "milestones": [
     {
@@ -80,9 +80,16 @@
       "status": "pending"
     },
     {
-      "id": "5d",
-      "name": "Sincronización segura de conversaciones tras reconexión",
-      "weight": 4,
+      "id": "5d1",
+      "name": "API de sincronización voluntaria, idempotente y aislada por estudiante verificada con PostgreSQL",
+      "weight": 2,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43304665847"
+    },
+    {
+      "id": "5d2",
+      "name": "Importar el historial desde Android con sesión real y autorización del estudiante",
+      "weight": 2,
       "status": "pending"
     },
     {
@@ -138,6 +145,7 @@
     "android_voice_tts_test": "https://github.com/erosCordova/Teacher-IA/actions/runs/43297862516",
     "real_gguf_android_test": "https://github.com/erosCordova/Teacher-IA/actions/runs/43301708400",
     "real_gguf_sha256": "28b1c721c1e476d3e41c629d5993c0aaeca0f3b747afdbab667f5a4bc8e37665",
-    "real_gguf_inference_elapsed_ms_emulator": 117309
+    "real_gguf_inference_elapsed_ms_emulator": 117309,
+    "offline_sync_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43304665847"
   }
 }
