@@ -14,6 +14,7 @@ assert.equal(config.appName, 'My Teacher IA')
 for (const path of [
   'native/android/MotorLocalPlugin.java',
   'native/android/HistorialLocalPlugin.java',
+  'native/android/VozLocalPlugin.java',
   'native/cpp/CMakeLists.txt',
   'native/cpp/teacher_llama.cpp',
   'scripts/preparar_motor_android.sh'
