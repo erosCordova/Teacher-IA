@@ -125,3 +125,28 @@ html[data-myteacher-theme="light"] .mtc-offline-chat { background:#ffffffc7; }
 }
 .mtc-offline-answer-mode select option { color: #142743; background: #eff5ff; }
 .mtc-offline-answer-mode select:disabled { opacity: .55; }
+
+.mtc-offline-sync {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(125, 159, 216, .35);
+  display: grid;
+  gap: 10px;
+  background: rgba(48, 90, 160, .08);
+}
+.mtc-offline-sync strong { font-size: 14px; }
+.mtc-offline-sync p {
+  margin: 5px 0 0;
+  line-height: 1.5;
+  font-size: 12px;
+  opacity: .85;
+}
+.mtc-offline-sync small { line-height: 1.45; opacity: .7; }
+.mtc-offline-sync button {
+  justify-self: start;
+  min-height: 44px;
+  font-weight: 650;
+  border-color: var(--mtc-local-accent);
+}
+.mtc-offline-sync button:disabled { border-color: rgba(110, 140, 190, .3); }
