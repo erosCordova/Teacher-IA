@@ -195,7 +195,11 @@ def main():
         approve_download()
 
         click("Cancelar descarga", timeout=50)
-        click("Descargar modelo", timeout=125)
+        # Esperar a que el plugin finalice realmente su descarga.
+        # No pulsar «Descargar» aquí: reiniciaría antes de preparar el
+        # fragmento grande y corrompería la prueba de reanudación.
+        assert find_text("Descargar modelo", timeout=125), (
+            "La cancelación no devolvió el instalador al estado inicial")
         part_after = file_bytes(NAME + ".part")
         print("Bytes conservados tras cancelar:", part_after, flush=True)
         assert part_after >= INITIAL_BYTES, part_after
