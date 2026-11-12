@@ -109,13 +109,13 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
     setAviso('')
     setPregunta('')
     const id = Date.now() + mensajes.length
-    setMensajes(previous => [...previous, { id, rol: 'estudiante', texto }].slice(-80))
+    setMensajes(previous => [...previous, { id, rol: 'estudiante' as const, texto }].slice(-80))
     try {
       const motor = puente<MotorLocal>('MotorLocal')
       if (!motor) throw new Error('El motor local no se encuentra disponible.')
       const resultado = await motor.responder({ texto, maxTokens: 180 })
       setMensajes(previous => [...previous,
-        { id: id + 1, rol: 'tutor', texto: resultado.texto }].slice(-80))
+        { id: id + 1, rol: 'tutor' as const, texto: resultado.texto }].slice(-80))
     } catch (error) {
       setAviso(error instanceof Error ? error.message : 'El motor no pudo responder.')
     } finally {
