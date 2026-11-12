@@ -205,6 +205,18 @@ def main():
             print("Síntesis de voz sin red aceptada:", spoken)
             assert spoken == {"sintesisLocalAceptada": True}, spoken
 
+        # Crear una pregunta local de prueba sin cuenta, para asegurar
+        # que la sincronización no transmite datos de forma automática.
+        seeded = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const h = c?.Plugins?.HistorialLocal ?? c?.registerPlugin?.('HistorialLocal');
+          await h.guardar({datos:JSON.stringify([
+            {id:1024,rol:'estudiante',texto:'Prueba local de privacidad'}
+          ])});
+          return true;
+        })()""", 29)
+        assert seeded is True
+
         # Desde la pantalla de acceso debe poder abrirse el tutor local
         # sin enviar contraseñas ni pedir autorización al backend.
         offline = eval_js(ws, """(async () => {
@@ -218,6 +230,15 @@ def main():
         })().catch(e => ({error:String(e)}))""", 19)
         print("Acceso sin cuenta a modo offline:", offline)
         assert offline and offline.get("offline") is True, offline
+
+        sync = eval_js(ws, """({
+          sectionVisible:!!document.querySelector('.mtc-offline-sync'),
+          syncDisabled:!!document.querySelector('.mtc-offline-sync button')?.disabled,
+          localQuestion:!!document.querySelector('.mtc-offline-sync p')
+        })""", 32)
+        print("Protección de sincronización sin cuenta:", sync)
+        assert sync == {"sectionVisible": True, "syncDisabled": True,
+                        "localQuestion": True}, sync
 
         # Comprobar que es posible regresar a la cuenta web sin reiniciar Android.
         back = eval_js(ws, """(async () => {
@@ -254,7 +275,7 @@ def main():
         assert auth and auth.get("status") in (401, 403), auth
 
         report = {"device": "emulator x86_64 API35", "page": current,
-                  "secure_session_tested": True, "offline_history_encrypted": True, "offline_entry_tested": True, "voice_native_bridge_tested": True, "voice_capabilities": voice, "voice_synthesis_accepted": bool(voice.get("sintesisDisponible")), "model_installer_detected": True, "jni_library_loaded": True,
+                  "secure_session_tested": True, "offline_history_encrypted": True, "offline_entry_tested": True, "sync_without_login_blocked": True, "voice_native_bridge_tested": True, "voice_capabilities": voice, "voice_synthesis_accepted": bool(voice.get("sintesisDisponible")), "model_installer_detected": True, "jni_library_loaded": True,
                   "api_health": result, "unauthorized_auth_request": auth,
                   "authenticated_chat_tested": False, "offline_inference_tested": False}
         (OUT / "reporte.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
