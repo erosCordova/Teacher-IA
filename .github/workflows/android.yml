@@ -22,6 +22,11 @@ on:
 permissions:
   contents: read
 
+# La app usa CI gratuita: no mantener compilaciones duplicadas por cada commit.
+concurrency:
+  group: myteacher-android-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   android-debug:
     name: Compilar APK de prueba (no es versión Play)
