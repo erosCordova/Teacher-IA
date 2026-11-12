@@ -39,7 +39,10 @@ function readable(bytes: number) {
 }
 
 /** Instalación opcional y verificable del modelo: NO afirma que el tutor offline funcione. */
-export default function ModeloSinConexion() {
+export default function ModeloSinConexion({
+  mostrarPrueba = true,
+  onInstalled,
+}: { mostrarPrueba?: boolean; onInstalled?: () => void } = {}) {
   const [estado, setEstado] = useState<EstadoModelo | null>(null)
   const [avance, setAvance] = useState<Progreso | null>(null)
   const [trabajando, setTrabajando] = useState(false)
@@ -83,6 +86,7 @@ export default function ModeloSinConexion() {
     try {
       const result = await model.descargar()
       setEstado(result)
+      if (result.installed) onInstalled?.()
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
       try { setEstado(await model.estado()) } catch { /* Conserva el estado anterior */ }
@@ -143,7 +147,7 @@ export default function ModeloSinConexion() {
           <small>{percentage >= 0 ? percentage + '% descargado' : readable(downloaded) + ' descargados'}</small>
         </div>
       )}
-      {estado?.installed && estado.engineAvailable && (
+      {mostrarPrueba && estado?.installed && estado.engineAvailable && (
         <div className="mtc-model-local-preview">
           <label htmlFor="mtc-model-pregunta">Prueba experimental de la IA del dispositivo</label>
           <textarea id="mtc-model-pregunta" rows={3} maxLength={800}
