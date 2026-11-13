@@ -170,14 +170,24 @@ def main():
           return {opened:true};
         })()""", 550)
         assert activated.get("opened"), activated
-        local=until(ws, """({
-          ready:!!document.querySelector('.mtc-offline-chat') &&
-            !!document.querySelector('.mtc-offline-sync'),
-          studentCount:document.querySelectorAll('.mtc-offline-msg-estudiante').length,
-          tutorCount:document.querySelectorAll('.mtc-offline-msg-tutor').length,
-          syncDisabled:document.querySelector('.mtc-offline-sync button')?.disabled
-        })""", 560, attempts=35)
-        assert local["studentCount"]==1 and local["tutorCount"]==1, local
+        # No se requiere el GGUF para sincronizar mensajes cifrados:
+        # este APK de prueba tiene el instalador, pero no 484 MB precargados.
+        local=until(ws, """(async () => {
+          const history=window.Capacitor?.Plugins?.HistorialLocal ??
+            window.Capacitor?.registerPlugin?.('HistorialLocal');
+          const data=await history.leer();
+          const stored=JSON.parse(data.datos);
+          return {
+            ready:!!document.querySelector('.mtc-offline-app') &&
+              !!document.querySelector('.mtc-offline-sync'),
+            privateStudent:stored.some(m=>m.rol==='estudiante' &&
+              m.texto==='¿Qué significa 1/2?'),
+            privateTutor:stored.some(m=>m.rol==='tutor' &&
+              m.texto==='¿En cuántas partes iguales divides una unidad?'),
+            syncDisabled:document.querySelector('.mtc-offline-sync button')?.disabled
+          };
+        })()""", 560, attempts=35)
+        assert local["privateStudent"] and local["privateTutor"], local
         assert local["syncDisabled"] is False, local
 
         # Probar primero que NO se envía nada automáticamente al cambiar de modo.
