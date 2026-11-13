@@ -17,6 +17,13 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.os.Build;
+import android.util.Log;
+
+import java.security.MessageDigest;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -29,12 +36,50 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class AccesoGoogleNativoPlugin extends Plugin {
     private final AtomicBoolean ocupado = new AtomicBoolean(false);
 
+    /**
+     * SHA-1 PÚBLICO del certificado realmente instalado en el teléfono.
+     * Evita usar la huella de otro APK con clave temporal diferente.
+     * Ni la clave privada ni tokens de usuario se consultan o registran.
+     */
+    @SuppressWarnings("deprecation")
+    private String huellaFirmaSha1() throws Exception {
+        PackageManager pm = getContext().getPackageManager();
+        String nombre = getContext().getPackageName();
+        Signature[] firmas;
+        if (Build.VERSION.SDK_INT >= 28) {
+            PackageInfo info = pm.getPackageInfo(nombre, PackageManager.GET_SIGNING_CERTIFICATES);
+            if (info.signingInfo == null) throw new IllegalStateException("Firma no disponible");
+            firmas = info.signingInfo.getApkContentsSigners();
+        } else {
+            PackageInfo info = pm.getPackageInfo(nombre, PackageManager.GET_SIGNATURES);
+            firmas = info.signatures;
+        }
+        if (firmas == null || firmas.length == 0) {
+            throw new IllegalStateException("No hay certificado de firma");
+        }
+        byte[] digest = MessageDigest.getInstance("SHA-1").digest(firmas[0].toByteArray());
+        StringBuilder hex = new StringBuilder(59);
+        for (int index = 0; index < digest.length; index++) {
+            if (index > 0) hex.append(':');
+            hex.append(String.format(java.util.Locale.US, "%02X", digest[index] & 0xff));
+        }
+        return hex.toString();
+    }
+
     @PluginMethod
     public void estado(PluginCall call) {
         JSObject result = new JSObject();
         result.put("native", true);
         result.put("embeddedWebView", false);
         result.put("provider", "android-credential-manager");
+        result.put("paqueteAndroid", getContext().getPackageName());
+        try {
+            result.put("firmaSha1", huellaFirmaSha1());
+            result.put("firmaConsultada", true);
+        } catch (Exception error) {
+            result.put("firmaSha1", "");
+            result.put("firmaConsultada", false);
+        }
         call.resolve(result);
     }
 
@@ -92,11 +137,22 @@ public final class AccesoGoogleNativoPlugin extends Plugin {
                         @Override
                         public void onError(GetCredentialException error) {
                             ocupado.set(false);
+                            // Android puede devolver CancellationException aunque
+                            // ningún estudiante haya cerrado el selector de cuentas.
+                            // NO atribuir automáticamente la cancelación al usuario.
+                            String tipo = error.getClass().getSimpleName();
+                            Log.w("MyTeacherGoogle", "Credential Manager no completó acceso: " + tipo);
                             if (error instanceof GetCredentialCancellationException) {
-                                call.reject("Se canceló el inicio de sesión con Google.");
+                                call.reject(
+                                    "Google no completó el acceso. Si no cerraste la ventana, "
+                                    + "comprueba que Google Cloud tenga registrado el cliente "
+                                    + "OAuth Android con el paquete y SHA-1 de ESTA instalación.",
+                                    "GOOGLE_AUTORIZACION_NO_COMPLETADA");
                             } else {
-                                call.reject("No se pudo abrir Google en Android. "
-                                    + "Comprueba Play Services y la autorización de la aplicación en Google Cloud.");
+                                call.reject(
+                                    "Google no pudo iniciar sesión en Android (" + tipo + "). "
+                                    + "Revisa Google Play Services, tu cuenta y el cliente OAuth Android.",
+                                    "GOOGLE_CREDENTIAL_ERROR");
                             }
                         }
                     }
