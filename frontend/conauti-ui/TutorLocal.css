@@ -150,3 +150,162 @@ html[data-myteacher-theme="light"] .mtc-offline-chat { background:#ffffffc7; }
   border-color: var(--mtc-local-accent);
 }
 .mtc-offline-sync button:disabled { border-color: rgba(110, 140, 190, .3); }
+
+
+/* Revisión de contraste móvil: mantiene la paleta azul, con fondos
+   definidos y texto legible en modo claro y oscuro. Solo afecta Android. */
+.mtc-offline-app {
+  --mtc-local-text:#f4f9ff;
+  --mtc-local-muted:#c2d5ef;
+  --mtc-local-card:#142b4c;
+  --mtc-local-card-raised:#1b3962;
+  --mtc-local-field:#0b203c;
+  --mtc-local-border:#597cae;
+  --mtc-local-accent:#77afff;
+  --mtc-local-action:#1a61bd;
+  --mtc-local-error:#ffe1d5;
+  color:var(--mtc-local-text);
+}
+html[data-myteacher-theme="light"] .mtc-offline-app {
+  --mtc-local-text:#152c4b;
+  --mtc-local-muted:#395975;
+  --mtc-local-card:#fff;
+  --mtc-local-card-raised:#ebf4ff;
+  --mtc-local-field:#fff;
+  --mtc-local-border:#9bbcd7;
+  --mtc-local-accent:#174fbb;
+  --mtc-local-action:#165cc0;
+  --mtc-local-error:#8f2929;
+  color:var(--mtc-local-text);
+}
+.mtc-offline-lead p, .mtc-offline-title small,
+.mtc-offline-chat-head small, .mtc-offline-empty p {
+  color:var(--mtc-local-muted); opacity:1;
+}
+.mtc-offline-app .mtc-offline-setup,
+.mtc-offline-app .mtc-offline-chat,
+html[data-myteacher-theme="light"] .mtc-offline-app .mtc-offline-setup,
+html[data-myteacher-theme="light"] .mtc-offline-app .mtc-offline-chat {
+  background:var(--mtc-local-card);
+  border:1px solid var(--mtc-local-border);
+  box-shadow:0 12px 34px rgba(2,14,34,.12);
+}
+.mtc-offline-app button {
+  background:var(--mtc-local-card-raised);
+  border:1px solid var(--mtc-local-border);
+  color:var(--mtc-local-text);
+  min-height:44px;
+  transition:background-color .18s,border-color .18s;
+}
+.mtc-offline-app button:not(:disabled):active { transform:translateY(1px); }
+.mtc-offline-app button:disabled { opacity:.58; }
+.mtc-offline-app .mtc-offline-topactions button,
+.mtc-offline-app .mtc-offline-chat-head button { color:var(--mtc-local-text); }
+.mtc-offline-composer textarea,
+.mtc-offline-answer-mode select {
+  background:var(--mtc-local-field);
+  border:1px solid var(--mtc-local-border);
+  color:var(--mtc-local-text);
+  font-size:16px;
+  min-height:48px;
+}
+.mtc-offline-composer textarea::placeholder { color:var(--mtc-local-muted);opacity:1; }
+.mtc-offline-answer-mode select option {
+  background:var(--mtc-local-card);
+  color:var(--mtc-local-text);
+}
+.mtc-offline-composer button[type="submit"] {
+  background:var(--mtc-local-action);
+  color:#fff;
+  border:1px solid #6ba6ff;
+  box-shadow:0 4px 12px rgba(5,46,96,.2);
+}
+.mtc-offline-msg {
+  background:var(--mtc-local-card-raised);
+  border:1px solid var(--mtc-local-border);
+  color:var(--mtc-local-text);
+}
+.mtc-offline-msg-estudiante {
+  background:#214f9a;
+  color:#fff;
+  border-color:#538add;
+}
+html[data-myteacher-theme="light"] .mtc-offline-msg-estudiante {
+  background:#dceaff;
+  color:#143962;
+  border-color:#90b9ed;
+}
+.mtc-offline-msg strong {opacity:1;}
+.mtc-offline-app .mtc-offline-pill {
+  background:var(--mtc-local-card-raised);
+  color:var(--mtc-local-accent);
+  border-color:var(--mtc-local-border);
+}
+.mtc-offline-steps {
+  display:flex; justify-content:center; flex-wrap:wrap;
+  gap:10px; margin:20px auto 0;
+}
+.mtc-offline-steps span {
+  display:inline-flex; gap:8px; align-items:center;
+  border:1px solid var(--mtc-local-border);
+  background:var(--mtc-local-card);
+  padding:8px 11px; border-radius:999px;
+  color:var(--mtc-local-muted); font-size:12px; font-weight:650;
+}
+.mtc-offline-steps span.ready {
+  color:var(--mtc-local-text);
+  border-color:var(--mtc-local-accent);
+}
+.mtc-offline-steps b {
+  display:grid; place-items:center; width:21px; height:21px;
+  border-radius:50%; background:var(--mtc-local-card-raised);
+  color:var(--mtc-local-text);
+}
+.mtc-offline-suggestions {display:flex;justify-content:center;flex-wrap:wrap;gap:9px;margin-top:18px;}
+.mtc-offline-suggestions button {font-size:13px;text-align:left;max-width:100%;}
+.mtc-offline-thinking {
+  display:flex; gap:12px; align-items:flex-start;
+  padding:14px; border:1px solid var(--mtc-local-border);
+  border-radius:12px; background:var(--mtc-local-card-raised);
+  color:var(--mtc-local-text); opacity:1;
+}
+.mtc-offline-thinking strong,.mtc-offline-thinking small {display:block;}
+.mtc-offline-thinking small {font-size:12px;color:var(--mtc-local-muted);margin-top:4px;}
+.mtc-offline-spinner {
+  width:19px;height:19px;flex:none;border-radius:50%;
+  border:2px solid var(--mtc-local-border);
+  border-top-color:var(--mtc-local-accent);animation:mtc-local-spin 1s linear infinite;
+}
+@keyframes mtc-local-spin {to{transform:rotate(360deg)}}
+.mtc-offline-query-error {
+  grid-column:1/-1; color:var(--mtc-local-error);
+  background:var(--mtc-local-card-raised);
+  border:1px solid currentColor; border-radius:12px; padding:12px 14px;
+}
+.mtc-offline-query-error p {margin:5px 0;line-height:1.5;}
+.mtc-offline-query-error small {color:var(--mtc-local-muted);}
+.mtc-offline-notice {
+  color:var(--mtc-local-text);background:var(--mtc-local-card);
+  border-color:var(--mtc-local-border);line-height:1.5;
+}
+.mtc-offline-disclaimer {opacity:1;color:var(--mtc-local-muted);}
+.mtc-offline-app button:focus-visible,
+.mtc-offline-app select:focus-visible,
+.mtc-offline-app textarea:focus-visible {
+  outline:3px solid var(--mtc-local-accent);outline-offset:3px;
+}
+@media(max-width:600px) {
+  .mtc-offline-voice-controls {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+  .mtc-offline-voice-controls button {white-space:normal;line-height:1.35;}
+  .mtc-offline-composer {grid-template-columns:minmax(0,1fr);}
+  .mtc-offline-composer button[type="submit"] {grid-column:1/-1;}
+  .mtc-offline-content {padding:22px 15px max(env(safe-area-inset-bottom),38px);}
+  .mtc-offline-messages {max-height:52dvh;}
+}
+@media(max-width:390px) {
+  .mtc-offline-voice-controls {grid-template-columns:1fr;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .mtc-offline-spinner {animation:none;}
+  .mtc-offline-app button {transition:none;}
+}
