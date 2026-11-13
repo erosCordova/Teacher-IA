@@ -31,6 +31,15 @@ public final class AccesoGoogleNativoPlugin extends Plugin {
     private final AtomicBoolean ocupado = new AtomicBoolean(false);
 
     @PluginMethod
+    public void estado(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("native", true);
+        result.put("embeddedWebView", false);
+        result.put("provider", "android-credential-manager");
+        call.resolve(result);
+    }
+
+    @PluginMethod
     public void iniciar(PluginCall call) {
         String webClientId = call.getString("clientId", "").trim();
         if (!webClientId.matches("^[0-9]+-[A-Za-z0-9_-]+\\.apps\\.googleusercontent\\.com$")) {
