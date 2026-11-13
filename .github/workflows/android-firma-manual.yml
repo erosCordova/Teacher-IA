@@ -79,16 +79,41 @@ jobs:
             -signedjar mobile/release/my-teacher-ia-firmado.aab \
             mobile/android/app/build/outputs/bundle/release/app-release.aab \
             "$ANDROID_UPLOAD_KEY_ALIAS"
-          jarsigner -verify mobile/release/my-teacher-ia-firmado.aab
-          sha256sum mobile/release/my-teacher-ia-firmado.aab > mobile/release/SHA256SUMS.txt
+          jarsigner -verify -strict mobile/release/my-teacher-ia-firmado.aab
           test -s mobile/release/my-teacher-ia-firmado.aab
-          echo 'Paquete AAB firmado. La publicación en Play Store es manual.'
-      - name: Conservar AAB firmado privado durante 3 días
+
+          # APK independiente para descarga por navegador: alinear ANTES de firmar.
+          # apksigner v2/v3 protege los bytes de todo el archivo instalado.
+          BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$BUILD_TOOLS" && test -x "$BUILD_TOOLS"
+          BUILD_TOOLS="$(dirname "$BUILD_TOOLS")"
+          test -x "$BUILD_TOOLS/zipalign"
+          test -s mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk
+          "$BUILD_TOOLS/zipalign" -P 16 -f -v 4 \
+            mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk \
+            "$RUNNER_TEMP/myteacher-aligned.apk"
+          "$BUILD_TOOLS/apksigner" sign \
+            --ks "$KEY_FILE" \
+            --ks-key-alias "$ANDROID_UPLOAD_KEY_ALIAS" \
+            --ks-pass env:ANDROID_UPLOAD_KEYSTORE_PASSWORD \
+            --key-pass env:ANDROID_UPLOAD_KEY_PASSWORD \
+            --out mobile/release/my-teacher-ia-release.apk \
+            "$RUNNER_TEMP/myteacher-aligned.apk"
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs \
+            mobile/release/my-teacher-ia-release.apk
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 mobile/release/my-teacher-ia-release.apk
+          test -s mobile/release/my-teacher-ia-release.apk
+
+          # No exponer nunca la clave ni contraseñas en artefactos o registros.
+          (cd mobile/release && sha256sum my-teacher-ia-firmado.aab my-teacher-ia-release.apk > SHA256SUMS.txt)
+          echo 'AAB y APK firmados y verificados; publicación y distribución siguen siendo manuales.'
+      - name: Conservar paquetes firmados privados durante 3 días
         uses: actions/upload-artifact@v4
         with:
-          name: my-teacher-ia-aab-firmado
+          name: my-teacher-ia-android-publicacion-firmada
           path: |
             mobile/release/my-teacher-ia-firmado.aab
+            mobile/release/my-teacher-ia-release.apk
             mobile/release/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 3
