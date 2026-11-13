@@ -14,6 +14,7 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
 
 import com.getcapacitor.JSObject;
@@ -74,7 +75,28 @@ public final class VozLocalPlugin extends Plugin {
         getActivity().runOnUiThread(() ->
             tts = new TextToSpeech(getContext(), status -> {
                 if (status == TextToSpeech.SUCCESS) {
-                    getActivity().runOnUiThread(this::refrescarVozLocal);
+                    getActivity().runOnUiThread(() -> {
+                        if (tts == null) return;
+                        tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                            private void informar(String id, boolean error) {
+                                JSObject aviso = new JSObject();
+                                aviso.put("id", id == null ? "" : id);
+                                aviso.put("error", error);
+                                notifyListeners("vozTerminada", aviso);
+                            }
+                            @Override public void onStart(String utteranceId) { }
+                            @Override public void onDone(String utteranceId) {
+                                informar(utteranceId, false);
+                            }
+                            @Override public void onError(String utteranceId) {
+                                informar(utteranceId, true);
+                            }
+                            @Override public void onStop(String utteranceId, boolean interrupted) {
+                                informar(utteranceId, true);
+                            }
+                        });
+                        refrescarVozLocal();
+                    });
                 }
             })
         );
@@ -313,7 +335,11 @@ public final class VozLocalPlugin extends Plugin {
                 call.reject("Instala una voz española sin conexión en los ajustes de Android.");
                 return;
             }
-            int result = tts.speak(texto, TextToSpeech.QUEUE_FLUSH, null, "myteacheria-local");
+            String utteranceId = call.getString("id", "myteacheria-local");
+            if (!utteranceId.matches("[A-Za-z0-9_-]{1,64}")) {
+                call.reject("Identificador de voz no válido."); return;
+            }
+            int result = tts.speak(texto, TextToSpeech.QUEUE_FLUSH, null, utteranceId);
             if (result == TextToSpeech.SUCCESS) call.resolve();
             else call.reject("No se pudo sintetizar la voz local.");
         });
