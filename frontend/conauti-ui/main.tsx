@@ -52,8 +52,17 @@ type Message = {
 
 type Page = 'chat' | 'progress' | 'settings' | 'privacy' | 'games' | 'facts' | 'achievements' | 'materials' | 'study'
 
+type DiagnosticoGoogleAndroid = {
+  paqueteAndroid: string
+  firmaSha1: string
+  firmaConsultada: boolean
+  native: boolean
+  embeddedWebView: boolean
+  provider: string
+}
 type AccesoGoogleNativo = {
   iniciar(args: { clientId: string }): Promise<{ credential: string }>
+  estado(): Promise<DiagnosticoGoogleAndroid>
 }
 function accesoGoogleNativo(): AccesoGoogleNativo | undefined {
   const c = window.Capacitor
@@ -184,6 +193,8 @@ function App() {
   const [legacyLoginOpen, setLegacyLoginOpen] = useState(false)
   const [googleConfig, setGoogleConfig] = useState<{ enabled: boolean; client_id: string | null } | null>(null)
   const [googleConfigurationError, setGoogleConfigurationError] = useState('')
+  const [diagnosticoGoogleAndroid, setDiagnosticoGoogleAndroid] =
+    useState<DiagnosticoGoogleAndroid | null>(null)
   const [emailMethodReady, setEmailMethodReady] = useState(false)
   const [microsoftReady, setMicrosoftReady] = useState(false)
   const [emailMethodOpen, setEmailMethodOpen] = useState(false)
@@ -430,6 +441,7 @@ function App() {
     }
     setBusy(true)
     setNotice('')
+    setDiagnosticoGoogleAndroid(null)
     try {
       // Credential Manager muestra las cuentas desde Android, no en el WebView.
       const { credential } = await auth.iniciar({ clientId: googleConfig.client_id })
@@ -443,6 +455,11 @@ function App() {
       completeSignIn(result.access_token)
     } catch (error) {
       setNotice(errorText(error))
+      // Mostrar solo identificador público de paquete y firma. Nunca token.
+      const code = (error as { code?: string } | null)?.code
+      if (code === 'GOOGLE_AUTORIZACION_NO_COMPLETADA' || code === 'GOOGLE_CREDENTIAL_ERROR') {
+        void auth.estado().then(setDiagnosticoGoogleAndroid).catch(() => {})
+      }
     } finally {
       setBusy(false)
     }
@@ -1191,6 +1208,24 @@ function App() {
               </div>
             )}
             {notice && <p role="status" className="mtc-auth-notice">{notice}</p>}
+            {sesionNativaDisponible() && diagnosticoGoogleAndroid && (
+              <aside className="mtc-auth-notice" aria-label="Diagnóstico seguro del inicio de sesión">
+                <strong>Datos de esta instalación para Google Cloud</strong>
+                <p>Si no cerraste el acceso, puede faltar el cliente OAuth de Android. Regístralo
+                  en el mismo proyecto de Google Cloud que utiliza My Teacher IA en la web.</p>
+                <p>Nombre del paquete: <code>{diagnosticoGoogleAndroid.paqueteAndroid}</code></p>
+                <p>Huella SHA-1: <code>{diagnosticoGoogleAndroid.firmaSha1 || 'No disponible'}</code></p>
+                <p>Esta huella pertenece al APK instalado; cambiar la firma cambia también la huella.</p>
+                {diagnosticoGoogleAndroid.firmaConsultada && (
+                  <button type="button" className="mtc-auth-legacy-toggle"
+                    onClick={() => void navigator.clipboard?.writeText(
+                      diagnosticoGoogleAndroid.firmaSha1
+                    ).then(() => setNotice('Huella SHA-1 copiada.'))}>
+                    Copiar SHA-1 para Google Cloud
+                  </button>
+                )}
+              </aside>
+            )}
             <div className="mtc-auth-encouragement"><span aria-hidden="true">✦</span>
               Una mejor forma de aprender empieza con una pregunta.
             </div>
