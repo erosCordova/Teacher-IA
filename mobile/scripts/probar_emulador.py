@@ -245,6 +245,29 @@ def main():
         print("Acceso sin cuenta a modo offline:", offline)
         assert offline and offline.get("offline") is True, offline
 
+        # La UI no debe activar dictado si Android indicó que el idioma no
+        # está instalado. Una prueba del plugin por sí sola no garantiza UX.
+        # Esperar a que se resuelva la consulta asíncrona de compatibilidad.
+        if language["comprobacionSoportada"] and not language["espanolInstalado"]:
+            voice_ui = None
+            for attempt in range(12):
+                voice_ui = eval_js(ws, """({
+                  button: Array.from(document.querySelectorAll('.mtc-offline-voice-controls button'))
+                    .find(b => (b.textContent || '').includes('Dictar pregunta')),
+                  visible: !!document.querySelector('.mtc-offline-app')
+                }) && (() => {
+                  const b = Array.from(document.querySelectorAll('.mtc-offline-voice-controls button'))
+                    .find(b => (b.textContent || '').includes('Dictar pregunta'));
+                  return {present:!!b,disabled:b?.disabled ?? null};
+                })()""", 90 + attempt)
+                if voice_ui and voice_ui.get("present"): break
+                time.sleep(1)
+            print("Dictado protegido cuando falta español offline:", voice_ui)
+            # El chat solo muestra los controles después de instalar el GGUF.
+            # En el primer inicio aún no existe, por lo que es correcto que
+            # el botón no esté disponible en absoluto.
+            assert voice_ui is None or not voice_ui.get("present") or voice_ui.get("disabled") is True, voice_ui
+
         sync = eval_js(ws, """({
           sectionVisible:!!document.querySelector('.mtc-offline-sync'),
           syncDisabled:!!document.querySelector('.mtc-offline-sync button')?.disabled,
