@@ -33,18 +33,18 @@ def main() -> None:
 
     application = manifest[manifest.index("E: application"):]
     flags = {
-        "allowBackup": r"android:allowBackup[^\\n]*",
-        "fullBackupContent": r"android:fullBackupContent[^\\n]*",
-        "debuggable": r"android:debuggable[^\\n]*",
-        "usesCleartextTraffic": r"android:usesCleartextTraffic[^\\n]*",
+        "allowBackup": r"android:allowBackup[^\n]*",
+        "fullBackupContent": r"android:fullBackupContent[^\n]*",
+        "debuggable": r"android:debuggable[^\n]*",
+        "usesCleartextTraffic": r"android:usesCleartextTraffic[^\n]*",
     }
     found = {key: (re.search(pattern, application).group(0)
                     if re.search(pattern, application) else "")
              for key, pattern in flags.items()}
-    assert found["allowBackup"] and re.search(r"0x0(?:\\s|$)", found["allowBackup"]), found
-    assert found["fullBackupContent"] and re.search(r"0x0(?:\\s|$)", found["fullBackupContent"]), found
+    assert found["allowBackup"] and re.search(r"0x0(?:\s|$)", found["allowBackup"]), found
+    assert found["fullBackupContent"] and re.search(r"0x0(?:\s|$)", found["fullBackupContent"]), found
     for key in ("debuggable", "usesCleartextTraffic"):
-        assert not found[key] or re.search(r"0x0(?:\\s|$)", found[key]), found
+        assert not found[key] or re.search(r"0x0(?:\s|$)", found[key]), found
     assert "android.permission.INTERNET" in badging, "El chat en línea necesita Internet"
 
     with zipfile.ZipFile(APK) as apk:
@@ -55,7 +55,7 @@ def main() -> None:
                        for x in names), "No incluir modelos/secretos en APK"
         asset_names = [x for x in names if x.startswith("assets/public/")]
         assert asset_names, "Falta la interfaz empaquetada"
-        assets = b"\\n".join(apk.read(name) for name in asset_names
+        assets = b"\n".join(apk.read(name) for name in asset_names
                             if name.endswith((".html", ".js", ".css")))
         assert b"VITE_ANDROID_CI_TESTS" not in assets, "No publicar variables de CI"
         assert b"ClaveAndroidCI_2026_Alumno" not in assets, "No publicar claves del CI"
@@ -81,7 +81,7 @@ def main() -> None:
         "test_credentials_embedded": False,
     }
     EVIDENCE.parent.mkdir(parents=True, exist_ok=True)
-    EVIDENCE.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\\n",
+    EVIDENCE.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n",
                         encoding="utf-8")
     print("AUDITORÍA DE PRIVACIDAD APK RELEASE SUPERADA:", json.dumps(report))
 
