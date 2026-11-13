@@ -34,13 +34,13 @@ def main() -> None:
     assert "package: name='pe.myteacheria.alumno'" in badging, "Paquete Android inesperado"
     # Google Play exige API 36 para nuevas aplicaciones móviles desde
     # el 31/08/2026. Comprobar el APK REAL: no inferirlo del package.json.
-    target_match = re.search(r"(?m)^targetSdkVersion:'(\\d+)'", badging)
+    target_match = re.search(r"(?m)^targetSdkVersion:'(\d+)'", badging)
     assert target_match, "No se pudo leer el nivel API objetivo del APK"
     target_sdk = int(target_match.group(1))
     assert target_sdk >= 36, (
         "Google Play exige API objetivo 36 o superior desde agosto de 2026; "
         + "APK utiliza " + str(target_sdk))
-    version_match = re.search(r"(?m)^package:.*versionCode='(\\d+)'", badging)
+    version_match = re.search(r"(?m)^package:.*versionCode='(\d+)'", badging)
     assert version_match and int(version_match.group(1)) > 0, (
         "La versión de distribución Android necesita versionCode positivo")
     version_code = int(version_match.group(1))
