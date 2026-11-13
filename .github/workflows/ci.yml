@@ -18,6 +18,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - name: Validar diagnósticos ARM64 sin acceder a dispositivos privados
+        run: python mobile/scripts/auditar_telefono_arm64.py --self-test
       - run: python -m pip install -r backend/requirements.txt
       - run: python -m pytest -q tests
         working-directory: backend
