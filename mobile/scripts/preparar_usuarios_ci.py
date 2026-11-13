@@ -21,6 +21,8 @@ credentials = (
 with psycopg.connect(url, autocommit=True) as conn:
     migration = Path("backend/migrations/conauti_001_up.sql").read_text(encoding="utf-8")
     conn.execute(migration)
+    migration_roles = Path("backend/migrations/conauti_002_up.sql").read_text(encoding="utf-8")
+    conn.execute(migration_roles)
     for username, password in credentials:
         conn.execute(
             "INSERT INTO conauti_users(username,password_hash) VALUES (%s,%s)"
