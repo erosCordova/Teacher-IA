@@ -27,27 +27,51 @@ def adb(*args, timeout=30, check=True):
 
 
 def wait_for_debug_socket(seconds=70):
-    for _ in range(seconds // 3):
-        sock = adb("shell", "cat", "/proc/net/unix", check=False)
-        candidates = re.findall(r"webview_devtools_remote_\d+", sock)
-        if candidates:
-            return candidates[-1]
+    """Conectar SOLO a la WebView del proceso de Teacher IA, no a otra app."""
+    last = ""
+    for _ in range(max(1, seconds // 3)):
+        process = adb("shell", "pidof", PKG, check=False)
+        pids = re.findall(r"\b\d+\b", process)
+        sockets = adb("shell", "cat", "/proc/net/unix", check=False)
+        candidates = set(re.findall(r"webview_devtools_remote_\d+", sockets))
+        for pid in pids:
+            expected = "webview_devtools_remote_" + pid
+            if expected in candidates:
+                return expected
+        last = "proceso=" + str(pids) + ", sockets=" + str(sorted(candidates))
         time.sleep(3)
-    raise RuntimeError("No se habilitó la depuración de WebView Android.")
+    raise RuntimeError("La WebView de My Teacher IA no apareció: " + last)
 
 
 def get_target():
-    for _ in range(22):
+    last_pages = []
+    last_error = ""
+    for attempt in range(36):
         try:
             with urllib.request.urlopen("http://127.0.0.1:9222/json", timeout=6) as response:
                 pages = json.load(response)
+            last_pages = [(p.get("type"), p.get("url", "")[:110]) for p in pages]
             for page in pages:
                 if page.get("type") == "page" and page.get("webSocketDebuggerUrl"):
                     return page
-        except Exception:
-            pass
+        except Exception as error:
+            last_error = type(error).__name__ + ": " + str(error)[:180]
+        # Algunos runners inician la aplicación antes de que WebView quede
+        # expuesta o reanudan otro proceso. Relanzar sin borrar ningún dato.
+        if attempt in (12, 25):
+            print("Reintentando enlace con WebView:", last_pages, last_error, flush=True)
+            print("Proceso Android:", adb("shell", "pidof", PKG, check=False), flush=True)
+            adb("shell", "am", "start", "-n", PKG + "/.MainActivity", check=False)
+            try:
+                socket = wait_for_debug_socket(seconds=18)
+                adb("forward", "--remove", "tcp:9222", check=False)
+                adb("forward", "tcp:9222", "localabstract:" + socket)
+            except Exception as error:
+                print("WebView aún sin conexión:", error, flush=True)
         time.sleep(2)
-    raise RuntimeError("No se encontró una página WebView accesible.")
+    raise RuntimeError("No se encontró una WebView de Teacher IA: "
+        + str(last_pages) + "; " + last_error
+        + "; pid=" + adb("shell", "pidof", PKG, check=False))
 
 
 def eval_js(ws, expr, seq):
