@@ -735,7 +735,7 @@ export default function ConversacionVoz({
       return
     }
 
-    if (!('speechSynthesis' in window)) {
+    if (!('speechSynthesis' in window) && !vozAndroid()) {
       setNotice(
         'El navegador no permite responder con voz.',
       )
@@ -746,8 +746,9 @@ export default function ConversacionVoz({
 
     // Desbloquear WebAudio durante el clic inicial del estudiante.
     habilitarAudioKokoro()
-    // Verifica la disponibilidad del motor sin retrasar la captura de voz.
-    prepararVozKokoroRapida()
+    // En Android la voz del sistema tiene prioridad; no iniciar una descarga
+    // de Kokoro innecesaria antes de capturar la primera pregunta.
+    if (!vozAndroid()) prepararVozKokoroRapida()
 
     running.current = true
 
