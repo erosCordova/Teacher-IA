@@ -91,6 +91,13 @@ jobs:
           test -s app/build/outputs/bundle/release/app-release.aab
           unzip -l app/build/outputs/bundle/release/app-release.aab | grep -q 'base/lib/arm64-v8a/libteacher_llama.so'
           echo "AAB no firmado generado; no es publicable todavía."
+      - name: Compilar APK release sin firma y auditar privacidad Android
+        working-directory: mobile/android
+        run: |
+          ./gradlew assembleRelease --no-daemon
+          test -s app/build/outputs/apk/release/app-release-unsigned.apk
+          cd ../..
+          python3 mobile/scripts/auditar_release_android.py
       - name: Guardar AAB de validación sin firma
         uses: actions/upload-artifact@v4
         with:
