@@ -98,6 +98,8 @@ jobs:
           test -s app/build/outputs/apk/release/app-release-unsigned.apk
           cd ../..
           python3 mobile/scripts/auditar_release_android.py
+      - name: Validar firma AAB con clave de CI desechable
+        run: bash mobile/scripts/probar_firma_android.sh
       - name: Guardar AAB de validación sin firma
         uses: actions/upload-artifact@v4
         with:
