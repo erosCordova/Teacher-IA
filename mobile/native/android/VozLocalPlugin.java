@@ -4,6 +4,10 @@ import android.Manifest;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.speech.RecognitionSupport;
+import android.speech.RecognitionSupportCallback;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -21,6 +25,8 @@ import com.getcapacitor.annotation.PermissionCallback;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Solo voz que el sistema Android declara ejecutable en el dispositivo.
@@ -78,6 +84,108 @@ public final class VozLocalPlugin extends Plugin {
         data.put("idioma", "es");
         data.put("soloDispositivo", true);
         call.resolve(data);
+    }
+
+    /**
+     * API 33+: distinguir un servicio de voz presente de un paquete español
+     * efectivamente instalado. No usa un servicio remoto ni abre el micrófono.
+     * Si el proveedor no permite consultar soporte, indica "desconocido"
+     * en lugar de afirmar falsamente que español ya está instalado.
+     */
+    private static boolean admiteEspanol(List<String> languages) {
+        if (languages == null) return false;
+        for (String language : languages) {
+            if ("es".equals(Locale.forLanguageTag(language.replace('_', '-')).getLanguage())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static Intent intentEspanol() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-ES");
+        intent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
+        return intent;
+    }
+
+    @PluginMethod
+    public void comprobarIdioma(PluginCall call) {
+        if (!onDeviceRecognitionAvailable()) {
+            JSObject info = new JSObject();
+            info.put("comprobacionSoportada", true);
+            info.put("espanolInstalado", false);
+            info.put("espanolDescargable", false);
+            info.put("motivo", "Android no ofrece reconocimiento de voz en este dispositivo.");
+            call.resolve(info);
+            return;
+        }
+        if (Build.VERSION.SDK_INT < 33) {
+            JSObject info = new JSObject();
+            info.put("comprobacionSoportada", false);
+            info.put("espanolInstalado", false);
+            info.put("espanolDescargable", false);
+            info.put("motivo", "Esta versión de Android no permite consultar idiomas de reconocimiento instalados.");
+            call.resolve(info);
+            return;
+        }
+        getActivity().runOnUiThread(() -> {
+            try {
+                final SpeechRecognizer verificador =
+                    SpeechRecognizer.createOnDeviceSpeechRecognizer(getContext());
+                final Handler handler = new Handler(Looper.getMainLooper());
+                final AtomicBoolean completado = new AtomicBoolean(false);
+                final Runnable timeout = () -> {
+                    if (!completado.compareAndSet(false, true)) return;
+                    verificador.destroy();
+                    JSObject info = new JSObject();
+                    info.put("comprobacionSoportada", false);
+                    info.put("espanolInstalado", false);
+                    info.put("espanolDescargable", false);
+                    info.put("motivo", "El servicio de voz no confirmó el idioma en ocho segundos.");
+                    call.resolve(info);
+                };
+                handler.postDelayed(timeout, 8000);
+                verificador.checkRecognitionSupport(intentEspanol(),
+                    getContext().getMainExecutor(), new RecognitionSupportCallback() {
+                        @Override
+                        public void onSupportResult(RecognitionSupport support) {
+                            if (!completado.compareAndSet(false, true)) return;
+                            handler.removeCallbacks(timeout);
+                            verificador.destroy();
+                            JSObject info = new JSObject();
+                            info.put("comprobacionSoportada", true);
+                            info.put("espanolInstalado",
+                                admiteEspanol(support.getInstalledOnDeviceLanguages()));
+                            info.put("espanolDescargable",
+                                admiteEspanol(support.getSupportedOnDeviceLanguages())
+                                || admiteEspanol(support.getPendingOnDeviceLanguages()));
+                            call.resolve(info);
+                        }
+                        @Override
+                        public void onError(int error) {
+                            if (!completado.compareAndSet(false, true)) return;
+                            handler.removeCallbacks(timeout);
+                            verificador.destroy();
+                            JSObject info = new JSObject();
+                            info.put("comprobacionSoportada", false);
+                            info.put("espanolInstalado", false);
+                            info.put("espanolDescargable", false);
+                            info.put("motivo", "El sistema no permite consultar el idioma (" + error + ").");
+                            call.resolve(info);
+                        }
+                    });
+            } catch (Exception error) {
+                JSObject info = new JSObject();
+                info.put("comprobacionSoportada", false);
+                info.put("espanolInstalado", false);
+                info.put("espanolDescargable", false);
+                info.put("motivo", "No se pudo comprobar el paquete de voz local.");
+                call.resolve(info);
+            }
+        });
     }
 
     @PluginMethod
