@@ -31,9 +31,7 @@ APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V 
 test -x "$APKSIGNER"
 BUILD_TOOLS="$(dirname "$APKSIGNER")"
 "$BUILD_TOOLS/zipalign" -P 16 -f 4 "$UNSIGNED_APK" "$TEMP/aligned.apk"
-"$APKSIGNER" sign --ks "$TEMP/ci.jks" --ks-key-alias myteacher-disposable-ci \\
-  --ks-pass "pass:$PASSWORD" --key-pass "pass:$PASSWORD" \\
-  --out "$TEMP/signed.apk" "$TEMP/aligned.apk"
+"$APKSIGNER" sign --ks "$TEMP/ci.jks" --ks-key-alias myteacher-disposable-ci --ks-pass "pass:$PASSWORD" --key-pass "pass:$PASSWORD" --out "$TEMP/signed.apk" "$TEMP/aligned.apk"
 "$APKSIGNER" verify --verbose "$TEMP/signed.apk"
 "$BUILD_TOOLS/zipalign" -c -P 16 4 "$TEMP/signed.apk"
 test -s "$TEMP/signed.apk"
