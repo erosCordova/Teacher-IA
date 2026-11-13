@@ -132,11 +132,13 @@ public final class VozLocalPlugin extends Plugin {
             return;
         }
         getActivity().runOnUiThread(() -> {
+            final AtomicBoolean completado = new AtomicBoolean(false);
+            final SpeechRecognizer[] instancia = new SpeechRecognizer[1];
             try {
                 final SpeechRecognizer verificador =
                     SpeechRecognizer.createOnDeviceSpeechRecognizer(getContext());
+                instancia[0] = verificador;
                 final Handler handler = new Handler(Looper.getMainLooper());
-                final AtomicBoolean completado = new AtomicBoolean(false);
                 final Runnable timeout = () -> {
                     if (!completado.compareAndSet(false, true)) return;
                     verificador.destroy();
@@ -178,6 +180,10 @@ public final class VozLocalPlugin extends Plugin {
                         }
                     });
             } catch (Exception error) {
+                // Si el proveedor lanza una excepción, no resolver dos veces
+                // cuando se ejecute el temporizador de ocho segundos.
+                if (!completado.compareAndSet(false, true)) return;
+                if (instancia[0] != null) instancia[0].destroy();
                 JSObject info = new JSObject();
                 info.put("comprobacionSoportada", false);
                 info.put("espanolInstalado", false);
