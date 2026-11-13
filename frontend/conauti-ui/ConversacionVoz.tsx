@@ -1,7 +1,20 @@
 import { apiFetch } from './apiFetch'
+import { sesionNativaDisponible } from './SesionNativa'
 import { hablarConKokoro, cancelarVozKokoro, prepararVozKokoroRapida } from './KokoroPlayer'
 import { habilitarAudioKokoro } from './KokoroAudio'
 import { useEffect, useRef, useState } from 'react'
+
+type ReconocimientoVozAndroid = {
+  estado(): Promise<{ reconocimientoDisponible: boolean; sintesisDisponible: boolean }>
+  escuchar(): Promise<{ texto: string; origen: string }>
+  cancelarEscucha(): Promise<void>
+}
+function vozAndroid(): ReconocimientoVozAndroid | undefined {
+  if (!sesionNativaDisponible()) return undefined
+  const c = window.Capacitor
+  return ((c?.Plugins as unknown as { VozLocal?: ReconocimientoVozAndroid } | undefined)?.VozLocal
+    ?? c?.registerPlugin?.('VozLocal')) as ReconocimientoVozAndroid | undefined
+}
 
 type Phase =
   | 'inactivo'
@@ -88,6 +101,7 @@ export default function ConversacionVoz({
 
     controller.current?.abort()
     controller.current = null
+    void vozAndroid()?.cancelarEscucha().catch(() => {})
 
     if ('speechSynthesis' in window) {
       cancelarVozKokoro(window.speechSynthesis)
@@ -154,6 +168,7 @@ export default function ConversacionVoz({
     speechTurn.current += 1
 
     controller.current?.abort()
+    void vozAndroid()?.cancelarEscucha().catch(() => {})
 
     if ('speechSynthesis' in window) {
       cancelarVozKokoro(window.speechSynthesis)
@@ -180,10 +195,43 @@ export default function ConversacionVoz({
     if (!running.current || id !== session.current) return
 
     setPhase('escuchando')
-    setNotice(
-      'Te escucho. Después de una pausa, enviaré tu pregunta.',
-    )
+    setNotice('Te escucho. Después de una pausa, enviaré tu pregunta.')
 
+    // En Android, priorizar SpeechRecognizer del sistema cuando sea local.
+    // El texto reconocido va al chat online que el usuario decidió activar.
+    // Si el idioma no está instalado, utilizar la grabación web existente.
+    const native = vozAndroid()
+    if (native) {
+      try {
+        const status = await native.estado()
+        if (status.reconocimientoDisponible && running.current && id === session.current) {
+          setNotice('Escuchando desde el micrófono de Android…')
+          const voice = await native.escuchar()
+          if (!running.current || id !== session.current) return
+          if (!voice.texto?.trim()) throw new Error('No se reconoció ninguna pregunta.')
+          const request = new AbortController()
+          controller.current = request
+          try {
+            await processText(voice.texto.trim(), id, request)
+          } catch (error) {
+            if (running.current && id === session.current) {
+              halt(error instanceof Error ? error.message : 'No se pudo enviar la pregunta dictada.')
+            }
+          } finally {
+            if (controller.current === request) controller.current = null
+          }
+          return
+        }
+      } catch (error) {
+        if (!running.current || id !== session.current) return
+        setNotice('Dictado de Android no disponible. Probando grabación por el navegador…')
+      }
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      halt('El micrófono de Android no está disponible. Revisa los permisos y los paquetes de voz en Ajustes.')
+      return
+    }
     try {
       const media = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -321,7 +369,9 @@ export default function ConversacionVoz({
       const message =
         error instanceof Error &&
         error.name === 'NotAllowedError'
-          ? 'Debes permitir el micrófono en Edge.'
+          ? sesionNativaDisponible()
+            ? 'Permite el micrófono para My Teacher IA en Ajustes de Android.'
+            : 'Debes permitir el micrófono en el navegador.'
           : 'No se pudo iniciar el micrófono. Revisa los permisos.'
 
       halt(message)
@@ -377,6 +427,27 @@ export default function ConversacionVoz({
         )
       }
 
+      await processText(text, id, request)
+    } catch (error) {
+      if (
+        running.current &&
+        id === session.current
+      ) {
+        halt(
+          error instanceof Error
+            ? error.message
+            : 'La conversación por voz falló.',
+        )
+      }
+    } finally {
+      if (controller.current === request) {
+        controller.current = null
+      }
+    }
+  }
+
+  async function processText(text: string, id: number, request: AbortController) {
+    if (!running.current || id !== session.current) return
       setHeard(text)
 
       let conversation = activeConversation.current
@@ -470,22 +541,6 @@ export default function ConversacionVoz({
       setAnswered(answer)
       say(answer, id)
 
-    } catch (error) {
-      if (
-        running.current &&
-        id === session.current
-      ) {
-        halt(
-          error instanceof Error
-            ? error.message
-            : 'La conversación por voz falló.',
-        )
-      }
-    } finally {
-      if (controller.current === request) {
-        controller.current = null
-      }
-    }
   }
 
   function say(text: string, id: number) {
@@ -604,8 +659,9 @@ export default function ConversacionVoz({
     }
 
     if (
-      !navigator.mediaDevices?.getUserMedia ||
-      typeof MediaRecorder === 'undefined'
+      !vozAndroid() &&
+      (!navigator.mediaDevices?.getUserMedia ||
+       typeof MediaRecorder === 'undefined')
     ) {
       setNotice(
         'Este navegador no permite capturar audio.',
@@ -643,6 +699,7 @@ export default function ConversacionVoz({
     speechTurn.current += 1
 
     cancelarVozKokoro(window.speechSynthesis)
+    void vozAndroid()?.cancelarEscucha().catch(() => {})
 
     void listen(session.current)
   }
