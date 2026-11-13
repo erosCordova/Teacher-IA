@@ -1,60 +1,52 @@
-# My Teacher IA — edición Android (desarrollo)
+# My Teacher IA — Android con tutor local
 
-Estado: **75 % de subhitos ponderados y verificados**; no significa que el tutor offline ya esté completo. La compilación Android de prueba está verificada; la aplicación con motor GGUF local **todavía no está terminada**.
+**Avance verificado: 86 %**, medido por los hitos ponderados en [`progreso.json`](./progreso.json). Los cambios de código aún no validados en CI o en teléfono físico no aumentan ese valor.
 
-Este directorio prepara una app Android mediante Capacitor sin duplicar el frontend React ni modificar la publicación web de Render.
+## Qué funciona y qué está probado
 
-## Arquitectura de la primera etapa
+- Interfaz React integrada en Android mediante Capacitor, con los estilos y funcionalidades existentes de My Teacher IA.
+- Inicio de sesión, chat en línea y sincronización voluntaria con dos estudiantes ficticios, desde Android contra PostgreSQL de pruebas.
+- Motor privado `llama.cpp` integrado por JNI. Un GGUF Qwen3 0.6B real generó pistas educativas en español sin conexión al backend en el emulador.
+- Instalación del GGUF desde la interfaz, cancelación, reanudación y comprobación SHA-256 en almacenamiento privado.
+- Historial local cifrado con Android Keystore y recuperado tras reiniciar la interfaz.
+- Puente de síntesis de voz local verificado en emulador; dictado y audición sin Internet en celulares físicos **pendientes**.
+- APK de depuración y AAB sin firma compilados. La compilación release dispone de auditoría de privacidad, integridad de archivos y compatibilidad ELF de 16 KB.
 
-- \`frontend/conauti-ui/\`: interfaz existente, login, módulos, chat, voz e historial.
-- \`frontend/dist-conauti/\`: compilación web que se empaqueta dentro de Android.
-- \`mobile/capacitor.config.json\`: nombre, identificador provisional y origen Android.
-- \`mobile/android/\`: proyecto Android generado al compilar; no requiere que los alumnos instalen Ollama.
-- \`backend/\`: FastAPI remoto durante la fase online. En Android necesita autorizar el origen \`http://localhost\` por CORS.
-- Motor local GGUF (llama.cpp) **compilado y cargado por JNI**; instalador y SHA-256 integrados; historial local cifrado verificado. **Inferencia real con el GGUF en el emulador aún en prueba; no confundir compilación con respuestas validadas.**
+El archivo del modelo (**aprox. 484 MB**) no va dentro del APK. El estudiante debe descargarlo una vez con autorización; después, el tutor local puede funcionar sin datos móviles. No debe instalar Ollama de escritorio en el teléfono. El tiempo de inferencia registrado en emulador es de 117 segundos, **no** una medida representativa de rendimiento en un teléfono real.
 
-## Proceso en CI
+## Cómo se genera el APK de prueba
 
-El workflow \`.github/workflows/android.yml\` instala dependencias móviles, valida configuración, genera el proyecto nativo y compila un **APK debug de prueba**. No genera una aplicación firmada para Google Play.
+El flujo [`android.yml`](../.github/workflows/android.yml) compila `frontend/dist-conauti`, prepara Capacitor, incorpora los plugins, compila la biblioteca JNI para ARM64/x86_64 y crea un APK debug. Además, valida AAB sin firma, privacidad, firma desechable para pruebas y apertura del proyecto en emulador.
 
-El bundle utiliza \`webDir: ../frontend/dist-conauti\`. No se establece \`server.url\` a una página remota, de modo que los recursos estáticos de la interfaz viajan dentro del APK.
+El resultado se obtiene en **GitHub > Actions > My Teacher IA - Android (prueba APK) > ejecución exitosa > Artifacts > my-teacher-ia-android-debug**. Un APK debug es solo de prueba: no es la aplicación de publicación.
 
-## Comportamiento por ahora
+## APK para instalar desde navegador y AAB para Google Play
 
-La web pública mantiene su funcionamiento normal. La app Android empaquetada requiere Internet para autenticación, IA y acceso a PostgreSQL, como la versión web. El indicador \`progreso.json\` cuenta exclusivamente hitos concluidos; **no** significa que el tutor offline ya funcione.
+El flujo [`android-firma-manual.yml`](../.github/workflows/android-firma-manual.yml) está preparado para generar en una misma ejecución:
 
-## Requisitos posteriores para IA sin Internet
+- `my-teacher-ia-release.apk`: para distribución directa por navegador, firmado y verificado con `apksigner`.
+- `my-teacher-ia-firmado.aab`: paquete firmado de subida a Google Play.
+- `SHA256SUMS.txt`: huellas SHA-256 de ambos archivos.
 
-1. Implementar el plugin nativo Android de inferencia GGUF usando llama.cpp (no ejecutando Ollama Desktop).
-2. Seleccionar y evaluar un modelo cuantizado con licencia compatible con distribución en Google Play.
-3. Gestionar instalación/descarga/verificación de pesos y espacio requerido; no descargar modelos sin consentimiento.
-4. Implementar base local privada y migración sincronizada tras reconectar Internet.
-5. Añadir reconocimiento y síntesis de voz offline según compatibilidad de cada teléfono.
-6. Probar rendimiento, batería, límites de memoria y modelos de dispositivos.
-7. Crear paquete AAB firmado, política de privacidad y ficha para Play Store.
+**La firma de producción no está ejecutada ni acreditada.** El workflow requiere configurar primero un entorno protegido `android-release` en GitHub con cuatro secretos: `ANDROID_UPLOAD_KEYSTORE_B64`, `ANDROID_UPLOAD_KEYSTORE_PASSWORD`, `ANDROID_UPLOAD_KEY_ALIAS` y `ANDROID_UPLOAD_KEY_PASSWORD`. La clave privada debe generarse y conservarse fuera del repositorio, nunca en el chat, el código, ni los artefactos. Se usa un almacenamiento temporal que se destruye al terminar. El workflow no publica automáticamente en Google Play.
 
-**No empaquetar tokens, llaves de producción ni secretos en el APK.**
+**Importante sobre actualizaciones:** si Google Play firma la app con un certificado diferente al de la descarga directa, Android no permite sustituir una instalación por la otra mediante actualización normal. Se debe planificar la estrategia de certificados antes de distribuir a estudiantes.
 
-## Evidencia fase 1
+## Seguridad y publicación
 
-- [APK de depuración compilado en GitHub Actions](https://github.com/erosCordova/Teacher-IA/actions/runs/43252557288).
-- [CI general de frontend, backend y PostgreSQL](https://github.com/erosCordova/Teacher-IA/actions/runs/43252557141).
-- Avance global ponderado y medible en `progreso.json`: **75 %** (Android, JNI, historial cifrado, navegación, voz nativa y AAB sin firma comprobados).
-- **Fase 2 en curso:** acceso y chat en Android usando backend HTTPS remoto.
+- La app usa `pe.myteacheria.alumno`, assets locales en `http://localhost`, sin cargar el frontend desde un servidor remoto.
+- La conexión al backend online se hace por HTTPS. No se deben incrustar contraseñas ni claves de Gemini o de otros servicios.
+- La auditoría de release prohíbe copias automáticas del historial, inspección de WebView en producción, permisos sensibles innecesarios y transporte HTTP claro.
+- La biblioteca nativa se compila con alineación de páginas ELF de 16 KB y la auditoría verifica esa propiedad; la ejecución real debe confirmarse también en hardware compatible.
+- Google Play exige requisitos externos de cuenta de desarrollador, privacidad, seguridad de datos, ficha y pruebas. No están cubiertos simplemente por obtener un AAB firmado.
 
-## Novedades de la rama móvil
+## Pendientes para llegar al 100 %
 
-- Android APK debug y AAB de validación sin firma compilados (CI: https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118).
-- Voz local nativa con síntesis y reconocimiento *solo en el dispositivo* cuando Android dispone de modelos de idioma español. El puente y las capacidades del emulador fueron comprobados; falta probar el dictado y audio reales sin red en móviles.
-- Tutor local independiente de FastAPI con historial cifrado Keystore; cambio de modo local/online probado.
-- Inferencia GGUF real en emulador: en prueba profunda, no computada todavía como completada.
-- AAB de CI **sin firma**, no instalar ni publicar como versión Google Play.
+| Hito | Peso |
+| --- | ---: |
+| Autenticación con proveedor real y generación IA online desde Android | 2 % |
+| Dictado sin Internet y audio audible en teléfonos físicos | 4 % |
+| Rendimiento, batería y privacidad en teléfonos ARM64 | 5 % |
+| Firma definitiva, entrega y revisión de publicación | 3 % |
 
-### Avance actualizado y comprobaciones
-
-- **75% ponderado:** consultar `mobile/progreso.json` como fuente de verdad.
-- GGUF Qwen3 0.6B probado generando una pregunta orientadora en Android emulado sin conexión al backend (ejecución 43301708400).
-- La API de importación voluntaria de conversaciones fue verificada con PostgreSQL efímero, sin duplicados y con aislamiento de cuentas (ejecución 43304665847).
-- El chat en Android generó una respuesta Qwen3 real sin red y recuperó el historial cifrado tras recargar WebView (ejecución 43303896571).
-- La sincronización autenticada desde el teléfono todavía requiere validación completa; la API aislada sí está probada.
-- La versión para Play Store y un APK de producción todavía no están listos.
+El porcentaje oficial solo cambia tras registrar evidencia verificable en `mobile/progreso.json`. El último respaldo funcional de la web permanece separado en las ramas de trabajo; la compilación Android no modifica Render ni elimina funcionalidades existentes.
