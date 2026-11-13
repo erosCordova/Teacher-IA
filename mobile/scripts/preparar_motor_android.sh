@@ -41,6 +41,13 @@ if ! grep -q 'android.permission.RECORD_AUDIO' "$MANIFEST"; then
   sed -i '/<application/i\    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-feature android:name="android.hardware.microphone" android:required="false" />\n    <queries>\n      <intent><action android:name="android.speech.RecognitionService" /></intent>\n      <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>\n    </queries>' "$MANIFEST"
 fi
 
+# Reglas específicas para Android 12+: algunos fabricantes permiten
+# transferencia de datos entre teléfonos pese a allowBackup="false".
+XML_DIR="$APP/src/main/res/xml"
+mkdir -p "$XML_DIR"
+cp "$ROOT/mobile/native/android/res/xml/data_extraction_rules.xml" \
+  "$XML_DIR/data_extraction_rules.xml"
+
 # Los datos educativos, los tokens y las preferencias de la WebView
 # no deben salir por Android Auto Backup ni por una extracción adb.
 # El manifest pertenece al proyecto Android generado por Capacitor.
@@ -53,7 +60,7 @@ s = path.read_text(encoding="utf-8")
 assert "<application" in s, "Falta aplicación Android"
 s, n = re.subn(r"<application\b([^>]*)>", lambda m: "<application" + (
     re.sub(r'\s+android:(allowBackup|fullBackupContent|dataExtractionRules)="[^"]*"', "", m.group(1))
-    ) + ' android:allowBackup="false" android:fullBackupContent="false">',
+    ) + ' android:allowBackup="false" android:fullBackupContent="false" android:dataExtractionRules="@xml/data_extraction_rules">',
     s, count=1)
 assert n == 1, "No se pudieron deshabilitar copias de seguridad"
 path.write_text(s, encoding="utf-8")
