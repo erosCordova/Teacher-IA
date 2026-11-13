@@ -10,8 +10,15 @@ type MotorLocal = {
   estado(): Promise<MotorEstado>
   responder(args: { texto: string; maxTokens: number; contexto?: string }): Promise<{ texto: string; origen: string }>
 }
+type EstadoIdioma = {
+  comprobacionSoportada: boolean
+  espanolInstalado: boolean
+  espanolDescargable: boolean
+  motivo?: string
+}
 type VozLocal = {
   estado(): Promise<{ sintesisDisponible: boolean; reconocimientoDisponible: boolean; soloDispositivo: boolean }>
+  comprobarIdioma?(): Promise<EstadoIdioma>
   escuchar(): Promise<{ texto: string; origen: string }>
   cancelarEscucha(): Promise<void>
   hablar(options: { texto: string }): Promise<void>
@@ -27,6 +34,22 @@ function puente<T>(nombre: string): T | undefined {
   const capacitor = window.Capacitor
   return ((capacitor?.Plugins as Record<string, unknown> | undefined)?.[nombre]
     ?? capacitor?.registerPlugin?.(nombre)) as T | undefined
+}
+
+// Consultar el paquete de idioma real; un servicio STT instalado no demuestra
+// que el español pueda ejecutarse sin Internet en este teléfono.
+async function comprobarEstadoVoz(voz: VozLocal) {
+  const estado = await voz.estado()
+  let idioma: EstadoIdioma | undefined
+  try { idioma = await voz.comprobarIdioma?.() } catch { /* No inferir un idioma instalado */ }
+  const faltaEspanol = idioma?.comprobacionSoportada === true && !idioma.espanolInstalado
+  return {
+    estado: {
+      sintesisDisponible: estado.sintesisDisponible,
+      reconocimientoDisponible: estado.reconocimientoDisponible && !faltaEspanol,
+    },
+    idioma,
+  }
 }
 
 function mensajesValidos(raw: unknown): Mensaje[] {
@@ -90,8 +113,9 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
       }
     }
     void iniciar()
-    void puente<VozLocal>('VozLocal')?.estado()
-      .then(estado => { if (live) setVozEstado(estado) }).catch(() => {})
+    const voz = puente<VozLocal>('VozLocal')
+    if (voz) void comprobarEstadoVoz(voz)
+      .then(({ estado }) => { if (live) setVozEstado(estado) }).catch(() => {})
     return () => { live = false }
   }, [])
 
@@ -123,11 +147,15 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
     try {
       const voz = puente<VozLocal>('VozLocal')
       if (!voz) throw new Error('La voz nativa no está instalada.')
-      const estado = await voz.estado()
+      const { estado, idioma } = await comprobarEstadoVoz(voz)
       setVozEstado(estado)
-      if (!estado.sintesisDisponible && !estado.reconocimientoDisponible) {
-        setAviso('Descarga las voces y el reconocimiento de español sin conexión desde los ajustes de Android.')
-      } else setAviso('')
+      if (idioma?.comprobacionSoportada && !idioma.espanolInstalado) {
+        setAviso(idioma.espanolDescargable
+          ? 'El reconocimiento de español es compatible, pero falta descargar el paquete sin conexión desde los ajustes de Android.'
+          : 'El reconocimiento de español sin conexión no está instalado o no está disponible en este teléfono.')
+      } else if (!estado.sintesisDisponible || !estado.reconocimientoDisponible) {
+        setAviso('Comprueba los paquetes locales de voz española y reconocimiento en los ajustes de Android. ' + (idioma?.motivo || ''))
+      } else setAviso('Voz española y reconocimiento local disponibles según Android. Falta comprobarlos hablando en un teléfono físico.')
     } catch (e) {
       setAviso(e instanceof Error ? e.message : String(e))
     }
