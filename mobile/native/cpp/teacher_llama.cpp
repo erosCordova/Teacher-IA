@@ -71,7 +71,7 @@ static std::string infer(const std::string & path, const std::string & question,
     // empieza directamente la respuesta educativa, sin cambiar de modelo.
     // Solo se utiliza con el GGUF Qwen3 controlado por esta aplicación.
     std::string prompt(prompt_buffer.data(), static_cast<size_t>(needed));
-    const std::string no_think_prefill = "<think>\\n\\n</think>\\n";
+    const std::string no_think_prefill = "<think>\n\n</think>\n";
     prompt += no_think_prefill;
     int token_count = llama_tokenize(vocab, prompt.c_str(),
         static_cast<int>(prompt.size()), nullptr, 0, true, true);
