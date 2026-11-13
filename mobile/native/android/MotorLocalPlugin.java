@@ -37,6 +37,7 @@ public final class MotorLocalPlugin extends Plugin {
 
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private static final AtomicBoolean busy = new AtomicBoolean(false);
+    private static final AtomicBoolean cancelRequested = new AtomicBoolean(false);
 
     // El GGUF mide ~484 MB: repetir SHA-256 en CADA mensaje causa una
     // demora notable en móviles. Es un archivo privado que la app verificó
@@ -77,6 +78,8 @@ public final class MotorLocalPlugin extends Plugin {
     }
 
     private static native byte[] generarNativo(String path, byte[] prompt, int maxTokens);
+    private static native void prepararNativo();
+    private static native void cancelarNativo();
 
     @PluginMethod
     public void estado(PluginCall call) {
@@ -84,8 +87,24 @@ public final class MotorLocalPlugin extends Plugin {
         result.put("engineAvailable", ENGINE_READY);
         result.put("modelInstalled", modelPlausible(modelFile()));
         result.put("busy", busy.get());
+        result.put("cancelando", cancelRequested.get() && busy.get());
         result.put("mode", "local");
         call.resolve(result);
+    }
+
+    @PluginMethod
+    public void cancelar(PluginCall call) {
+        if (!ENGINE_READY) {
+            call.reject("El motor local no está disponible en este teléfono.");
+            return;
+        }
+        if (busy.get()) {
+            cancelRequested.set(true);
+            cancelarNativo();
+        }
+        JSObject response = new JSObject();
+        response.put("cancelacionSolicitada", busy.get());
+        call.resolve(response);
     }
 
     @PluginMethod
@@ -116,12 +135,17 @@ public final class MotorLocalPlugin extends Plugin {
             call.reject("El tutor está preparando otra respuesta.");
             return;
         }
+        cancelRequested.set(false);
+        prepararNativo();
         final int requested = call.getInt("maxTokens", 180);
         final int maxTokens = Math.max(32, Math.min(256, requested));
         worker.execute(() -> {
             try {
                 if (!modeloVerificado(model)) {
                     throw new IllegalStateException("El modelo no supera su verificación SHA-256.");
+                }
+                if (cancelRequested.get()) {
+                    throw new IllegalStateException("Generación cancelada.");
                 }
                 // El motor se ejecuta en un hilo independiente de la interfaz Android.
                 byte[] result = generarNativo(
@@ -148,9 +172,14 @@ public final class MotorLocalPlugin extends Plugin {
                 output.put("origen", "dispositivo");
                 call.resolve(output);
             } catch (Throwable error) {
-                call.reject("No se pudo generar la respuesta local: " + error.getMessage());
+                if (cancelRequested.get()) {
+                    call.reject("Generación cancelada.", "GENERACION_CANCELADA");
+                } else {
+                    call.reject("No se pudo generar la respuesta local: " + error.getMessage());
+                }
             } finally {
                 busy.set(false);
+                cancelRequested.set(false);
             }
         });
     }
