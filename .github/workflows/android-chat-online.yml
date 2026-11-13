@@ -88,8 +88,9 @@ jobs:
           p.write_text(text, encoding="utf-8")
           print("HTTP local de prueba habilitado; nunca en el APK de distribución")
           PY
-      # Prueba exclusivamente sesión y sincronización. No instala GGUF ni
-      # compila C++: las otras suites prueban llama.cpp con un modelo real.
+      - name: Integrar llama.cpp nativo (ARM64 y emulador x86_64)
+        # Mantener la misma biblioteca JNI y el manifest que el APK probado.
+        run: bash mobile/scripts/preparar_motor_android.sh
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
