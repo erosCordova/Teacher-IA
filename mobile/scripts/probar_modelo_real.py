@@ -13,7 +13,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from websocket import create_connection
-from probar_emulador import APK, adb, eval_js, get_target, wait_for_debug_socket
+from probar_emulador import APK, adb, eval_js, get_target, wait_for_debug_socket, capture_diagnostics
 
 ROOT = Path(__file__).resolve().parents[1]
 GGUF = ROOT / "cache" / "qwen3-0.6b-q4_k_m.gguf"
@@ -137,4 +137,8 @@ def main():
         ws.close()
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        capture_diagnostics()
+        raise
