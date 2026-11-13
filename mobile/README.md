@@ -1,52 +1,30 @@
-# My Teacher IA — Android con tutor local
+# My Teacher IA — aplicación Android
 
-**Avance verificado: 86 %**, medido por los hitos ponderados en [`progreso.json`](./progreso.json). Los cambios de código aún no validados en CI o en teléfono físico no aumentan ese valor.
+**Avance ponderado verificado: 89 %.** Consultar `mobile/progreso.json` para los subhitos y sus evidencias. **No es una versión final ni está publicada en Google Play.**
 
-## Qué funciona y qué está probado
+## Arquitectura
 
-- Interfaz React integrada en Android mediante Capacitor, con los estilos y funcionalidades existentes de My Teacher IA.
-- Inicio de sesión, chat en línea y sincronización voluntaria con dos estudiantes ficticios, desde Android contra PostgreSQL de pruebas.
-- Motor privado `llama.cpp` integrado por JNI. Un GGUF Qwen3 0.6B real generó pistas educativas en español sin conexión al backend en el emulador.
-- Instalación del GGUF desde la interfaz, cancelación, reanudación y comprobación SHA-256 en almacenamiento privado.
-- Historial local cifrado con Android Keystore y recuperado tras reiniciar la interfaz.
-- Puente de síntesis de voz local verificado en emulador; dictado y audición sin Internet en celulares físicos **pendientes**.
-- APK de depuración y AAB sin firma compilados. La compilación release dispone de auditoría de privacidad, integridad de archivos y compatibilidad ELF de 16 KB.
+La aplicación empaqueta el frontend React de My Teacher IA mediante Capacitor 8.6; no depende de una página remota para mostrar la interfaz. La autenticación y el chat online usan FastAPI por HTTPS. El modo offline funciona sin iniciar sesión con `llama.cpp` nativo y el modelo Qwen3 0.6B cuantizado, que se descarga una sola vez desde la app y se comprueba con SHA-256. El modelo completo ocupa alrededor de 484 MB y **no viene dentro del APK**.
 
-El archivo del modelo (**aprox. 484 MB**) no va dentro del APK. El estudiante debe descargarlo una vez con autorización; después, el tutor local puede funcionar sin datos móviles. No debe instalar Ollama de escritorio en el teléfono. El tiempo de inferencia registrado en emulador es de 117 segundos, **no** una medida representativa de rendimiento en un teléfono real.
+El historial del estudiante se cifra mediante Android Keystore. La sincronización con la cuenta es voluntaria, requiere consentimiento explícito y bloquea accesos de otros estudiantes. El módulo de voz usa solo capacidades del dispositivo; su comportamiento oral completo en teléfonos físicos aún requiere validación.
 
-## Cómo se genera el APK de prueba
+## Evidencia verificable
 
-El flujo [`android.yml`](../.github/workflows/android.yml) compila `frontend/dist-conauti`, prepara Capacitor, incorpora los plugins, compila la biblioteca JNI para ARM64/x86_64 y crea un APK debug. Además, valida AAB sin firma, privacidad, firma desechable para pruebas y apertura del proyecto en emulador.
+- APK Android, biblioteca JNI y AAB sin firmar compilados: [GitHub Actions](https://github.com/erosCordova/Teacher-IA/actions/runs/43340560284).
+- Generación de respuesta real con Qwen3 en emulador, sin API remota: [Prueba de inferencia](https://github.com/erosCordova/Teacher-IA/actions/runs/43301708400).
+- Chat offline, historial cifrado y restauración tras recargar: [Prueba de chat](https://github.com/erosCordova/Teacher-IA/actions/runs/43303896571).
+- Descarga, cancelación y reanudación de los pesos GGUF desde Android: [Prueba del instalador](https://github.com/erosCordova/Teacher-IA/actions/runs/43332714425).
+- Inicio de sesión y sincronización desde Android con dos usuarios de prueba aislados: [Prueba de autenticación](https://github.com/erosCordova/Teacher-IA/actions/runs/43337881805).
+- Auditoría del APK de publicación (copia en nube y transferencia Android 12+ desactivadas; permisos y ELF de ARM64 comprobados) y firma con clave **temporal desechada**: [Pasos aprobados en CI](https://github.com/erosCordova/Teacher-IA/actions/runs/43348693408). La ejecución global fue cancelada después, durante la prueba del emulador; los pasos de auditoría y firma sí aprobaron.
 
-El resultado se obtiene en **GitHub > Actions > My Teacher IA - Android (prueba APK) > ejecución exitosa > Artifacts > my-teacher-ia-android-debug**. Un APK debug es solo de prueba: no es la aplicación de publicación.
+## Lo pendiente
 
-## APK para instalar desde navegador y AAB para Google Play
+- Autenticación con un proveedor real de correo/OAuth e IA online desde Android.
+- Dictado offline y calidad audible con micrófono real.
+- Rendimiento, memoria, batería, privacidad y compatibilidad en teléfonos ARM64.
+- Firma final con clave privada de subida, datos de privacidad y publicación en Google Play.
 
-El flujo [`android-firma-manual.yml`](../.github/workflows/android-firma-manual.yml) está preparado para generar en una misma ejecución:
+**Privacidad:** los tokens y las conversaciones locales no se transfieren automáticamente; Android 12+ utiliza `data_extraction_rules.xml` para excluirlos de migración entre dispositivos. La rama de desarrollo móvil no altera el sitio web publicado.
 
-- `my-teacher-ia-release.apk`: para distribución directa por navegador, firmado y verificado con `apksigner`.
-- `my-teacher-ia-firmado.aab`: paquete firmado de subida a Google Play.
-- `SHA256SUMS.txt`: huellas SHA-256 de ambos archivos.
+**Publicación:** `.github/workflows/android-firma-manual.yml` prepara la firma real con secretos protegidos de GitHub. Su ejecución requiere la configuración autorizada de claves y entorno de publicación. No almacena claves privadas en el repositorio.
 
-**La firma de producción no está ejecutada ni acreditada.** El workflow requiere configurar primero un entorno protegido `android-release` en GitHub con cuatro secretos: `ANDROID_UPLOAD_KEYSTORE_B64`, `ANDROID_UPLOAD_KEYSTORE_PASSWORD`, `ANDROID_UPLOAD_KEY_ALIAS` y `ANDROID_UPLOAD_KEY_PASSWORD`. La clave privada debe generarse y conservarse fuera del repositorio, nunca en el chat, el código, ni los artefactos. Se usa un almacenamiento temporal que se destruye al terminar. El workflow no publica automáticamente en Google Play.
-
-**Importante sobre actualizaciones:** si Google Play firma la app con un certificado diferente al de la descarga directa, Android no permite sustituir una instalación por la otra mediante actualización normal. Se debe planificar la estrategia de certificados antes de distribuir a estudiantes.
-
-## Seguridad y publicación
-
-- La app usa `pe.myteacheria.alumno`, assets locales en `http://localhost`, sin cargar el frontend desde un servidor remoto.
-- La conexión al backend online se hace por HTTPS. No se deben incrustar contraseñas ni claves de Gemini o de otros servicios.
-- La auditoría de release prohíbe copias automáticas del historial, inspección de WebView en producción, permisos sensibles innecesarios y transporte HTTP claro.
-- La biblioteca nativa se compila con alineación de páginas ELF de 16 KB y la auditoría verifica esa propiedad; la ejecución real debe confirmarse también en hardware compatible.
-- Google Play exige requisitos externos de cuenta de desarrollador, privacidad, seguridad de datos, ficha y pruebas. No están cubiertos simplemente por obtener un AAB firmado.
-
-## Pendientes para llegar al 100 %
-
-| Hito | Peso |
-| --- | ---: |
-| Autenticación con proveedor real y generación IA online desde Android | 2 % |
-| Dictado sin Internet y audio audible en teléfonos físicos | 4 % |
-| Rendimiento, batería y privacidad en teléfonos ARM64 | 5 % |
-| Firma definitiva, entrega y revisión de publicación | 3 % |
-
-El porcentaje oficial solo cambia tras registrar evidencia verificable en `mobile/progreso.json`. El último respaldo funcional de la web permanece separado en las ramas de trabajo; la compilación Android no modifica Render ni elimina funcionalidades existentes.
