@@ -1,0 +1,120 @@
+name: My Teacher IA - APK release universal para probar en Android
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apk-universal-release-prueba.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: teacher-universal-apk-prueba
+  cancel-in-progress: false
+
+jobs:
+  universal:
+    name: Convertir AAB verificado a APK release firmado de prueba
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Descargar AAB de una compilación Android completamente aprobada
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/aab" "$RUNNER_TEMP/publicacion"
+          gh run download 43359170921 \
+            --repo "${{ github.repository }}" \
+            --name my-teacher-ia-android-aab-sin-firma \
+            --dir "$RUNNER_TEMP/aab"
+          test -s "$RUNNER_TEMP/aab/app-release.aab"
+          unzip -tqq "$RUNNER_TEMP/aab/app-release.aab"
+      - name: Instalar bundletool oficial verificado
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 --connect-timeout 20 --max-time 180 \
+            -o "$RUNNER_TEMP/bundletool.jar" \
+            https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar
+          echo "a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29  $RUNNER_TEMP/bundletool.jar" | sha256sum -c -
+          java -jar "$RUNNER_TEMP/bundletool.jar" validate --bundle="$RUNNER_TEMP/aab/app-release.aab"
+      - name: Generar APK release universal firmado con clave temporal de prueba
+        run: |
+          set -euo pipefail
+          umask 077
+          # Nunca guardar una clave de producción en el repositorio.
+          # Esta clave es desechable, SOLO para probar en un teléfono.
+          PASSWORD_FILE="$RUNNER_TEMP/prueba.pwd"
+          openssl rand -hex 24 > "$PASSWORD_FILE"
+          keytool -genkeypair -noprompt \
+            -keystore "$RUNNER_TEMP/prueba.p12" \
+            -storetype PKCS12 \
+            -alias myteacher-temporal \
+            -storepass:file "$PASSWORD_FILE" \
+            -keypass:file "$PASSWORD_FILE" \
+            -keyalg RSA -keysize 3072 -validity 365 \
+            -dname "CN=My Teacher IA - Pruebas,O=Proyecto educativo,C=PE"
+          java -jar "$RUNNER_TEMP/bundletool.jar" build-apks \
+            --bundle="$RUNNER_TEMP/aab/app-release.aab" \
+            --output="$RUNNER_TEMP/aplicacion.apks" \
+            --mode=universal \
+            --ks="$RUNNER_TEMP/prueba.p12" \
+            --ks-pass="file:$PASSWORD_FILE" \
+            --ks-key-alias=myteacher-temporal \
+            --key-pass="file:$PASSWORD_FILE"
+          unzip -p "$RUNNER_TEMP/aplicacion.apks" universal.apk \
+            > "$RUNNER_TEMP/publicacion/My-Teacher-IA-Release-Para-Probar.apk"
+          test -s "$RUNNER_TEMP/publicacion/My-Teacher-IA-Release-Para-Probar.apk"
+          rm -f "$PASSWORD_FILE" "$RUNNER_TEMP/prueba.p12"
+      - name: Auditar firma, paquete y compatibilidad del APK real
+        run: |
+          set -euo pipefail
+          APK="$RUNNER_TEMP/publicacion/My-Teacher-IA-Release-Para-Probar.apk"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n1)"
+          test -x "$APKSIGNER"
+          BUILD_TOOLS="$(dirname "$APKSIGNER")"
+          "$APKSIGNER" verify --verbose "$APK"
+          # Android 16 y memoria 16 KB: no aceptar APK desalineado.
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" > "$RUNNER_TEMP/app-badging.txt"
+          grep -F "package: name='pe.myteacheria.alumno'" "$RUNNER_TEMP/app-badging.txt"
+          grep -E "targetSdkVersion:'(36|3[7-9]|[4-9][0-9])'" "$RUNNER_TEMP/app-badging.txt"
+          {
+            echo "MY TEACHER IA - APK RELEASE DE PRUEBA"
+            echo "Compilación original 43359170921 - completada con éxito"
+            echo "Paquete pe.myteacheria.alumno"
+            echo "Firma temporal: no usar para publicar ni para actualizaciones permanentes"
+            "$APKSIGNER" verify --print-certs "$APK" | grep -E '^Signer #1 certificate SHA-(1|256) digest:'
+          } > "$RUNNER_TEMP/publicacion/INFORMACION-FIRMA.txt"
+          (cd "$RUNNER_TEMP/publicacion" && sha256sum My-Teacher-IA-Release-Para-Probar.apk > SHA256SUMS.txt)
+      - name: Guardar APK validado como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-teacher-ia-release-prueba-verificada
+          path: |
+            ${{ runner.temp }}/publicacion/My-Teacher-IA-Release-Para-Probar.apk
+            ${{ runner.temp }}/publicacion/SHA256SUMS.txt
+            ${{ runner.temp }}/publicacion/INFORMACION-FIRMA.txt
+          retention-days: 7
+          if-no-files-found: error
+      - name: Publicar APK de prueba directamente para descarga móvil
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=android-release-para-probar-20261113
+          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Esta versión de prueba ya existe; no sobrescribir."
+            exit 0
+          fi
+          gh release create "$TAG" \
+            "$RUNNER_TEMP/publicacion/My-Teacher-IA-Release-Para-Probar.apk" \
+            "$RUNNER_TEMP/publicacion/SHA256SUMS.txt" \
+            "$RUNNER_TEMP/publicacion/INFORMACION-FIRMA.txt" \
+            --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" \
+            --title "My Teacher IA - Android release de prueba sin depuración" \
+            --notes "Compilación release para pruebas en teléfonos Android, derivada de AAB auditado y prueba completa de emulador exitosa (GitHub Actions 43359170921). Firma temporal de pruebas, no autorizada aún en Google Cloud ni verificada por Play Protect. La app conserva Google Credential Manager, pero iniciar sesión requiere registrar el SHA-1 de esta firma para pe.myteacheria.alumno en el proyecto OAuth correspondiente. Si Play Protect bloquea la app, no desactivar su protección; usar registro del desarrollador o pruebas mediante ADB en un equipo autorizado. Desinstalar un APK anterior puede borrar chats locales. El tutor offline requiere descargar el modelo una vez." \
+            --prerelease
