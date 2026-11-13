@@ -24,7 +24,7 @@ def conectar_webview_android():
     for attempt in range(45):
         pids = adb("shell", "pidof", PKG, check=False).split()
         sockets = adb("shell", "cat", "/proc/net/unix", check=False)
-        candidates = re.findall(r"webview_devtools_remote_\\d+", sockets)
+        candidates = re.findall(r"webview_devtools_remote_\d+", sockets)
         preferred = ["webview_devtools_remote_" + pid for pid in pids
                      if "webview_devtools_remote_" + pid in candidates]
         candidates = preferred + [v for v in reversed(candidates)
