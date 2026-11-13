@@ -45,7 +45,7 @@ static std::string infer(const std::string & path, const std::string & question,
         "Eres My Teacher IA, un tutor de secundaria. Responde en español. "
         "Guía mediante preguntas y pistas progresivas; no reveles directamente "
         "la solución completa de una tarea. Sé respetuoso y conciso.";
-    const std::string user = question + " /no_think";
+    const std::string user = question + "\n/no_think";
     const llama_chat_message messages[] = {
         { "system", system.c_str() }, { "user", user.c_str() }
     };
@@ -65,7 +65,14 @@ static std::string infer(const std::string & path, const std::string & question,
             return "ERROR: No se pudo preparar la conversación.";
         }
     }
-    const std::string prompt(prompt_buffer.data(), static_cast<size_t>(needed));
+    // Qwen3 tiene modo de razonamiento interno. Con pocas fichas de
+    // salida, puede gastar TODO el presupuesto en <think> y mostrar vacío.
+    // El prefill de cierre para Qwen3 desactiva el razonamiento visible y
+    // empieza directamente la respuesta educativa, sin cambiar de modelo.
+    // Solo se utiliza con el GGUF Qwen3 controlado por esta aplicación.
+    std::string prompt(prompt_buffer.data(), static_cast<size_t>(needed));
+    const std::string no_think_prefill = "<think>\\n\\n</think>\\n";
+    prompt += no_think_prefill;
     int token_count = llama_tokenize(vocab, prompt.c_str(),
         static_cast<int>(prompt.size()), nullptr, 0, true, true);
     if (token_count >= 0) return "ERROR: No se pudo medir la entrada.";
