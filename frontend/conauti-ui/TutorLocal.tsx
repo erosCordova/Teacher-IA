@@ -9,6 +9,7 @@ type MotorEstado = { engineAvailable: boolean; modelInstalled: boolean; busy: bo
 type MotorLocal = {
   estado(): Promise<MotorEstado>
   responder(args: { texto: string; maxTokens: number; contexto?: string }): Promise<{ texto: string; origen: string }>
+  cancelar(): Promise<{ cancelacionSolicitada: boolean }>
 }
 type EstadoIdioma = {
   comprobacionSoportada: boolean
@@ -76,6 +77,7 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
   const [historialListo, setHistorialListo] = useState(false)
   const [pregunta, setPregunta] = useState('')
   const [ocupado, setOcupado] = useState(false)
+  const [cancelando, setCancelando] = useState(false)
   const [limiteTokens, setLimiteTokens] = useState<48 | 96 | 180>(96)
   const [segundosGenerando, setSegundosGenerando] = useState(0)
   const [errorConsulta, setErrorConsulta] = useState('')
@@ -210,7 +212,7 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
     }
   }
 
-  async function escucharPregunta() {
+  async function escucharPregunta(enviarAutomatico = false) {
     const voz = puente<VozLocal>('VozLocal')
     if (!voz || escuchando || ocupado) return
     setEscuchando(true)
@@ -218,15 +220,26 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
     try {
       const resultado = await voz.escuchar()
       if (resultado.origen !== 'dispositivo') throw new Error('El reconocimiento no se hizo localmente.')
-      setPregunta(p => [p, resultado.texto].filter(Boolean).join(' ').slice(0, 800))
+      const frase = resultado.texto.trim()
+      if (!frase) throw new Error('No se reconoció una pregunta. Inténtalo nuevamente.')
+      if (enviarAutomatico) {
+        // El botón de voz es una acción deliberada del estudiante:
+        // preguntar sin pulsar un segundo botón y escuchar si hay TTS local.
+        await enviarTexto(frase, true)
+      } else {
+        setPregunta(p => [p, frase].filter(Boolean).join(' ').slice(0, 800))
+      }
     } catch (e) {
-      setAviso(e instanceof Error ? e.message : String(e))
+      const message = e instanceof Error ? e.message : String(e)
+      if (!/cancelad[ao]/i.test(message)) setAviso(message)
     } finally { setEscuchando(false) }
   }
 
   async function cancelarEscucha() {
-    try { await puente<VozLocal>('VozLocal')?.cancelarEscucha() }
-    catch (e) { setAviso(e instanceof Error ? e.message : String(e)) }
+    try {
+      await puente<VozLocal>('VozLocal')?.cancelarEscucha()
+      setAviso('Escucha detenida.')
+    } catch (e) { setAviso(e instanceof Error ? e.message : String(e)) }
   }
 
   async function escucharRespuesta(texto: string) {
@@ -270,9 +283,27 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
 
   async function enviar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const texto = pregunta.trim()
+    await enviarTexto(pregunta.trim())
+  }
+
+  async function cancelarGeneracion() {
+    if (!ocupado || cancelando) return
+    setCancelando(true)
+    setAviso('Interrumpiendo la generación dentro del teléfono…')
+    try {
+      const motor = puente<MotorLocal>('MotorLocal')
+      if (!motor) throw new Error('No se encontró el motor local.')
+      await motor.cancelar()
+    } catch (error) {
+      setAviso(error instanceof Error ? error.message : 'No se pudo detener la generación.')
+      setCancelando(false)
+    }
+  }
+
+  async function enviarTexto(texto: string, reproducirAudio = leerRespuestas) {
     if (ocupado || !texto || !motorEstado?.modelInstalled || !motorEstado.engineAvailable) return
     setOcupado(true)
+    setCancelando(false)
     setSegundosGenerando(0)
     setErrorConsulta('')
     setAviso('')
@@ -292,16 +323,22 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
       const respuesta = resultado.texto.trim()
       setMensajes(previous => [...previous,
         { id: id + 1, rol: 'tutor' as const, texto: respuesta }].slice(-80))
-      if (leerRespuestas && vozEstado?.sintesisDisponible) {
+      if (reproducirAudio && vozEstado?.sintesisDisponible) {
         void escucharRespuesta(respuesta)
       }
     } catch (error) {
       const mensaje = error instanceof Error ? error.message : 'El motor no pudo responder.'
-      setAviso(mensaje)
-      setErrorConsulta(mensaje)
-      setPregunta(texto) // permitir reintentar sin volver a escribir
+      const esCancelacion = /cancelad[ao]/i.test(mensaje)
+      setAviso(esCancelacion
+        ? 'Generación detenida. Tu pregunta sigue disponible para enviarla otra vez.'
+        : mensaje)
+      setErrorConsulta(esCancelacion ? '' : mensaje)
+      // No conservar mensajes duplicados o incompletos en el historial cifrado.
+      setMensajes(previous => previous.filter(m => m.id !== id))
+      setPregunta(texto)
     } finally {
       setOcupado(false)
+      setCancelando(false)
     }
   }
 
@@ -399,11 +436,15 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
               {ocupado && (
                 <div className="mtc-offline-thinking" role="status" aria-live="polite">
                   <span className="mtc-offline-spinner" aria-hidden="true"/>
-                  <div><strong>La IA está preparando una pista…</strong>
+                  <div><strong>{cancelando ? 'Deteniendo la IA…' : 'La IA está preparando una pista…'}</strong>
                     <small>{segundosGenerando} s · Procesamiento privado en el teléfono</small>
-                    {segundosGenerando >= 20 && (
-                      <small>La primera respuesta puede tardar en teléfonos con poca memoria. Mantén la aplicación abierta.</small>
+                    {segundosGenerando >= 20 && !cancelando && (
+                      <small>La primera respuesta puede tardar en este teléfono. Puedes cancelar sin perder la pregunta.</small>
                     )}
+                    <button type="button" className="mtc-offline-stop"
+                      disabled={cancelando} onClick={() => void cancelarGeneracion()}>
+                      {cancelando ? 'Cancelando…' : 'Cancelar generación'}
+                    </button>
                   </div>
                 </div>
               )}
@@ -418,9 +459,13 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
                 </div>
               )}
               <div className="mtc-offline-voice-controls">
-                <button type="button" disabled={ocupado || !vozEstado?.reconocimientoDisponible}
-                  onClick={() => void (escuchando ? cancelarEscucha() : escucharPregunta())}>
-                  {escuchando ? 'Detener micrófono' : 'Dictar pregunta'}
+                <button type="button" disabled={ocupado || (!escuchando && !vozEstado?.reconocimientoDisponible)}
+                  onClick={() => void (escuchando ? cancelarEscucha() : escucharPregunta(true))}>
+                  {escuchando ? 'Detener micrófono' : 'Hablar y preguntar'}
+                </button>
+                <button type="button" disabled={ocupado || escuchando || !vozEstado?.reconocimientoDisponible}
+                  onClick={() => void escucharPregunta(false)}>
+                  Solo dictar
                 </button>
                 <button type="button" disabled={!vozEstado?.sintesisDisponible}
                   aria-pressed={leerRespuestas}
@@ -438,6 +483,12 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
                   onClick={() => void probarVoz()}>Probar audio</button>
                 <button type="button" onClick={() => void abrirAjustesVoz()}>Ajustes de voz de Android</button>
               </div>
+              {!vozEstado?.reconocimientoDisponible && (
+                <p className="mtc-offline-voice-help">
+                  Para dictar sin Internet, instala el reconocimiento en español en Android.
+                  Puedes escribir preguntas mientras lo configuras.
+                </p>
+              )}
               <div className="mtc-offline-answer-mode">
                 <label htmlFor="mtc-offline-mode">Extensión de la respuesta</label>
                 <select id="mtc-offline-mode" value={limiteTokens} disabled={ocupado}
