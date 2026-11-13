@@ -8,6 +8,8 @@ on:
       - 'mobile/scripts/probar_chat_online_ci.py'
       - '.github/workflows/android-chat-online.yml'
       - 'backend/app/conauti_auth.py'
+      - 'frontend/conauti-ui/apiFetch.ts'
+      - 'frontend/conauti-ui/SincronizarLocal.tsx'
 
 permissions:
   contents: read
@@ -49,6 +51,11 @@ jobs:
         run: npm ci
       - name: Compilar My Teacher IA web integrada
         working-directory: frontend
+        # Únicamente esta compilación desechable del CI usa FastAPI local.
+        # El APK público conserva https://my-teacher-ia-api.onrender.com.
+        env:
+          VITE_ANDROID_CI_TESTS: '1'
+          VITE_ANDROID_CI_API_ORIGIN: http://localhost:8010
         run: npm run build:conauti
       - name: Verificar versión y dependencias móviles
         working-directory: mobile
