@@ -193,6 +193,7 @@ function App() {
   const [legacyLoginOpen, setLegacyLoginOpen] = useState(false)
   const [googleConfig, setGoogleConfig] = useState<{ enabled: boolean; client_id: string | null } | null>(null)
   const [googleConfigurationError, setGoogleConfigurationError] = useState('')
+  const [reintentoGoogle, setReintentoGoogle] = useState(0)
   const [diagnosticoGoogleAndroid, setDiagnosticoGoogleAndroid] =
     useState<DiagnosticoGoogleAndroid | null>(null)
   const [emailMethodReady, setEmailMethodReady] = useState(false)
@@ -484,19 +485,51 @@ function App() {
   useEffect(() => {
     if (token) return
     let active = true
-    api<{ enabled: boolean; client_id: string | null }>('/auth/google/config')
-      .then(configuration => {
-        if (!active) return
-        setGoogleConfig(configuration)
-        setGoogleConfigurationError(
-          configuration.enabled ? '' : 'El acceso con Google necesita configuración OAuth del administrador.'
-        )
-      })
-      .catch(() => {
-        if (active) setGoogleConfigurationError('Google todavía no está disponible en este servidor.')
-      })
-    return () => { active = false }
-  }, [token])
+    let intentos = 0
+    let huboRespuesta = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const consultar = () => {
+      if (!active) return
+      void api<{ enabled: boolean; client_id: string | null }>('/auth/google/config')
+        .then(configuration => {
+          if (!active) return
+          huboRespuesta = true
+          setGoogleConfig(configuration)
+          setGoogleConfigurationError(
+            configuration.enabled ? '' : 'El acceso con Google necesita configuración OAuth del administrador.'
+          )
+        })
+        .catch(() => {
+          if (!active) return
+          // Una caída momentánea de Render no debe invalidar una configuración
+          // que se comprobó correctamente en esta sesión.
+          if (!huboRespuesta) {
+            setGoogleConfigurationError(intentos < 4
+              ? 'Comprobando la conexión con Google…'
+              : 'No se pudo comprobar Google. Pulsa Reintentar conexión.')
+          }
+          if (intentos < 4) {
+            const demora = [2000, 4000, 7000, 10000][intentos++]
+            timer = setTimeout(consultar, demora)
+          }
+        })
+    }
+    const volver = () => {
+      if (!active || document.visibilityState === 'hidden') return
+      if (timer) clearTimeout(timer)
+      intentos = 0
+      consultar()
+    }
+    consultar()
+    window.addEventListener('online', volver)
+    document.addEventListener('visibilitychange', volver)
+    return () => {
+      active = false
+      if (timer) clearTimeout(timer)
+      window.removeEventListener('online', volver)
+      document.removeEventListener('visibilitychange', volver)
+    }
+  }, [token, reintentoGoogle])
 
   useEffect(() => {
     if (token) return
@@ -1102,9 +1135,17 @@ function App() {
                   <div ref={googleButton} className="mtc-google-button" aria-label="Iniciar con Google" />
                 )
               ) : (
-                <p role="status" className="mtc-google-unavailable">
-                  {googleConfigurationError || 'Conectando con Google de forma segura...'}
-                </p>
+                <div className="mtc-google-recovery">
+                  <p role="status" className="mtc-google-unavailable">
+                    {googleConfigurationError || 'Conectando con Google de forma segura...'}
+                  </p>
+                  {googleConfigurationError && (
+                    <button type="button" className="mtc-google-retry"
+                      onClick={() => { setGoogleConfigurationError(''); setReintentoGoogle(n => n + 1) }}>
+                      Reintentar conexión con Google
+                    </button>
+                  )}
+                </div>
               )}
               <div className="mtc-auth-alternatives">
                 <div className="mtc-auth-divider"><span>O utiliza otro método</span></div>
