@@ -19,6 +19,14 @@ test -f "$CPP/llama.cpp/include/llama.h"
 # después para no versionar la plataforma Android generada.
 cat >> "$APP/build.gradle" <<'GRADLE'
 
+// Inicio de sesión nativo: no cargar cuentas Google en WebView.
+// Versiones estables fijadas para reproducibilidad en Android y CI.
+dependencies {
+    implementation 'androidx.credentials:credentials:1.6.0'
+    implementation 'androidx.credentials:credentials-play-services-auth:1.6.0'
+    implementation 'com.google.android.libraries.identity.googleid:googleid:1.2.1'
+}
+
 // Motor offline por JNI. Se incluyen ambas ABI para prueba en emulador
 // x86_64 y para teléfonos arm64-v8a.
 android {
