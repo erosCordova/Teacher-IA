@@ -227,7 +227,8 @@ def main():
           const stored=JSON.parse(data.datos);
           return {
             ready:!!document.querySelector('.mtc-offline-app') &&
-              !!document.querySelector('.mtc-offline-sync'),
+              !!document.querySelector('.mtc-offline-sync') &&
+              document.querySelector('.mtc-offline-sync button')?.disabled===false,
             privateStudent:stored.some(m=>m.rol==='estudiante' &&
               m.texto==='¿Qué significa 1/2?'),
             privateTutor:stored.some(m=>m.rol==='tutor' &&
