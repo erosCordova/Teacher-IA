@@ -159,7 +159,7 @@ def main():
         # Ir al tutor local desde la navegación REAL de la app.
         activated=run(ws, """(async () => {
           const config=[...document.querySelectorAll('button')].find(b=>
-            b.textContent?.trim()==='Configuración');
+            b.textContent?.includes('Configuración'));
           if (!config) return {error:'Falta acceso a configuración'};
           config.click();
           await new Promise(r=>setTimeout(r,280));
