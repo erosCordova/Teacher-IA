@@ -35,6 +35,21 @@ BUILD_TOOLS="$(dirname "$APKSIGNER")"
 "$APKSIGNER" verify --verbose "$TEMP/signed.apk"
 "$BUILD_TOOLS/zipalign" -c -P 16 4 "$TEMP/signed.apk"
 test -s "$TEMP/signed.apk"
+# Solo para pruebas en teléfonos: entregar una compilación RELEASE no depurable,
+# firmada con certificado temporal. No usarla como publicación definitiva.
+if [[ "${TEACHER_EXPORT_TEST_RELEASE:-0}" == "1" ]]; then
+  RELEASE_DIR="$ROOT/mobile/release"
+  mkdir -p "$RELEASE_DIR"
+  cp "$TEMP/signed.apk" "$RELEASE_DIR/My-Teacher-IA-Android-Release-Prueba.apk"
+  "$APKSIGNER" verify --verbose --print-certs \
+    "$RELEASE_DIR/My-Teacher-IA-Android-Release-Prueba.apk"
+  (cd "$RELEASE_DIR" && sha256sum My-Teacher-IA-Android-Release-Prueba.apk > SHA256SUMS-prueba.txt)
+  echo "Certificado temporal para esta única compilación:" > "$RELEASE_DIR/FIRMA_PRUEBA.txt"
+  "$APKSIGNER" verify --print-certs "$TEMP/signed.apk" \
+    | grep -E '^Signer #1 certificate SHA-(1|256) digest:' >> "$RELEASE_DIR/FIRMA_PRUEBA.txt"
+  echo 'IMPORTANTE: certificado de CI desechable; no es clave de publicación ni permite actualizaciones futuras.' >> "$RELEASE_DIR/FIRMA_PRUEBA.txt"
+  test -s "$RELEASE_DIR/FIRMA_PRUEBA.txt"
+fi
 echo 'Firma temporal APK comprobada; la clave de CI se destruye.'
 echo 'Firma temporal AAB comprobada correctamente; no se guardó la clave de CI.'
 echo 'El AAB de CI NO está firmado con clave de publicación ni listo para Google Play.'
