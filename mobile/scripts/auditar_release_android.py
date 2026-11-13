@@ -11,6 +11,7 @@ import re
 import subprocess
 import zipfile
 from pathlib import Path
+from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parents[1]
 APK = ROOT / "android/app/build/outputs/apk/release/app-release-unsigned.apk"
@@ -34,6 +35,7 @@ def main() -> None:
     application = manifest[manifest.index("E: application"):]
     flags = {
         "allowBackup": r"android:allowBackup[^\n]*",
+        "dataExtractionRules": r"android:dataExtractionRules[^\n]*",
         "fullBackupContent": r"android:fullBackupContent[^\n]*",
         "debuggable": r"android:debuggable[^\n]*",
         "usesCleartextTraffic": r"android:usesCleartextTraffic[^\n]*",
@@ -43,6 +45,7 @@ def main() -> None:
              for key, pattern in flags.items()}
     assert found["allowBackup"] and re.search(r"0x0(?:\s|$)", found["allowBackup"]), found
     assert found["fullBackupContent"] and re.search(r"0x0(?:\s|$)", found["fullBackupContent"]), found
+    assert found["dataExtractionRules"], "Faltan reglas de migración Android 12+"
     for key in ("debuggable", "usesCleartextTraffic"):
         assert not found[key] or re.search(r"0x0(?:\s|$)", found[key]), found
     assert "android.permission.INTERNET" in badging, "El chat en línea necesita Internet"
@@ -53,6 +56,21 @@ def main() -> None:
         assert "lib/x86_64/libteacher_llama.so" in names, "Falta IA nativa de pruebas"
         assert not any(x.endswith((".gguf", ".safetensors", ".onnx", ".env"))
                        for x in names), "No incluir modelos/secretos en APK"
+        assert "res/xml/data_extraction_rules.xml" in names, (
+            "Las reglas de transferencia privada no se incorporaron al APK")
+        # Evaluar el manifiesto binario y el XML declarado en el proyecto.
+        # Para Android 12+ los dos modos requieren exclusiones explícitas.
+        source_rules = (ROOT / "native/android/res/xml/data_extraction_rules.xml")
+        xml_rules = ElementTree.parse(source_rules).getroot()
+        assert xml_rules.tag == "data-extraction-rules", "XML no válido"
+        required = {"root", "file", "database", "sharedpref", "external"}
+        for mode in ("cloud-backup", "device-transfer"):
+            branch = xml_rules.find(mode)
+            assert branch is not None, "Falta protección " + mode
+            excluded = {x.attrib.get("domain") for x in branch.findall("exclude")
+                        if x.attrib.get("path") in (".", "./")}
+            assert required <= excluded, (
+                "Las reglas " + mode + " permiten transferir datos sensibles")
         asset_names = [x for x in names if x.startswith("assets/public/")]
         assert asset_names, "Falta la interfaz empaquetada"
         assets = b"\n".join(apk.read(name) for name in asset_names
@@ -74,6 +92,8 @@ def main() -> None:
         "release_cleartext_http": False,
         "android_auto_backup": False,
         "android_full_backup": False,
+        "android_12_cloud_backup_excluded": True,
+        "android_12_device_to_device_excluded": True,
         "arm64_jni_available": True,
         "downloaded_model_embedded": False,
         "apk_size_bytes": size,
