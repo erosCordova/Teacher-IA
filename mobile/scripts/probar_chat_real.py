@@ -79,6 +79,44 @@ def main():
         assert "<think>" not in result["tutor"], "Se mostró razonamiento interno"
         assert not result.get("busy"), "La app continúa bloqueada después de responder"
 
+        # El usuario puede detener una pregunta muy lenta. Verificar en
+        # Android real que JNI reciba la orden, no quede bloqueado y el chat
+        # conserve la pregunta sin almacenar respuestas parciales.
+        cancel_start = check(ws, """(async () => {
+          const textarea = document.querySelector('#mtc-offline-input');
+          const form = document.querySelector('.mtc-offline-composer');
+          if (!textarea || !form) return {error:'Falta el editor local'};
+          const setter = Object.getOwnPropertyDescriptor(
+            HTMLTextAreaElement.prototype, 'value').set;
+          setter.call(textarea, 'Prueba de cancelación local');
+          textarea.dispatchEvent(new Event('input', {bubbles:true}));
+          await new Promise(r => setTimeout(r, 350));
+          if (form.querySelector('button[type=submit]')?.disabled)
+            return {error:'Envío cancelable deshabilitado'};
+          form.requestSubmit();
+          await new Promise(r => setTimeout(r, 350));
+          const stop = document.querySelector('.mtc-offline-stop');
+          if (!stop) return {error:'Falta cancelar generación'};
+          stop.click();
+          return {started:true,requested:true};
+        })()""", 351)
+        assert cancel_start.get("requested"), "No se pudo cancelar desde React: " + str(cancel_start)
+        cancel_result = None
+        for attempt in range(35):
+            time.sleep(3)
+            cancel_result = eval_js(ws, """({
+                busy:!!document.querySelector('.mtc-offline-thinking'),
+                prompt:document.querySelector('#mtc-offline-input')?.value || '',
+                userCount:document.querySelectorAll('.mtc-offline-msg-estudiante').length,
+                tutorCount:document.querySelectorAll('.mtc-offline-msg-tutor').length
+            })""", 510 + attempt)
+            if cancel_result and not cancel_result.get("busy"):
+                break
+        print("Cancelación de inferencia real desde Android:", cancel_result, flush=True)
+        assert cancel_result and not cancel_result["busy"], "JNI no terminó al cancelar"
+        assert cancel_result["prompt"] == "Prueba de cancelación local", cancel_result
+        assert cancel_result["userCount"] == 1 and cancel_result["tutorCount"] == 1, cancel_result
+
         stored = check(ws, """(async () => {
           const c = window.Capacitor;
           const h = c?.Plugins?.HistorialLocal ?? c?.registerPlugin?.('HistorialLocal');
@@ -112,7 +150,10 @@ def main():
             "offline_chat_real": True, "input_through_react": True,
             "jni_model_used": True, "encrypted_history": True,
             "history_restored_after_reload": True, "response_hidden_think_tags": True,
-            "request": result["user"], "response_excerpt": result["tutor"][:160]
+            "request": result["user"], "response_excerpt": result["tutor"][:160],
+            "cancellation_from_ui_tested": True,
+            "cancelled_prompt_restored": True,
+            "no_duplicate_history_after_cancel": True
         }
         (OUT / "chat-real-historial.json").write_text(
             json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
