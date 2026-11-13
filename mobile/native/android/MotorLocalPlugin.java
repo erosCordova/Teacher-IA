@@ -14,8 +14,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Puente JNI de inferencia privada: ningún texto del alumno se envía a una API.
- * En esta etapa el modelo se carga para cada solicitud; optimizar la memoria,
- * conversación multi-turno y cancelación forma parte de fases posteriores.
+ * El modelo se reutiliza en JNI. La comprobación de integridad se guarda
+ * mientras no cambian el tamaño ni la fecha del archivo privado.
  */
 @CapacitorPlugin(name = "MotorLocal")
 public final class MotorLocalPlugin extends Plugin {
@@ -37,6 +37,29 @@ public final class MotorLocalPlugin extends Plugin {
 
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private static final AtomicBoolean busy = new AtomicBoolean(false);
+
+    // El GGUF mide ~484 MB: repetir SHA-256 en CADA mensaje causa una
+    // demora notable en móviles. Es un archivo privado que la app verificó
+    // al descargarlo: comprobar nuevamente solo si cambian metadatos.
+    private static String verifiedPath = "";
+    private static long verifiedSize = -1;
+    private static long verifiedModified = -1;
+
+    private static synchronized boolean modeloVerificado(File file) throws Exception {
+        String path = file.getAbsolutePath();
+        long size = file.length();
+        long modified = file.lastModified();
+        if (path.equals(verifiedPath) && size == verifiedSize
+            && modified == verifiedModified && modelPlausible(file)) {
+            return true;
+        }
+        if (!ModeloEducativoPlugin.sha256Matches(file)) {
+            verifiedPath = ""; verifiedSize = -1; verifiedModified = -1;
+            return false;
+        }
+        verifiedPath = path; verifiedSize = size; verifiedModified = modified;
+        return true;
+    }
 
     public static boolean estaOcupado() { return busy.get(); }
 
@@ -97,7 +120,7 @@ public final class MotorLocalPlugin extends Plugin {
         final int maxTokens = Math.max(32, Math.min(256, requested));
         worker.execute(() -> {
             try {
-                if (!ModeloEducativoPlugin.sha256Matches(model)) {
+                if (!modeloVerificado(model)) {
                     throw new IllegalStateException("El modelo no supera su verificación SHA-256.");
                 }
                 // El motor se ejecuta en un hilo independiente de la interfaz Android.
