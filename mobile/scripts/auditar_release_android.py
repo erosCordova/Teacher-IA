@@ -56,8 +56,8 @@ def main() -> None:
         "MANAGE_EXTERNAL_STORAGE", "QUERY_ALL_PACKAGES", "READ_PHONE_STATE",
     )
     for permission in permissions_prohibited:
-        assert not re.search(r"uses-permission: name='android\\.permission\\." +
-                             permission + "'", badging), (
+        assert ("uses-permission: name='android.permission." +
+                permission + "'") not in badging, (
             "El APK no debe solicitar el permiso " + permission)
 
 
@@ -69,7 +69,7 @@ def main() -> None:
         # con nombre de arquitectura correcto pero bytes incompatibles.
         for abi, machine in (("arm64-v8a", 183), ("x86_64", 62)):
             native = apk.read("lib/" + abi + "/libteacher_llama.so")
-            assert native[:4] == b"\\x7fELF" and native[4] == 2 and native[5] == 1, (
+            assert native[:4] == b"\x7fELF" and native[4] == 2 and native[5] == 1, (
                 "La biblioteca no es ELF64 de tipo little-endian: " + abi)
             assert struct.unpack_from("<H", native, 18)[0] == machine, (
                 "Arquitectura ELF incorrecta para " + abi)
