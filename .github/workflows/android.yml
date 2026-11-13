@@ -24,7 +24,7 @@ permissions:
 
 # La app usa CI gratuita: no mantener compilaciones duplicadas por cada commit.
 concurrency:
-  group: myteacher-android-${{ github.event.pull_request.number || github.ref }}
+  group: myteacher-android-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -107,6 +107,17 @@ jobs:
           path: mobile/android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 7
+      # Publicar el APK compilado ANTES de usar el emulador.
+      # Una prueba de interfaz fallida no debe ocultar el APK ni la auditoría.
+      - name: Guardar APK de prueba y auditoría verificable
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-teacher-ia-android-debug
+          path: |
+            mobile/android/app/build/outputs/apk/debug/app-debug.apk
+            mobile/evidencias/seguridad-release.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Habilitar emulador Android en GitHub Actions
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -130,11 +141,4 @@ jobs:
           name: my-teacher-ia-android-evidencia
           path: mobile/evidencias/
           if-no-files-found: ignore
-          retention-days: 7
-      - name: Guardar APK de prueba
-        uses: actions/upload-artifact@v4
-        with:
-          name: my-teacher-ia-android-debug
-          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
           retention-days: 7
