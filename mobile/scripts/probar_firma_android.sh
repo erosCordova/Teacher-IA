@@ -46,7 +46,7 @@ if [[ "${TEACHER_EXPORT_TEST_RELEASE:-0}" == "1" ]]; then
   (cd "$RELEASE_DIR" && sha256sum My-Teacher-IA-Android-Release-Prueba.apk > SHA256SUMS-prueba.txt)
   echo "Certificado temporal para esta única compilación:" > "$RELEASE_DIR/FIRMA_PRUEBA.txt"
   "$APKSIGNER" verify --print-certs "$TEMP/signed.apk" \
-    | grep -E '^Signer #1 certificate SHA-(1|256) digest:' >> "$RELEASE_DIR/FIRMA_PRUEBA.txt"
+    | grep -E 'certificate SHA-(1|256) digest:' >> "$RELEASE_DIR/FIRMA_PRUEBA.txt"
   echo 'IMPORTANTE: certificado de CI desechable; no es clave de publicación ni permite actualizaciones futuras.' >> "$RELEASE_DIR/FIRMA_PRUEBA.txt"
   test -s "$RELEASE_DIR/FIRMA_PRUEBA.txt"
 fi
