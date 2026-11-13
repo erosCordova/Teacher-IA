@@ -33,7 +33,7 @@ jobs:
           src="$RUNNER_TEMP/teacher-apk/android/app/build/outputs/apk/debug/app-debug.apk"
           test -s "$src"
           cp "$src" "$RUNNER_TEMP/teacher-release/My-Teacher-IA-Android-Prueba.apk"
-          echo '002d1117eee4234a0f69a52abbc8a9b0e11c2d00b98649eef31f788e492c4bc1  ' "${RUNNER_TEMP}/teacher-release/My-Teacher-IA-Android-Prueba.apk" \
+          printf '%s  %s\n' '002d1117eee4234a0f69a52abbc8a9b0e11c2d00b98649eef31f788e492c4bc1' "${RUNNER_TEMP}/teacher-release/My-Teacher-IA-Android-Prueba.apk" \
             | sha256sum -c -
           echo "Huella SHA-256 de Android verificada."
       - name: Publicar prerrelease con acceso directo (no es producción)
