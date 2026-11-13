@@ -48,6 +48,34 @@ public final class VozLocalPlugin extends Plugin {
     private boolean ttsReady = false;
     private SpeechRecognizer recognizer;
     private PluginCall pendingListen;
+    private final Handler listenHandler = new Handler(Looper.getMainLooper());
+    private Runnable listenTimeout;
+
+    private void limpiarTimeoutEscucha() {
+        if (listenTimeout != null) {
+            listenHandler.removeCallbacks(listenTimeout);
+            listenTimeout = null;
+        }
+    }
+
+    private static String describirErrorVoz(int error) {
+        if (error == SpeechRecognizer.ERROR_NO_MATCH
+            || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
+            return "No se entendió ninguna frase. Intenta hablar más cerca del micrófono.";
+        }
+        if (error == SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS) {
+            return "Concede permiso de micrófono a My Teacher IA en Ajustes.";
+        }
+        if (error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY) {
+            return "Otro servicio está utilizando el reconocimiento de voz. Inténtalo nuevamente.";
+        }
+        if (error == SpeechRecognizer.ERROR_NETWORK
+            || error == SpeechRecognizer.ERROR_NETWORK_TIMEOUT) {
+            return "El reconocimiento español sin conexión no está disponible. Instala el idioma local desde los ajustes.";
+        }
+        return "El reconocimiento local falló (" + error
+            + "). Comprueba el idioma español en los ajustes de Android.";
+    }
 
     // Tras instalar una voz desde ajustes, el mismo proceso puede seguir
     // abierto. Volver a comprobar evita exigir reinstalar la aplicación.
@@ -397,8 +425,7 @@ public final class VozLocalPlugin extends Plugin {
                     @Override public void onPartialResults(Bundle partialResults) { }
                     @Override public void onEvent(int eventType, Bundle params) { }
                     @Override public void onError(int error) {
-                        terminarEscucha(null, "El reconocimiento local falló (" + error
-                            + "). Comprueba que descargaste el idioma español en Android.");
+                        terminarEscucha(null, describirErrorVoz(error));
                     }
                     @Override public void onResults(Bundle results) {
                         ArrayList<String> matches = results.getStringArrayList(
@@ -416,6 +443,13 @@ public final class VozLocalPlugin extends Plugin {
                 intent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
                 intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
                 recognizer.startListening(intent);
+                // Algunos proveedores Android no llaman onResults ni onError:
+                // liberar el micrófono, sin bloquear indefinidamente la UI.
+                listenTimeout = () -> terminarEscucha(null,
+                    "No llegó una transcripción en 25 segundos. Prueba el micrófono y el idioma español de Android.");
+                if (pendingListen == call) {
+                    listenHandler.postDelayed(listenTimeout, 25_000L);
+                }
             } catch (Exception error) {
                 terminarEscucha(null, "No se pudo activar el reconocimiento local.");
             }
@@ -423,6 +457,7 @@ public final class VozLocalPlugin extends Plugin {
     }
 
     private void terminarEscucha(String phrase, String error) {
+        limpiarTimeoutEscucha();
         PluginCall call = pendingListen;
         pendingListen = null;
         if (recognizer != null) {
@@ -450,6 +485,7 @@ public final class VozLocalPlugin extends Plugin {
 
     @Override
     protected void handleOnDestroy() {
+        limpiarTimeoutEscucha();
         if (recognizer != null) {
             recognizer.destroy();
             recognizer = null;
