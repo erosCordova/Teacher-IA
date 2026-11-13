@@ -148,10 +148,15 @@ def main():
           return v.estado();
         })().catch(e => ({error:String(e)}))""", 91)
         print("Acceso Google en Android:", native_google)
-        assert native_google == {
-            "native": True, "embeddedWebView": False,
-            "provider": "android-credential-manager"
-        }, native_google
+        assert native_google.get("native") is True, native_google
+        assert native_google.get("embeddedWebView") is False, native_google
+        assert native_google.get("provider") == "android-credential-manager", native_google
+        assert native_google.get("paqueteAndroid") == "pe.myteacheria.alumno", native_google
+        assert native_google.get("firmaConsultada") is True, native_google
+        assert isinstance(native_google.get("firmaSha1"), str), native_google
+        assert re.fullmatch(
+            r"(?:[0-9A-F]{2}:){19}[0-9A-F]{2}", native_google["firmaSha1"]
+        ), native_google
 
         # El instalador se consulta sin descargar 484 MB en cada ejecución CI.
         model = eval_js(ws, """(async () => {
