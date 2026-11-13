@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.speech.ModelDownloadListener;
 import android.speech.RecognitionSupport;
 import android.speech.RecognitionSupportCallback;
@@ -47,25 +48,33 @@ public final class VozLocalPlugin extends Plugin {
     private SpeechRecognizer recognizer;
     private PluginCall pendingListen;
 
+    // Tras instalar una voz desde ajustes, el mismo proceso puede seguir
+    // abierto. Volver a comprobar evita exigir reinstalar la aplicación.
+    private void refrescarVozLocal() {
+        if (tts == null) return;
+        if (ttsReady && vozEsp != null) return;
+        try {
+            if (tts.getVoices() == null) return;
+            for (Voice voice : tts.getVoices()) {
+                if (voice == null || voice.isNetworkConnectionRequired()) continue;
+                if (!"es".equals(voice.getLocale().getLanguage())) continue;
+                if (tts.setVoice(voice) == TextToSpeech.SUCCESS) {
+                    vozEsp = voice;
+                    ttsReady = true;
+                    tts.setSpeechRate(0.96f);
+                    break;
+                }
+            }
+        } catch (Exception ignored) { ttsReady = false; }
+    }
+
     @Override
     public void load() {
         super.load();
         getActivity().runOnUiThread(() ->
             tts = new TextToSpeech(getContext(), status -> {
-                if (status != TextToSpeech.SUCCESS || tts == null) return;
-                try {
-                    for (Voice voice : tts.getVoices()) {
-                        if (voice == null || voice.isNetworkConnectionRequired()) continue;
-                        if (!"es".equals(voice.getLocale().getLanguage())) continue;
-                        vozEsp = voice;
-                        break;
-                    }
-                    if (vozEsp != null && tts.setVoice(vozEsp) == TextToSpeech.SUCCESS) {
-                        ttsReady = true;
-                        tts.setSpeechRate(0.96f);
-                    }
-                } catch (Exception ignored) {
-                    ttsReady = false;
+                if (status == TextToSpeech.SUCCESS) {
+                    getActivity().runOnUiThread(this::refrescarVozLocal);
                 }
             })
         );
@@ -78,13 +87,34 @@ public final class VozLocalPlugin extends Plugin {
 
     @PluginMethod
     public void estado(PluginCall call) {
-        JSObject data = new JSObject();
-        data.put("sintesisDisponible", ttsReady);
-        data.put("reconocimientoDisponible", onDeviceRecognitionAvailable());
-        data.put("reconociendo", pendingListen != null);
-        data.put("idioma", "es");
-        data.put("soloDispositivo", true);
-        call.resolve(data);
+        getActivity().runOnUiThread(() -> {
+            refrescarVozLocal();
+            JSObject data = new JSObject();
+            data.put("sintesisDisponible", ttsReady);
+            data.put("reconocimientoDisponible", onDeviceRecognitionAvailable());
+            data.put("reconociendo", pendingListen != null);
+            data.put("idioma", "es");
+            data.put("soloDispositivo", true);
+            call.resolve(data);
+        });
+    }
+
+    @PluginMethod
+    public void abrirAjustesVoz(PluginCall call) {
+        getActivity().runOnUiThread(() -> {
+            try {
+                // Pantalla de datos de síntesis de voz; el fabricante puede
+                // proporcionar su propia actividad para descargar español.
+                Intent ajustes = new Intent("com.android.settings.TTS_SETTINGS");
+                if (ajustes.resolveActivity(getContext().getPackageManager()) == null) {
+                    ajustes = new Intent(Settings.ACTION_SETTINGS);
+                }
+                getActivity().startActivity(ajustes);
+                call.resolve();
+            } catch (Exception error) {
+                call.reject("No se pudieron abrir los ajustes de voz de Android.");
+            }
+        });
     }
 
     /**
@@ -278,6 +308,7 @@ public final class VozLocalPlugin extends Plugin {
             return;
         }
         getActivity().runOnUiThread(() -> {
+            refrescarVozLocal();
             if (!ttsReady || tts == null || vozEsp == null) {
                 call.reject("Instala una voz española sin conexión en los ajustes de Android.");
                 return;
