@@ -266,7 +266,9 @@ def main():
             headers:{Authorization:'Bearer '+token}});
           const items=await r.json();
           const imported=items.find(c=>c.title?.startsWith('Estudio sin conexión'));
-          return {ready:!!imported, id:imported?.id||null,
+          return {ready:!!imported &&
+              (document.querySelector('.mtc-offline-sync [role=status]')?.textContent||'')
+                 .includes('Se guardaron'), id:imported?.id||null,
              count:items.length, confirmations:window.__teacherConfirmCount||0,
              message:document.querySelector('.mtc-offline-sync [role=status]')?.textContent||null};
         })()""", 660, attempts=30)
@@ -304,7 +306,9 @@ def main():
           const r=await fetch('http://localhost:8010/api/conauti/conversations/'+%s+
                 '/messages',{headers:{Authorization:'Bearer '+token}});
           const rows=await r.json();
-          return {ready:window.__teacherConfirmCount===2,
+          return {ready:window.__teacherConfirmCount===2 &&
+                 (document.querySelector('.mtc-offline-sync [role=status]')?.textContent||'')
+                   .includes('ya está guardada'),
              count:rows.length,confirmations:window.__teacherConfirmCount,
              response:document.querySelector('.mtc-offline-sync [role=status]')?.textContent||null};
         })()""".replace("%s",json.dumps(imported["id"])), 760)
