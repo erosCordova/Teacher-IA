@@ -8,6 +8,7 @@ No firma APK/AAB ni publica aplicaciones en Google Play.
 import json
 import os
 import re
+import struct
 import subprocess
 import zipfile
 from pathlib import Path
@@ -49,11 +50,30 @@ def main() -> None:
     for key in ("debuggable", "usesCleartextTraffic"):
         assert not found[key] or re.search(r"0x0(?:\s|$)", found[key]), found
     assert "android.permission.INTERNET" in badging, "El chat en línea necesita Internet"
+    permissions_prohibited = (
+        "READ_CONTACTS", "WRITE_CONTACTS", "READ_SMS", "SEND_SMS",
+        "READ_CALL_LOG", "ACCESS_FINE_LOCATION", "ACCESS_BACKGROUND_LOCATION",
+        "MANAGE_EXTERNAL_STORAGE", "QUERY_ALL_PACKAGES", "READ_PHONE_STATE",
+    )
+    for permission in permissions_prohibited:
+        assert not re.search(r"uses-permission: name='android\\.permission\\." +
+                             permission + "'", badging), (
+            "El APK no debe solicitar el permiso " + permission)
+
 
     with zipfile.ZipFile(APK) as apk:
         names = apk.namelist()
         assert "lib/arm64-v8a/libteacher_llama.so" in names, "Falta IA nativa ARM64"
         assert "lib/x86_64/libteacher_llama.so" in names, "Falta IA nativa de pruebas"
+        # Máquina ELF: ARM64=183, x86_64=62; evitar una biblioteca
+        # con nombre de arquitectura correcto pero bytes incompatibles.
+        for abi, machine in (("arm64-v8a", 183), ("x86_64", 62)):
+            native = apk.read("lib/" + abi + "/libteacher_llama.so")
+            assert native[:4] == b"\\x7fELF" and native[4] == 2 and native[5] == 1, (
+                "La biblioteca no es ELF64 de tipo little-endian: " + abi)
+            assert struct.unpack_from("<H", native, 18)[0] == machine, (
+                "Arquitectura ELF incorrecta para " + abi)
+
         assert not any(x.endswith((".gguf", ".safetensors", ".onnx", ".env"))
                        for x in names), "No incluir modelos/secretos en APK"
         assert "res/xml/data_extraction_rules.xml" in names, (
@@ -95,6 +115,9 @@ def main() -> None:
         "android_12_cloud_backup_excluded": True,
         "android_12_device_to_device_excluded": True,
         "arm64_jni_available": True,
+        "arm64_elf_verified": True,
+        "emulator_x86_64_elf_verified": True,
+        "unnecessary_sensitive_permissions_absent": True,
         "downloaded_model_embedded": False,
         "apk_size_bytes": size,
         "aab_size_bytes": AAB.stat().st_size,
