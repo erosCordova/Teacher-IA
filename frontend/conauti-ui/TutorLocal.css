@@ -309,3 +309,30 @@ html[data-myteacher-theme="light"] .mtc-offline-msg-estudiante {
   .mtc-offline-spinner {animation:none;}
   .mtc-offline-app button {transition:none;}
 }
+
+/* Accesibilidad del nuevo flujo de voz y cancelación de inferencia. */
+.mtc-offline-voice-help {
+  grid-column:1 / -1;
+  margin:0;
+  padding:10px 12px;
+  border:1px solid var(--mtc-local-border);
+  border-radius:11px;
+  background:var(--mtc-local-card-raised);
+  color:var(--mtc-local-muted);
+  font-size:12px;
+  line-height:1.6;
+}
+.mtc-offline-thinking .mtc-offline-stop {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-top:12px;
+  min-height:44px;
+  padding:9px 13px;
+  border:1px solid var(--mtc-local-border);
+  background:var(--mtc-local-card);
+  color:var(--mtc-local-text);
+  font-size:13px;
+  font-weight:680;
+}
+.mtc-offline-thinking .mtc-offline-stop:disabled {opacity:.65}
