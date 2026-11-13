@@ -16,7 +16,6 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
-import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -85,7 +84,7 @@ public final class AccesoGoogleNativoPlugin extends Plugin {
                                 JSObject result = new JSObject();
                                 result.put("credential", idToken);
                                 call.resolve(result);
-                            } catch (GoogleIdTokenParsingException ex) {
+                            } catch (RuntimeException ex) {
                                 call.reject("No fue posible interpretar la identidad de Google.");
                             }
                         }
