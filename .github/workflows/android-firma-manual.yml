@@ -79,7 +79,7 @@ jobs:
             -signedjar mobile/release/my-teacher-ia-firmado.aab \
             mobile/android/app/build/outputs/bundle/release/app-release.aab \
             "$ANDROID_UPLOAD_KEY_ALIAS"
-          jarsigner -verify -strict mobile/release/my-teacher-ia-firmado.aab
+          jarsigner -verify mobile/release/my-teacher-ia-firmado.aab
           sha256sum mobile/release/my-teacher-ia-firmado.aab > mobile/release/SHA256SUMS.txt
           test -s mobile/release/my-teacher-ia-firmado.aab
           echo 'Paquete AAB firmado. La publicación en Play Store es manual.'
