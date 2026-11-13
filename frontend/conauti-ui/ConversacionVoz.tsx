@@ -4,10 +4,18 @@ import { hablarConKokoro, cancelarVozKokoro, prepararVozKokoroRapida } from './K
 import { habilitarAudioKokoro } from './KokoroAudio'
 import { useEffect, useRef, useState } from 'react'
 
+type VozTerminada = { id: string; error: boolean }
+type SuscripcionVoz = { remove(): Promise<void> }
 type ReconocimientoVozAndroid = {
   estado(): Promise<{ reconocimientoDisponible: boolean; sintesisDisponible: boolean }>
   escuchar(): Promise<{ texto: string; origen: string }>
   cancelarEscucha(): Promise<void>
+  hablar(options: { texto: string; id: string }): Promise<void>
+  detener(): Promise<void>
+  addListener(
+    name: 'vozTerminada',
+    listener: (event: VozTerminada) => void
+  ): Promise<SuscripcionVoz> | SuscripcionVoz
 }
 function vozAndroid(): ReconocimientoVozAndroid | undefined {
   if (!sesionNativaDisponible()) return undefined
@@ -102,6 +110,7 @@ export default function ConversacionVoz({
     controller.current?.abort()
     controller.current = null
     void vozAndroid()?.cancelarEscucha().catch(() => {})
+    void vozAndroid()?.detener().catch(() => {})
 
     if ('speechSynthesis' in window) {
       cancelarVozKokoro(window.speechSynthesis)
@@ -169,6 +178,7 @@ export default function ConversacionVoz({
 
     controller.current?.abort()
     void vozAndroid()?.cancelarEscucha().catch(() => {})
+    void vozAndroid()?.detener().catch(() => {})
 
     if ('speechSynthesis' in window) {
       cancelarVozKokoro(window.speechSynthesis)
@@ -543,7 +553,63 @@ export default function ConversacionVoz({
 
   }
 
+  async function hablarConAndroid(text: string, id: number, seq: number): Promise<boolean> {
+    const native = vozAndroid()
+    if (!native || !running.current || id !== session.current) return false
+    try {
+      const status = await native.estado()
+      if (!status.sintesisDisponible) return false
+      const frase = text.replace(/[`*_#]/g, ' ').replace(/https?:\\/\\/\\S+/g, 'un enlace')
+        .replace(/\\s+/g, ' ').trim().slice(0, 1000)
+      if (!frase) return false
+      const audioId = `teacher-${Date.now()}-${seq}`
+      setPhase('hablando')
+      setNotice('Reproduciendo respuesta con voz española del teléfono…')
+      const correcto = await new Promise<boolean>(resolve => {
+        let terminado = false
+        let sub: SuscripcionVoz | undefined
+        const terminar = (exito: boolean) => {
+          if (terminado) return
+          terminado = true
+          window.clearTimeout(timer)
+          if (sub) void sub.remove().catch(() => {})
+          resolve(exito)
+        }
+        const timer = window.setTimeout(() => terminar(false), 120000)
+        void Promise.resolve(native.addListener('vozTerminada', evento => {
+          if (evento.id === audioId) terminar(!evento.error)
+        })).then(async listener => {
+          sub = listener
+          await native.hablar({ texto: frase, id: audioId })
+        }).catch(() => terminar(false))
+      })
+      if (correcto && running.current && id === session.current && seq === speechTurn.current) {
+        void listen(id)
+      }
+      return correcto
+    } catch {
+      return false
+    }
+  }
+
   function say(text: string, id: number) {
+    const native = vozAndroid()
+    if (native) {
+      const seq = ++speechTurn.current
+      void hablarConAndroid(text, id, seq).then(reproducido => {
+        if (!reproducido && running.current && id === session.current
+            && seq === speechTurn.current) sayBrowser(text, id)
+      })
+      return
+    }
+    sayBrowser(text, id)
+  }
+
+  function sayBrowser(text: string, id: number) {
+    if (!('speechSynthesis' in window) && !vozAndroid()) {
+      halt('El teléfono no dispone de una voz española activa. Configura la síntesis de voz de Android.')
+      return
+    }
     const synth = window.speechSynthesis
     cancelarVozKokoro(synth)
 
@@ -698,8 +764,9 @@ export default function ConversacionVoz({
 
     speechTurn.current += 1
 
-    cancelarVozKokoro(window.speechSynthesis)
+    if ('speechSynthesis' in window) cancelarVozKokoro(window.speechSynthesis)
     void vozAndroid()?.cancelarEscucha().catch(() => {})
+    void vozAndroid()?.detener().catch(() => {})
 
     void listen(session.current)
   }
