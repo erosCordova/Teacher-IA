@@ -179,6 +179,17 @@ def main():
         assert engine and engine.get("engineAvailable") is True, engine
         assert engine.get("modelInstalled") is False, engine
 
+        # Cancelar sin una generación activa nunca debe dejar el motor ocupado.
+        idle_cancel = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const v = c?.Plugins?.MotorLocal ?? c?.registerPlugin?.('MotorLocal');
+          const answer = await v.cancelar();
+          const status = await v.estado();
+          return {cancelacionSolicitada:answer.cancelacionSolicitada,busy:status.busy};
+        })().catch(e => ({error:String(e)}))""", 171)
+        print("Cancelación inactiva del motor:", idle_cancel)
+        assert idle_cancel == {"cancelacionSolicitada": False, "busy": False}, idle_cancel
+
         # El historial no se guarda en localStorage: Android Keystore lo cifra.
         history = eval_js(ws, """(async () => {
           const c = window.Capacitor;
@@ -273,11 +284,11 @@ def main():
             for attempt in range(12):
                 voice_ui = eval_js(ws, """({
                   button: Array.from(document.querySelectorAll('.mtc-offline-voice-controls button'))
-                    .find(b => (b.textContent || '').includes('Dictar pregunta')),
+                    .find(b => (b.textContent || '').includes('Hablar y preguntar')),
                   visible: !!document.querySelector('.mtc-offline-app')
                 }) && (() => {
                   const b = Array.from(document.querySelectorAll('.mtc-offline-voice-controls button'))
-                    .find(b => (b.textContent || '').includes('Dictar pregunta'));
+                    .find(b => (b.textContent || '').includes('Hablar y preguntar'));
                   return {present:!!b,disabled:b?.disabled ?? null};
                 })()""", 90 + attempt)
                 if voice_ui and voice_ui.get("present"): break
