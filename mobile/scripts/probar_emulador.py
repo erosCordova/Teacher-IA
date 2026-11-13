@@ -138,6 +138,21 @@ def main():
         print("Android Keystore puente nativo:", native)
         assert native == {"stored": "token_dummy_no_real_2026", "removed": None}, native
 
+        # Google OAuth no puede abrirse dentro de una WebView Android.
+        # El APK debe incluir el puente nativo Credential Manager, sin
+        # mostrar una pantalla de cuentas real en un emulador sin perfil Google.
+        native_google = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const v = c?.Plugins?.AccesoGoogleNativo ?? c?.registerPlugin?.('AccesoGoogleNativo');
+          if (!v) return {error:'Acceso Google nativo ausente'};
+          return v.estado();
+        })().catch(e => ({error:String(e)}))""", 91)
+        print("Acceso Google en Android:", native_google)
+        assert native_google == {
+            "native": True, "embeddedWebView": False,
+            "provider": "android-credential-manager"
+        }, native_google
+
         # El instalador se consulta sin descargar 484 MB en cada ejecución CI.
         model = eval_js(ws, """(async () => {
           const c = window.Capacitor;
