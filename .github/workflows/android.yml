@@ -99,8 +99,20 @@ jobs:
           test -s app/build/outputs/apk/release/app-release-unsigned.apk
           cd ../..
           python3 mobile/scripts/auditar_release_android.py
-      - name: Validar firma AAB con clave de CI desechable
+      - name: Validar firma AAB y generar APK release de prueba no depurable
+        env:
+          TEACHER_EXPORT_TEST_RELEASE: '1'
         run: bash mobile/scripts/probar_firma_android.sh
+      - name: Guardar APK release firmado para pruebas en teléfono
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-teacher-ia-android-release-prueba
+          path: |
+            mobile/release/My-Teacher-IA-Android-Release-Prueba.apk
+            mobile/release/SHA256SUMS-prueba.txt
+            mobile/release/FIRMA_PRUEBA.txt
+          if-no-files-found: error
+          retention-days: 7
       - name: Guardar AAB de validación sin firma
         uses: actions/upload-artifact@v4
         with:
