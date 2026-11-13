@@ -54,6 +54,7 @@ jobs:
           cp mobile/native/android/MotorLocalPlugin.java "$JAVA_DIR/MotorLocalPlugin.java"
           cp mobile/native/android/HistorialLocalPlugin.java "$JAVA_DIR/HistorialLocalPlugin.java"
           cp mobile/native/android/VozLocalPlugin.java "$JAVA_DIR/VozLocalPlugin.java"
+          cp mobile/native/android/AccesoGoogleNativoPlugin.java "$JAVA_DIR/AccesoGoogleNativoPlugin.java"
       - name: Integrar llama.cpp nativo (ARM64 y emulador x86_64)
         run: bash mobile/scripts/preparar_motor_android.sh
       - uses: actions/setup-java@v4
