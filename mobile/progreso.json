@@ -1,7 +1,7 @@
 {
   "project": "My Teacher IA — Android + IA sin conexión",
   "measurement": "Suma ponderada exclusivamente de funciones verificadas en CI o emulador; los subhitos no probados no cuentan.",
-  "progress_percent": 75,
+  "progress_percent": 79,
   "updated_at": "2026-11-12",
   "milestones": [
     {
@@ -57,7 +57,9 @@
       "id": "4b2",
       "name": "Descarga desde la interfaz Android, cancelación y reanudación verificadas con el modelo real",
       "weight": 4,
-      "status": "pending"
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43332714425",
+      "note": "Prueba UI real: descarga GGUF HTTPS, cancelación tras conservar 16 336 912 bytes, reanudación, 484 220 000 bytes e integridad SHA-256 comprobada dentro de Android; chat habilitado."
     },
     {
       "id": "5a",
@@ -149,6 +151,8 @@
     "real_gguf_sha256": "28b1c721c1e476d3e41c629d5993c0aaeca0f3b747afdbab667f5a4bc8e37665",
     "real_gguf_inference_elapsed_ms_emulator": 117309,
     "offline_sync_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43304665847",
-    "offline_chat_real": "https://github.com/erosCordova/Teacher-IA/actions/runs/43303896571"
+    "offline_chat_real": "https://github.com/erosCordova/Teacher-IA/actions/runs/43303896571",
+    "gguf_download_android_ui": "https://github.com/erosCordova/Teacher-IA/actions/runs/43332714425",
+    "gguf_download_ui_evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43332714425/artifacts/13996211573"
   }
 }
