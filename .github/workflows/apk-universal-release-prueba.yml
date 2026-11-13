@@ -86,7 +86,7 @@ jobs:
             echo "Compilación original 43359170921 - completada con éxito"
             echo "Paquete pe.myteacheria.alumno"
             echo "Firma temporal: no usar para publicar ni para actualizaciones permanentes"
-            "$APKSIGNER" verify --print-certs "$APK" | grep -E '^Signer #1 certificate SHA-(1|256) digest:'
+            "$APKSIGNER" verify --verbose --print-certs "$APK"
           } > "$RUNNER_TEMP/publicacion/INFORMACION-FIRMA.txt"
           (cd "$RUNNER_TEMP/publicacion" && sha256sum My-Teacher-IA-Release-Para-Probar.apk > SHA256SUMS.txt)
       - name: Guardar APK validado como artefacto
