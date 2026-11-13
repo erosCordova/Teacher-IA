@@ -191,6 +191,20 @@ def main():
         assert isinstance(voice.get("reconocimientoDisponible"), bool), voice
         assert voice.get("rejectedEmpty") is True, voice
 
+        # El sistema puede tener servicio STT pero no tener el idioma español.
+        # La consulta API33+ NO activa el micrófono ni descarga paquetes.
+        language = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const v = c?.Plugins?.VozLocal ?? c?.registerPlugin?.('VozLocal');
+          return await v.comprobarIdioma();
+        })().catch(e => ({error:String(e)}))""", 43)
+        print("Soporte real de español sin conexión:", language)
+        assert isinstance(language.get("comprobacionSoportada"), bool), language
+        assert isinstance(language.get("espanolInstalado"), bool), language
+        assert isinstance(language.get("espanolDescargable"), bool), language
+        if language["comprobacionSoportada"] and not language["espanolInstalado"]:
+            print("El dictado español debe permanecer desactivado hasta instalar el idioma.")
+
         # Sintetizar una frase de prueba con una voz que Android declara local.
         # Esto verifica aceptación de la síntesis, no la audición humana.
         if voice.get("sintesisDisponible"):
