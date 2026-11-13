@@ -4,6 +4,12 @@ on:
   push:
   pull_request:
 
+# No repetir los tres trabajos por push y pull_request del mismo commit.
+# Reduce consumo gratuito de minutos de GitHub Actions.
+concurrency:
+  group: conauti-ci-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   backend:
     runs-on: ubuntu-latest
