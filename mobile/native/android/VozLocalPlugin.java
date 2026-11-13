@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.speech.ModelDownloadListener;
 import android.speech.RecognitionSupport;
 import android.speech.RecognitionSupportCallback;
 import android.speech.RecognitionListener;
@@ -190,6 +191,81 @@ public final class VozLocalPlugin extends Plugin {
                 info.put("espanolDescargable", false);
                 info.put("motivo", "No se pudo comprobar el paquete de voz local.");
                 call.resolve(info);
+            }
+        });
+    }
+
+    /**
+     * Android puede instalar el reconocimiento de español en el dispositivo
+     * tras la confirmación explícita del alumno en la interfaz. La descarga
+     * del paquete del sistema no envía conversaciones al backend de Teacher IA.
+     * La solicitud no significa que el idioma haya quedado instalado.
+     */
+    @PluginMethod
+    public void prepararIdioma(PluginCall call) {
+        if (Build.VERSION.SDK_INT < 33 || !onDeviceRecognitionAvailable()) {
+            call.reject("Android no permite instalar el idioma local desde esta aplicación.");
+            return;
+        }
+        getActivity().runOnUiThread(() -> {
+            final AtomicBoolean completado = new AtomicBoolean(false);
+            final SpeechRecognizer[] referencia = new SpeechRecognizer[1];
+            final Handler handler = new Handler(Looper.getMainLooper());
+            final Runnable timeout = () -> {
+                if (!completado.compareAndSet(false, true)) return;
+                if (referencia[0] != null) referencia[0].destroy();
+                JSObject estado = new JSObject();
+                estado.put("estado", "solicitado");
+                estado.put("detalle", "Android todavía no confirma la descarga. Comprueba el idioma más tarde.");
+                call.resolve(estado);
+            };
+            try {
+                final SpeechRecognizer verificador =
+                    SpeechRecognizer.createOnDeviceSpeechRecognizer(getContext());
+                referencia[0] = verificador;
+                if (Build.VERSION.SDK_INT >= 34) {
+                    handler.postDelayed(timeout, 90000);
+                    verificador.triggerModelDownload(intentEspanol(),
+                        getContext().getMainExecutor(), new ModelDownloadListener() {
+                            private void terminar(String estado, String detalle) {
+                                if (!completado.compareAndSet(false, true)) return;
+                                handler.removeCallbacks(timeout);
+                                verificador.destroy();
+                                JSObject resultado = new JSObject();
+                                resultado.put("estado", estado);
+                                resultado.put("detalle", detalle);
+                                call.resolve(resultado);
+                            }
+                            @Override public void onProgress(int completedPercent) {
+                                JSObject progress = new JSObject();
+                                progress.put("porcentaje", completedPercent);
+                                notifyListeners("progresoIdioma", progress);
+                            }
+                            @Override public void onScheduled() {
+                                terminar("programado", "Android programó la instalación del español.");
+                            }
+                            @Override public void onSuccess() {
+                                terminar("instalado", "Android confirmó la instalación del idioma.");
+                            }
+                            @Override public void onError(int error) {
+                                terminar("error", "Android no pudo preparar el idioma (" + error + ").");
+                            }
+                        });
+                } else {
+                    // API 33 permite solicitar, no informar finalización.
+                    verificador.triggerModelDownload(intentEspanol());
+                    completado.set(true);
+                    verificador.destroy();
+                    JSObject resultado = new JSObject();
+                    resultado.put("estado", "solicitado");
+                    resultado.put("detalle", "Android recibió la solicitud. Revisa la instalación del idioma.");
+                    call.resolve(resultado);
+                }
+            } catch (Exception error) {
+                if (!completado.compareAndSet(false, true)) return;
+                handler.removeCallbacks(timeout);
+                if (referencia[0] != null) referencia[0].destroy();
+                call.reject("No se pudo solicitar el paquete de español sin conexión.");
             }
         });
     }
