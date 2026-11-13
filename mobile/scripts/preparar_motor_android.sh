@@ -51,8 +51,8 @@ import sys
 path = Path(sys.argv[1])
 s = path.read_text(encoding="utf-8")
 assert "<application" in s, "Falta aplicación Android"
-s, n = re.subn(r"<application\\b([^>]*)>", lambda m: "<application" + (
-    re.sub(r'\\s+android:(allowBackup|fullBackupContent|dataExtractionRules)="[^"]*"', "", m.group(1))
+s, n = re.subn(r"<application\b([^>]*)>", lambda m: "<application" + (
+    re.sub(r'\s+android:(allowBackup|fullBackupContent|dataExtractionRules)="[^"]*"', "", m.group(1))
     ) + ' android:allowBackup="false" android:fullBackupContent="false">',
     s, count=1)
 assert n == 1, "No se pudieron deshabilitar copias de seguridad"
