@@ -76,8 +76,11 @@ def main() -> None:
 
         assert not any(x.endswith((".gguf", ".safetensors", ".onnx", ".env"))
                        for x in names), "No incluir modelos/secretos en APK"
-        assert "res/xml/data_extraction_rules.xml" in names, (
-            "Las reglas de transferencia privada no se incorporaron al APK")
+        # aapt2 puede renombrar la ruta física del XML compilado.
+        # El manifiesto referencia el identificador binario del recurso,
+        # que es la prueba estable de inclusión del XML en el APK.
+        assert re.search(r"@0x[0-9a-fA-F]+", found["dataExtractionRules"]), (
+            "El manifiesto no enlaza un recurso XML de extracción")
         # Evaluar el manifiesto binario y el XML declarado en el proyecto.
         # Para Android 12+ los dos modos requieren exclusiones explícitas.
         source_rules = (ROOT / "native/android/res/xml/data_extraction_rules.xml")
