@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <llama.h>
 #include <algorithm>
+#include <atomic>
 #include <cstring>
 #include <memory>
 #include <mutex>
@@ -9,6 +10,9 @@
 
 // Una inferencia por proceso: llama.cpp consume memoria significativa en móvil.
 static std::mutex g_inference_mutex;
+// Un toque en Cancelar desde Java interrumpe la generación de forma cooperativa.
+// No se mata el hilo JNI ni se libera memoria mientras llama.cpp la usa.
+static std::atomic_bool g_cancel_requested{false};
 // Mantener pesos del modelo en el proceso y reutilizarlos entre mensajes.
 // Cada solicitud crea un contexto KV independiente; no se comparte la sesión
 // del usuario con otros procesos ni con servidores.
@@ -27,6 +31,7 @@ static jbyteArray to_java(JNIEnv * env, const std::string & text) {
 }
 
 static std::string infer(const std::string & path, const std::string & question, int max_tokens) {
+    if (g_cancel_requested.load(std::memory_order_relaxed)) return "ERROR: Generación cancelada.";
     if (!g_backend_initialized) {
         llama_backend_init();
         g_backend_initialized = true;
@@ -37,6 +42,7 @@ static std::string infer(const std::string & path, const std::string & question,
         if (!g_model_cache) return "ERROR: No se pudo cargar el archivo GGUF.";
         g_model_path = path;
     }
+    if (g_cancel_requested.load(std::memory_order_relaxed)) return "ERROR: Generación cancelada.";
     llama_model * model = g_model_cache.get();
     const llama_vocab * vocab = llama_model_get_vocab(model);
     if (!vocab) return "ERROR: El modelo no tiene un vocabulario válido.";
@@ -97,6 +103,7 @@ static std::string infer(const std::string & path, const std::string & question,
     if (!context) return "ERROR: Memoria insuficiente para iniciar la IA.";
 
     for (size_t index = 0; index < tokens.size(); index += 256) {
+        if (g_cancel_requested.load(std::memory_order_relaxed)) return "ERROR: Generación cancelada.";
         const int amount = static_cast<int>(std::min<size_t>(256, tokens.size() - index));
         if (llama_decode(context.get(), llama_batch_get_one(tokens.data() + index, amount)) < 0) {
             return "ERROR: Falló el procesamiento de la pregunta.";
@@ -109,6 +116,7 @@ static std::string infer(const std::string & path, const std::string & question,
 
     std::string answer;
     for (int i = 0; i < max_tokens; ++i) {
+        if (g_cancel_requested.load(std::memory_order_relaxed)) return "ERROR: Generación cancelada.";
         const llama_token next = llama_sampler_sample(sampler.get(), context.get(), -1);
         if (llama_vocab_is_eog(vocab, next)) break;
         char small[512];
@@ -167,4 +175,15 @@ Java_pe_myteacheria_alumno_MotorLocalPlugin_generarNativo(
     } catch (...) {
         return to_java(env, "ERROR: Se produjo un error interno en la IA local.");
     }
+}
+
+// Métodos instantáneos: el hilo UI puede cancelar sin bloquear en el mutex de inferencia.
+extern "C" JNIEXPORT void JNICALL
+Java_pe_myteacheria_alumno_MotorLocalPlugin_prepararNativo(JNIEnv *, jclass) {
+    g_cancel_requested.store(false, std::memory_order_relaxed);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_pe_myteacheria_alumno_MotorLocalPlugin_cancelarNativo(JNIEnv *, jclass) {
+    g_cancel_requested.store(true, std::memory_order_relaxed);
 }
