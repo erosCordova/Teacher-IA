@@ -14,6 +14,7 @@ public class MainActivity extends BridgeActivity {
         if ((getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
+        registerPlugin(AccesoGoogleNativoPlugin.class);
         registerPlugin(SesionSeguraPlugin.class);
         registerPlugin(ModeloEducativoPlugin.class);
         registerPlugin(MotorLocalPlugin.class);
