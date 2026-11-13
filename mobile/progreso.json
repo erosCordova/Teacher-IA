@@ -1,7 +1,7 @@
 {
   "project": "My Teacher IA — Android + IA sin conexión",
   "measurement": "Suma ponderada exclusivamente de funciones verificadas en CI o emulador; los subhitos no probados no cuentan.",
-  "progress_percent": 79,
+  "progress_percent": 86,
   "updated_at": "2026-11-12",
   "milestones": [
     {
@@ -19,10 +19,18 @@
       "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43290997673"
     },
     {
-      "id": "2b",
-      "name": "Autenticación real y chat online verificados en Android",
-      "weight": 7,
-      "status": "in_progress"
+      "id": "2b1",
+      "name": "Login con credenciales válidas desde la interfaz Android, sesión Keystore, chat persistido y aislamiento de alumnos en PostgreSQL de pruebas",
+      "weight": 5,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43337881805",
+      "note": "Dos usuarios ficticios y backend efímero de CI. No implica haber probado Google/Microsoft ni Gemini de producción."
+    },
+    {
+      "id": "2b2",
+      "name": "Inicio de sesión con proveedor real de correo/OAuth y generación IA en línea desde Android",
+      "weight": 2,
+      "status": "pending"
     },
     {
       "id": "3a",
@@ -94,7 +102,9 @@
       "id": "5d2",
       "name": "Importar el historial desde Android con sesión real y autorización del estudiante",
       "weight": 2,
-      "status": "pending"
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43337881805",
+      "note": "En emulador Android con cuenta de CI: confirmó envío voluntario, mensaje importado a PostgreSQL, reintento sin duplicados, y 404 al consultar desde segunda cuenta."
     },
     {
       "id": "6a",
@@ -139,7 +149,7 @@
   "evidence": {
     "android_native_jni_and_encrypted_history": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078611",
     "full_frontend_backend_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078621",
-    "last_android_emulator_result": "https://github.com/erosCordova/Teacher-IA/actions/runs/43290997673",
+    "last_android_emulator_result": "https://github.com/erosCordova/Teacher-IA/actions/runs/43337881805",
     "offline_model_included": false,
     "on_device_inference_tested": true,
     "ready_for_release": false,
@@ -153,6 +163,9 @@
     "offline_sync_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43304665847",
     "offline_chat_real": "https://github.com/erosCordova/Teacher-IA/actions/runs/43303896571",
     "gguf_download_android_ui": "https://github.com/erosCordova/Teacher-IA/actions/runs/43332714425",
-    "gguf_download_ui_evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43332714425/artifacts/13996211573"
+    "gguf_download_ui_evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43332714425/artifacts/13996211573",
+    "android_auth_chat_ci": "https://github.com/erosCordova/Teacher-IA/actions/runs/43337881805",
+    "android_sync_ui_ci": "https://github.com/erosCordova/Teacher-IA/actions/runs/43337881805",
+    "android_sync_ui_artifact": "https://github.com/erosCordova/Teacher-IA/actions/runs/43337881805/artifacts/13997484109"
   }
 }
