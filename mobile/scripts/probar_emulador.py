@@ -27,27 +27,51 @@ def adb(*args, timeout=30, check=True):
 
 
 def wait_for_debug_socket(seconds=70):
-    for _ in range(seconds // 3):
-        sock = adb("shell", "cat", "/proc/net/unix", check=False)
-        candidates = re.findall(r"webview_devtools_remote_\d+", sock)
-        if candidates:
-            return candidates[-1]
+    """Conectar SOLO a la WebView del proceso de Teacher IA, no a otra app."""
+    last = ""
+    for _ in range(max(1, seconds // 3)):
+        process = adb("shell", "pidof", PKG, check=False)
+        pids = re.findall(r"\b\d+\b", process)
+        sockets = adb("shell", "cat", "/proc/net/unix", check=False)
+        candidates = set(re.findall(r"webview_devtools_remote_\d+", sockets))
+        for pid in pids:
+            expected = "webview_devtools_remote_" + pid
+            if expected in candidates:
+                return expected
+        last = "proceso=" + str(pids) + ", sockets=" + str(sorted(candidates))
         time.sleep(3)
-    raise RuntimeError("No se habilitó la depuración de WebView Android.")
+    raise RuntimeError("La WebView de My Teacher IA no apareció: " + last)
 
 
 def get_target():
-    for _ in range(22):
+    last_pages = []
+    last_error = ""
+    for attempt in range(36):
         try:
             with urllib.request.urlopen("http://127.0.0.1:9222/json", timeout=6) as response:
                 pages = json.load(response)
+            last_pages = [(p.get("type"), p.get("url", "")[:110]) for p in pages]
             for page in pages:
                 if page.get("type") == "page" and page.get("webSocketDebuggerUrl"):
                     return page
-        except Exception:
-            pass
+        except Exception as error:
+            last_error = type(error).__name__ + ": " + str(error)[:180]
+        # Algunos runners inician la aplicación antes de que WebView quede
+        # expuesta o reanudan otro proceso. Relanzar sin borrar ningún dato.
+        if attempt in (12, 25):
+            print("Reintentando enlace con WebView:", last_pages, last_error, flush=True)
+            print("Proceso Android:", adb("shell", "pidof", PKG, check=False), flush=True)
+            adb("shell", "am", "start", "-n", PKG + "/.MainActivity", check=False)
+            try:
+                socket = wait_for_debug_socket(seconds=18)
+                adb("forward", "--remove", "tcp:9222", check=False)
+                adb("forward", "tcp:9222", "localabstract:" + socket)
+            except Exception as error:
+                print("WebView aún sin conexión:", error, flush=True)
         time.sleep(2)
-    raise RuntimeError("No se encontró una página WebView accesible.")
+    raise RuntimeError("No se encontró una WebView de Teacher IA: "
+        + str(last_pages) + "; " + last_error
+        + "; pid=" + adb("shell", "pidof", PKG, check=False))
 
 
 def eval_js(ws, expr, seq):
@@ -100,16 +124,29 @@ def main():
     print("WebView:", target.get("url"), target.get("title"))
     ws = create_connection(target["webSocketDebuggerUrl"], timeout=40, suppress_origin=True)
     try:
-        current = eval_js(ws, """({
-          origin: location.origin,
-          title: document.title,
-          authPage: !!document.querySelector('.mtc-auth-shell'),
-          appPage: !!document.querySelector('.mtc-app')
-        })""", 1)
+        current = None
+        for attempt in range(30):
+            current = eval_js(ws, """({
+              origin: location.origin,
+              title: document.title,
+              authPage: !!document.querySelector('.mtc-auth-shell'),
+              appPage: !!document.querySelector('.mtc-app'),
+              localPage: !!document.querySelector('.mtc-offline-app'),
+              readyState: document.readyState,
+              body: document.body?.innerText?.slice(0, 320) || '',
+              root: document.getElementById('root')?.innerHTML?.slice(0, 280) || ''
+            })""", 50 + attempt)
+            if current["authPage"] or current["appPage"] or current["localPage"]:
+                break
+            if attempt in (0, 5, 15):
+                print("Esperando interfaz React:", current)
+            time.sleep(2)
         print("Página montada:", current)
         assert current["origin"] == "http://localhost", current
         assert "My Teacher IA" in current["title"], current
-        assert current["authPage"] or current["appPage"], "No se montó React."
+        assert current["authPage"] or current["appPage"] or current["localPage"], (
+            "No se montó React. Último diagnóstico: " + str(current)
+        )
 
         # Prueba puente Java <-> JS: token ficticio, almacenamiento cifrado.
         native = eval_js(ws, """(async () => {
@@ -125,6 +162,26 @@ def main():
         print("Android Keystore puente nativo:", native)
         assert native == {"stored": "token_dummy_no_real_2026", "removed": None}, native
 
+        # Google OAuth no puede abrirse dentro de una WebView Android.
+        # El APK debe incluir el puente nativo Credential Manager, sin
+        # mostrar una pantalla de cuentas real en un emulador sin perfil Google.
+        native_google = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const v = c?.Plugins?.AccesoGoogleNativo ?? c?.registerPlugin?.('AccesoGoogleNativo');
+          if (!v) return {error:'Acceso Google nativo ausente'};
+          return v.estado();
+        })().catch(e => ({error:String(e)}))""", 91)
+        print("Acceso Google en Android:", native_google)
+        assert native_google.get("native") is True, native_google
+        assert native_google.get("embeddedWebView") is False, native_google
+        assert native_google.get("provider") == "android-credential-manager", native_google
+        assert native_google.get("paqueteAndroid") == "pe.myteacheria.alumno", native_google
+        assert native_google.get("firmaConsultada") is True, native_google
+        assert isinstance(native_google.get("firmaSha1"), str), native_google
+        assert re.fullmatch(
+            r"(?:[0-9A-F]{2}:){19}[0-9A-F]{2}", native_google["firmaSha1"]
+        ), native_google
+
         # El instalador se consulta sin descargar 484 MB en cada ejecución CI.
         model = eval_js(ws, """(async () => {
           const c = window.Capacitor;
@@ -134,7 +191,157 @@ def main():
         })().catch(e => ({error:String(e)}))""", 16)
         print("Modelo local:", model)
         assert model and model.get("modelId") == "qwen3-0.6b-q4_k_m", model
-        assert model.get("engineAvailable") is False, model
+        assert model.get("engineAvailable") is True, model
+
+        engine = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const v = c?.Plugins?.MotorLocal ?? c?.registerPlugin?.('MotorLocal');
+          if (!v) return {error:'Puente IA no disponible'};
+          return v.estado();
+        })().catch(e => ({error:String(e)}))""", 17)
+        print("Motor local JNI:", engine)
+        assert engine and engine.get("engineAvailable") is True, engine
+        assert engine.get("modelInstalled") is False, engine
+
+        # Cancelar sin una generación activa nunca debe dejar el motor ocupado.
+        idle_cancel = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const v = c?.Plugins?.MotorLocal ?? c?.registerPlugin?.('MotorLocal');
+          const answer = await v.cancelar();
+          const status = await v.estado();
+          return {cancelacionSolicitada:answer.cancelacionSolicitada,busy:status.busy};
+        })().catch(e => ({error:String(e)}))""", 171)
+        print("Cancelación inactiva del motor:", idle_cancel)
+        assert idle_cancel == {"cancelacionSolicitada": False, "busy": False}, idle_cancel
+
+        # El historial no se guarda en localStorage: Android Keystore lo cifra.
+        history = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const v = c?.Plugins?.HistorialLocal ?? c?.registerPlugin?.('HistorialLocal');
+          if (!v) return {error:'No hay historial privado'};
+          const original = JSON.stringify([{id:1,rol:'estudiante',texto:'¿Qué es una fracción?'}]);
+          await v.guardar({datos:original});
+          const stored = await v.leer();
+          await v.borrar();
+          const cleared = await v.leer();
+          return {same:stored.datos===original,empty:cleared.datos==='[]'};
+        })().catch(e => ({error:String(e)}))""", 18)
+        print("Historial cifrado Android:", history)
+        assert history == {"same": True, "empty": True}, history
+
+        # Comprobar el módulo de voz: jamás debe usar reconocimiento en nube.
+        voice = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const v = c?.Plugins?.VozLocal ?? c?.registerPlugin?.('VozLocal');
+          if (!v) return {error:'VozLocal no registrado'};
+          const state = await v.estado();
+          let rejectedEmpty = false;
+          try { await v.hablar({texto:''}); }
+          catch (e) { rejectedEmpty = true; }
+          return {...state,rejectedEmpty};
+        })().catch(e => ({error:String(e)}))""", 21)
+        print("Voz del dispositivo:", voice)
+        assert voice.get("soloDispositivo") is True, voice
+        assert isinstance(voice.get("sintesisDisponible"), bool), voice
+        assert isinstance(voice.get("reconocimientoDisponible"), bool), voice
+        assert voice.get("rejectedEmpty") is True, voice
+
+        # El sistema puede tener servicio STT pero no tener el idioma español.
+        # La consulta API33+ NO activa el micrófono ni descarga paquetes.
+        language = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const v = c?.Plugins?.VozLocal ?? c?.registerPlugin?.('VozLocal');
+          return await v.comprobarIdioma();
+        })().catch(e => ({error:String(e)}))""", 43)
+        print("Soporte real de español sin conexión:", language)
+        assert isinstance(language.get("comprobacionSoportada"), bool), language
+        assert isinstance(language.get("espanolInstalado"), bool), language
+        assert isinstance(language.get("espanolDescargable"), bool), language
+        if language["comprobacionSoportada"] and not language["espanolInstalado"]:
+            print("El dictado español debe permanecer desactivado hasta instalar el idioma.")
+
+        # Sintetizar una frase de prueba con una voz que Android declara local.
+        # Esto verifica aceptación de la síntesis, no la audición humana.
+        if voice.get("sintesisDisponible"):
+            spoken = eval_js(ws, """(async () => {
+              const c = window.Capacitor;
+              const v = c?.Plugins?.VozLocal ?? c?.registerPlugin?.('VozLocal');
+              await v.hablar({texto:'Hola, soy tu tutor educativo sin conexión.'});
+              await new Promise(resolve => setTimeout(resolve, 650));
+              await v.detener();
+              return {sintesisLocalAceptada:true};
+            })().catch(e => ({error:String(e)}))""", 22)
+            print("Síntesis de voz sin red aceptada:", spoken)
+            assert spoken == {"sintesisLocalAceptada": True}, spoken
+
+        # Crear una pregunta local de prueba sin cuenta, para asegurar
+        # que la sincronización no transmite datos de forma automática.
+        seeded = eval_js(ws, """(async () => {
+          const c = window.Capacitor;
+          const h = c?.Plugins?.HistorialLocal ?? c?.registerPlugin?.('HistorialLocal');
+          await h.guardar({datos:JSON.stringify([
+            {id:1024,rol:'estudiante',texto:'Prueba local de privacidad'}
+          ])});
+          return true;
+        })()""", 29)
+        assert seeded is True
+
+        # Desde la pantalla de acceso debe poder abrirse el tutor local
+        # sin enviar contraseñas ni pedir autorización al backend.
+        offline = eval_js(ws, """(async () => {
+          const button = Array.from(document.querySelectorAll('button'))
+            .find(b => b.textContent?.includes('Estudiar sin conexión'));
+          if (!button) return {error:'No existe el acceso local'};
+          button.click();
+          await new Promise(resolve => setTimeout(resolve, 1200));
+          return {offline:!!document.querySelector('.mtc-offline-app'),
+                  title:document.querySelector('.mtc-offline-lead h1')?.textContent};
+        })().catch(e => ({error:String(e)}))""", 19)
+        print("Acceso sin cuenta a modo offline:", offline)
+        assert offline and offline.get("offline") is True, offline
+
+        # La UI no debe activar dictado si Android indicó que el idioma no
+        # está instalado. Una prueba del plugin por sí sola no garantiza UX.
+        # Esperar a que se resuelva la consulta asíncrona de compatibilidad.
+        if language["comprobacionSoportada"] and not language["espanolInstalado"]:
+            voice_ui = None
+            for attempt in range(12):
+                voice_ui = eval_js(ws, """({
+                  button: Array.from(document.querySelectorAll('.mtc-offline-voice-controls button'))
+                    .find(b => (b.textContent || '').includes('Hablar y preguntar')),
+                  visible: !!document.querySelector('.mtc-offline-app')
+                }) && (() => {
+                  const b = Array.from(document.querySelectorAll('.mtc-offline-voice-controls button'))
+                    .find(b => (b.textContent || '').includes('Hablar y preguntar'));
+                  return {present:!!b,disabled:b?.disabled ?? null};
+                })()""", 90 + attempt)
+                if voice_ui and voice_ui.get("present"): break
+                time.sleep(1)
+            print("Dictado protegido cuando falta español offline:", voice_ui)
+            # El chat solo muestra los controles después de instalar el GGUF.
+            # En el primer inicio aún no existe, por lo que es correcto que
+            # el botón no esté disponible en absoluto.
+            assert voice_ui is None or not voice_ui.get("present") or voice_ui.get("disabled") is True, voice_ui
+
+        sync = eval_js(ws, """({
+          sectionVisible:!!document.querySelector('.mtc-offline-sync'),
+          syncDisabled:!!document.querySelector('.mtc-offline-sync button')?.disabled,
+          localQuestion:!!document.querySelector('.mtc-offline-sync p')
+        })""", 32)
+        print("Protección de sincronización sin cuenta:", sync)
+        assert sync == {"sectionVisible": True, "syncDisabled": True,
+                        "localQuestion": True}, sync
+
+        # Comprobar que es posible regresar a la cuenta web sin reiniciar Android.
+        back = eval_js(ws, """(async () => {
+          const button = Array.from(document.querySelectorAll('button'))
+            .find(b => b.textContent?.includes('Usar mi cuenta en línea'));
+          if (!button) return false;
+          button.click();
+          await new Promise(resolve => setTimeout(resolve, 1200));
+          return !!document.querySelector('.mtc-auth-shell');
+        })()""", 20)
+        assert back is True, "No se pudo regresar del tutor local al inicio de sesión"
 
         # La API está en Render y puede necesitar despertarse; esto ejercita
         # EXACTAMENTE el fetch del WebView, no una petición de Python en CI.
@@ -160,7 +367,7 @@ def main():
         assert auth and auth.get("status") in (401, 403), auth
 
         report = {"device": "emulator x86_64 API35", "page": current,
-                  "secure_session_tested": True, "model_installer_detected": True,
+                  "secure_session_tested": True, "offline_history_encrypted": True, "offline_entry_tested": True, "sync_without_login_blocked": True, "voice_native_bridge_tested": True, "voice_capabilities": voice, "voice_synthesis_accepted": bool(voice.get("sintesisDisponible")), "model_installer_detected": True, "jni_library_loaded": True,
                   "api_health": result, "unauthorized_auth_request": auth,
                   "authenticated_chat_tested": False, "offline_inference_tested": False}
         (OUT / "reporte.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

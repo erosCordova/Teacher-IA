@@ -1,6 +1,7 @@
 import { apiFetch } from './apiFetch'
 import { sesionNativaDisponible, recuperarSesionAndroid, protegerSesionAndroid, eliminarSesionAndroid } from './SesionNativa'
 import ModeloSinConexion from './ModeloSinConexion'
+import TutorLocal from './TutorLocal'
 import PantallaCompartida from "./PantallaCompartida";
 import AventuraEducativa from "./AventuraEducativa";
 import MaterialesEstudio from "./MaterialesEstudio";
@@ -50,6 +51,24 @@ type Message = {
 }
 
 type Page = 'chat' | 'progress' | 'settings' | 'privacy' | 'games' | 'facts' | 'achievements' | 'materials' | 'study'
+
+type DiagnosticoGoogleAndroid = {
+  paqueteAndroid: string
+  firmaSha1: string
+  firmaConsultada: boolean
+  native: boolean
+  embeddedWebView: boolean
+  provider: string
+}
+type AccesoGoogleNativo = {
+  iniciar(args: { clientId: string }): Promise<{ credential: string }>
+  estado(): Promise<DiagnosticoGoogleAndroid>
+}
+function accesoGoogleNativo(): AccesoGoogleNativo | undefined {
+  const c = window.Capacitor
+  return (c?.Plugins as unknown as { AccesoGoogleNativo?: AccesoGoogleNativo } | undefined)?.AccesoGoogleNativo
+    ?? c?.registerPlugin?.('AccesoGoogleNativo') as unknown as AccesoGoogleNativo | undefined
+}
 
 type GoogleAccountAPI = {
   accounts: { id: {
@@ -174,6 +193,9 @@ function App() {
   const [legacyLoginOpen, setLegacyLoginOpen] = useState(false)
   const [googleConfig, setGoogleConfig] = useState<{ enabled: boolean; client_id: string | null } | null>(null)
   const [googleConfigurationError, setGoogleConfigurationError] = useState('')
+  const [reintentoGoogle, setReintentoGoogle] = useState(0)
+  const [diagnosticoGoogleAndroid, setDiagnosticoGoogleAndroid] =
+    useState<DiagnosticoGoogleAndroid | null>(null)
   const [emailMethodReady, setEmailMethodReady] = useState(false)
   const [microsoftReady, setMicrosoftReady] = useState(false)
   const [emailMethodOpen, setEmailMethodOpen] = useState(false)
@@ -411,6 +433,39 @@ function App() {
     setToken(tokenValue)
   }
 
+  async function iniciarGoogleEnAndroid() {
+    if (busy || !googleConfig?.enabled || !googleConfig.client_id) return
+    const auth = accesoGoogleNativo()
+    if (!auth) {
+      setNotice('Esta versión Android no incluye el acceso seguro con Google. Actualiza la aplicación.')
+      return
+    }
+    setBusy(true)
+    setNotice('')
+    setDiagnosticoGoogleAndroid(null)
+    try {
+      // Credential Manager muestra las cuentas desde Android, no en el WebView.
+      const { credential } = await auth.iniciar({ clientId: googleConfig.client_id })
+      // La firma de Google se verifica únicamente en FastAPI por HTTPS.
+      const result = await api<{ access_token: string }>(
+        '/auth/google', null, 'POST', {
+          credential,
+          mode: register ? 'register' : 'login',
+        },
+      )
+      completeSignIn(result.access_token)
+    } catch (error) {
+      setNotice(errorText(error))
+      // Mostrar solo identificador público de paquete y firma. Nunca token.
+      const code = (error as { code?: string } | null)?.code
+      if (code === 'GOOGLE_AUTORIZACION_NO_COMPLETADA' || code === 'GOOGLE_CREDENTIAL_ERROR') {
+        void auth.estado().then(setDiagnosticoGoogleAndroid).catch(() => {})
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function handleGoogleIdentity(credential: string, mode: 'login' | 'register') {
     if (busy) return
     setBusy(true)
@@ -430,19 +485,51 @@ function App() {
   useEffect(() => {
     if (token) return
     let active = true
-    api<{ enabled: boolean; client_id: string | null }>('/auth/google/config')
-      .then(configuration => {
-        if (!active) return
-        setGoogleConfig(configuration)
-        setGoogleConfigurationError(
-          configuration.enabled ? '' : 'El acceso con Google necesita configuración OAuth del administrador.'
-        )
-      })
-      .catch(() => {
-        if (active) setGoogleConfigurationError('Google todavía no está disponible en este servidor.')
-      })
-    return () => { active = false }
-  }, [token])
+    let intentos = 0
+    let huboRespuesta = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const consultar = () => {
+      if (!active) return
+      void api<{ enabled: boolean; client_id: string | null }>('/auth/google/config')
+        .then(configuration => {
+          if (!active) return
+          huboRespuesta = true
+          setGoogleConfig(configuration)
+          setGoogleConfigurationError(
+            configuration.enabled ? '' : 'El acceso con Google necesita configuración OAuth del administrador.'
+          )
+        })
+        .catch(() => {
+          if (!active) return
+          // Una caída momentánea de Render no debe invalidar una configuración
+          // que se comprobó correctamente en esta sesión.
+          if (!huboRespuesta) {
+            setGoogleConfigurationError(intentos < 4
+              ? 'Comprobando la conexión con Google…'
+              : 'No se pudo comprobar Google. Pulsa Reintentar conexión.')
+          }
+          if (intentos < 4) {
+            const demora = [2000, 4000, 7000, 10000][intentos++]
+            timer = setTimeout(consultar, demora)
+          }
+        })
+    }
+    const volver = () => {
+      if (!active || document.visibilityState === 'hidden') return
+      if (timer) clearTimeout(timer)
+      intentos = 0
+      consultar()
+    }
+    consultar()
+    window.addEventListener('online', volver)
+    document.addEventListener('visibilitychange', volver)
+    return () => {
+      active = false
+      if (timer) clearTimeout(timer)
+      window.removeEventListener('online', volver)
+      document.removeEventListener('visibilitychange', volver)
+    }
+  }, [token, reintentoGoogle])
 
   useEffect(() => {
     if (token) return
@@ -536,7 +623,7 @@ function App() {
 
   useEffect(() => {
     googleMode.current = register ? 'register' : 'login'
-    if (token || checking || !googleConfig?.enabled || !googleConfig.client_id) return
+    if (sesionNativaDisponible() || token || checking || !googleConfig?.enabled || !googleConfig.client_id) return
     let cancelled = false
     const holder = googleButton.current
     if (!holder) return
@@ -1038,11 +1125,27 @@ function App() {
                 <span><strong>Accede con tu cuenta Google</strong><small>Una forma rápida y segura de entrar</small></span>
               </div>
               {googleConfig?.enabled && !googleConfigurationError ? (
-                <div ref={googleButton} className="mtc-google-button" aria-label="Iniciar con Google" />
+                sesionNativaDisponible() ? (
+                  <button type="button" className="mtc-auth-email-choice"
+                    disabled={busy} onClick={() => void iniciarGoogleEnAndroid()}>
+                    <span aria-hidden="true">G</span>
+                    <span>{busy ? 'Abriendo acceso de Google…' : 'Continuar con Google de forma segura'}</span>
+                  </button>
+                ) : (
+                  <div ref={googleButton} className="mtc-google-button" aria-label="Iniciar con Google" />
+                )
               ) : (
-                <p role="status" className="mtc-google-unavailable">
-                  {googleConfigurationError || 'Conectando con Google de forma segura...'}
-                </p>
+                <div className="mtc-google-recovery">
+                  <p role="status" className="mtc-google-unavailable">
+                    {googleConfigurationError || 'Conectando con Google de forma segura...'}
+                  </p>
+                  {googleConfigurationError && (
+                    <button type="button" className="mtc-google-retry"
+                      onClick={() => { setGoogleConfigurationError(''); setReintentoGoogle(n => n + 1) }}>
+                      Reintentar conexión con Google
+                    </button>
+                  )}
+                </div>
               )}
               <div className="mtc-auth-alternatives">
                 <div className="mtc-auth-divider"><span>O utiliza otro método</span></div>
@@ -1146,10 +1249,34 @@ function App() {
               </div>
             )}
             {notice && <p role="status" className="mtc-auth-notice">{notice}</p>}
+            {sesionNativaDisponible() && diagnosticoGoogleAndroid && (
+              <aside className="mtc-auth-notice" aria-label="Diagnóstico seguro del inicio de sesión">
+                <strong>Datos de esta instalación para Google Cloud</strong>
+                <p>Si no cerraste el acceso, puede faltar el cliente OAuth de Android. Regístralo
+                  en el mismo proyecto de Google Cloud que utiliza My Teacher IA en la web.</p>
+                <p>Nombre del paquete: <code>{diagnosticoGoogleAndroid.paqueteAndroid}</code></p>
+                <p>Huella SHA-1: <code>{diagnosticoGoogleAndroid.firmaSha1 || 'No disponible'}</code></p>
+                <p>Esta huella pertenece al APK instalado; cambiar la firma cambia también la huella.</p>
+                {diagnosticoGoogleAndroid.firmaConsultada && (
+                  <button type="button" className="mtc-auth-legacy-toggle"
+                    onClick={() => void navigator.clipboard?.writeText(
+                      diagnosticoGoogleAndroid.firmaSha1
+                    ).then(() => setNotice('Huella SHA-1 copiada.'))}>
+                    Copiar SHA-1 para Google Cloud
+                  </button>
+                )}
+              </aside>
+            )}
             <div className="mtc-auth-encouragement"><span aria-hidden="true">✦</span>
               Una mejor forma de aprender empieza con una pregunta.
             </div>
-            <ModeloSinConexion />
+            {sesionNativaDisponible() && (
+              <button type="button" className="mtc-auth-local-choice"
+                onClick={() => window.dispatchEvent(new Event('myteacher:modo-local'))}>
+                <strong>Estudiar sin conexión</strong>
+                <small>Entra al tutor privado de tu celular, sin una cuenta en línea.</small>
+              </button>
+            )}
           </div>
           <nav className="mtc-auth-links" aria-label="Información de My Teacher IA">
             <a href="/acerca-de/">Sobre el proyecto</a>
@@ -1541,6 +1668,18 @@ function App() {
                   <a href="/terminos/">Condiciones</a>
                 </div>
               </div>
+              {sesionNativaDisponible() && (
+                <div className="mtc-settings-row">
+                  <div>
+                    <strong>Estudiar sin Internet</strong>
+                    <small>Abre el tutor privado del teléfono. Tu cuenta en línea y los datos locales permanecen separados.</small>
+                  </div>
+                  <button type="button"
+                    onClick={() => window.dispatchEvent(new Event('myteacher:modo-local'))}>
+                    Abrir tutor local
+                  </button>
+                </div>
+              )}
               <ModeloSinConexion />
             </section>
           </main>
@@ -1621,6 +1760,25 @@ function App() {
   )
 }
 
+function AndroidEntry() {
+  const [local, setLocal] = useState(() => {
+    if (!sesionNativaDisponible()) return false
+    try { return localStorage.getItem('myteacher.android.mode') === 'local' }
+    catch { return false }
+  })
+  const cambiarModo = useCallback((modoLocal: boolean) => {
+    try { localStorage.setItem('myteacher.android.mode', modoLocal ? 'local' : 'online') }
+    catch { /* modo activo mientras la app permanezca abierta */ }
+    setLocal(modoLocal)
+  }, [])
+  useEffect(() => {
+    const activar = () => cambiarModo(true)
+    window.addEventListener('myteacher:modo-local', activar)
+    return () => window.removeEventListener('myteacher:modo-local', activar)
+  }, [cambiarModo])
+  return local ? <TutorLocal onVolverOnline={() => cambiarModo(false)}/> : <App />
+}
+
 createRoot(
   document.getElementById('root')!
-).render(<App />)
+).render(<AndroidEntry />)

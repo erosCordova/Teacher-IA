@@ -16,9 +16,18 @@ const origenAPI = typeof window !== 'undefined' &&
     ? 'https://my-teacher-ia-api.onrender.com'
     : ''
 
+// Sustitución solo al compilar el APK efímero de integración Android.
+// El APK normal y la web pública conservan su origen HTTPS fijo.
+const origenCI = import.meta.env.VITE_ANDROID_CI_TESTS === '1' &&
+  import.meta.env.DEV === false &&
+  esAplicacionNativa &&
+  import.meta.env.VITE_ANDROID_CI_API_ORIGIN === 'http://localhost:8010'
+    ? 'http://localhost:8010'
+    : ''
+
 export function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   if (typeof input === 'string' && input.startsWith('/api/')) {
-    return fetch(origenAPI + input, init)
+    return fetch((origenCI || origenAPI) + input, init)
   }
   return fetch(input, init)
 }

@@ -4,6 +4,12 @@ on:
   push:
   pull_request:
 
+# No repetir los tres trabajos por push y pull_request del mismo commit.
+# Reduce consumo gratuito de minutos de GitHub Actions.
+concurrency:
+  group: conauti-ci-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   backend:
     runs-on: ubuntu-latest
@@ -12,6 +18,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - name: Validar diagnósticos ARM64 sin acceder a dispositivos privados
+        run: python mobile/scripts/auditar_telefono_arm64.py --self-test
       - run: python -m pip install -r backend/requirements.txt
       - run: python -m pytest -q tests
         working-directory: backend
@@ -61,5 +69,5 @@ jobs:
           python-version: '3.13'
       - run: python -m pip install -r backend/requirements.txt
       - name: Validar tarjetas, exámenes, RAG y aislamiento por estudiante
-        run: python -m pytest -q tests/test_conauti_study_db_integration.py
+        run: python -m pytest -q tests/test_conauti_study_db_integration.py tests/test_conauti_offline_sync.py
         working-directory: backend

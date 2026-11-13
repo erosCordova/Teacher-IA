@@ -1,0 +1,151 @@
+name: My Teacher IA - Android chat online y aislamiento entre estudiantes
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'mobile/scripts/preparar_usuarios_ci.py'
+      - 'mobile/scripts/probar_chat_online_ci.py'
+      - '.github/workflows/android-chat-online.yml'
+      - 'backend/app/conauti_auth.py'
+      - 'frontend/conauti-ui/apiFetch.ts'
+      - 'frontend/conauti-ui/SincronizarLocal.tsx'
+
+permissions:
+  contents: read
+
+jobs:
+  android-debug:
+    name: Probar login y conversaciones de dos alumnos en emulador Android
+    runs-on: ubuntu-latest
+    concurrency:
+      group: android-auth-${{ github.ref }}
+      cancel-in-progress: true
+    timeout-minutes: 75
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: teacher_ci
+          POSTGRES_PASSWORD: teacher_ci
+          POSTGRES_DB: teacher_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U teacher_ci -d teacher_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CONAUTI_TEST_DATABASE_URL: postgresql://teacher_ci:teacher_ci@127.0.0.1:5432/teacher_ci
+      CONAUTI_DATABASE_URL: postgresql://teacher_ci:teacher_ci@127.0.0.1:5432/teacher_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Instalar dependencias del frontend
+        working-directory: frontend
+        run: npm ci
+      - name: Compilar My Teacher IA web integrada
+        working-directory: frontend
+        # Únicamente esta compilación desechable del CI usa FastAPI local.
+        # El APK público conserva https://my-teacher-ia-api.onrender.com.
+        env:
+          VITE_ANDROID_CI_TESTS: '1'
+          VITE_ANDROID_CI_API_ORIGIN: http://localhost:8010
+        run: npm run build:conauti
+      - name: Verificar versión y dependencias móviles
+        working-directory: mobile
+        run: |
+          npm install --no-audit --no-fund
+          npm run mobile:check
+      - name: Generar plataforma nativa Android
+        working-directory: mobile
+        run: |
+          npm run android:init
+          npm run android:sync
+      - name: Incorporar almacenamiento seguro nativo
+        run: |
+          JAVA_DIR=mobile/android/app/src/main/java/pe/myteacheria/alumno
+          mkdir -p "$JAVA_DIR"
+          cp mobile/native/android/MainActivity.java "$JAVA_DIR/MainActivity.java"
+          cp mobile/native/android/SesionSeguraPlugin.java "$JAVA_DIR/SesionSeguraPlugin.java"
+          cp mobile/native/android/ModeloEducativoPlugin.java "$JAVA_DIR/ModeloEducativoPlugin.java"
+          cp mobile/native/android/MotorLocalPlugin.java "$JAVA_DIR/MotorLocalPlugin.java"
+          cp mobile/native/android/HistorialLocalPlugin.java "$JAVA_DIR/HistorialLocalPlugin.java"
+          cp mobile/native/android/VozLocalPlugin.java "$JAVA_DIR/VozLocalPlugin.java"
+          cp mobile/native/android/AccesoGoogleNativoPlugin.java "$JAVA_DIR/AccesoGoogleNativoPlugin.java"
+      - name: Permitir HTTP local SOLO en este APK efímero de pruebas
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("mobile/android/app/src/main/AndroidManifest.xml")
+          text = p.read_text(encoding="utf-8")
+          assert "android:usesCleartextTraffic" not in text, "No modificar manifest de producción"
+          text = text.replace("<application", '<application android:usesCleartextTraffic="true"', 1)
+          p.write_text(text, encoding="utf-8")
+          print("HTTP local de prueba habilitado; nunca en el APK de distribución")
+          PY
+      - name: Integrar llama.cpp nativo (ARM64 y emulador x86_64)
+        # Mantener la misma biblioteca JNI y el manifest que el APK probado.
+        run: bash mobile/scripts/preparar_motor_android.sh
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Preparar SDK Android del runner
+        run: |
+          test -n "$ANDROID_HOME"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "Plataformas disponibles:"
+          ls "$ANDROID_HOME/platforms" || true
+          # El runner incluye SDK; Gradle instala las plataformas que le falten.
+          # No instalar el antiguo paquete "tools", retirado del repositorio Android.
+      - name: Compilar APK debug
+        working-directory: mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Preparar API y usuarios de prueba en PostgreSQL efímero
+        run: |
+          python -m pip install -r backend/requirements.txt
+          PYTHONPATH=backend python mobile/scripts/preparar_usuarios_ci.py
+          mkdir -p mobile/evidencias
+          PYTHONPATH=backend python -m uvicorn app.main:app --host 127.0.0.1 --port 8010 > mobile/evidencias/backend-local-ci.log 2>&1 &
+          for i in $(seq 1 35); do
+            if curl --fail --silent http://127.0.0.1:8010/api/health >/dev/null; then
+              echo 'Backend de prueba disponible'; break
+            fi
+            sleep 2
+          done
+          curl --fail --show-error http://127.0.0.1:8010/api/health
+      - name: Habilitar emulador Android en GitHub Actions
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Probar login, mensajes y aislamiento de dos usuarios desde WebView Android
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: |
+            python3 -m pip install --user websocket-client
+            python3 mobile/scripts/probar_chat_online_ci.py
+      - name: Guardar evidencia de prueba Android
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: teacher-android-usuarios-ci-evidencia
+          path: mobile/evidencias/
+          if-no-files-found: ignore
+          retention-days: 7

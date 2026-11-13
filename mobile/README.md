@@ -1,43 +1,30 @@
-# My Teacher IA — edición Android (desarrollo)
+# My Teacher IA — aplicación Android
 
-Estado: **15 % de avance total — fase 1 de 8 completada**. La compilación Android de prueba está verificada; la aplicación con motor GGUF local **todavía no está terminada**.
+**Avance ponderado verificado: 89 %.** Consultar `mobile/progreso.json` para los subhitos y sus evidencias. **No es una versión final ni está publicada en Google Play.**
 
-Este directorio prepara una app Android mediante Capacitor sin duplicar el frontend React ni modificar la publicación web de Render.
+## Arquitectura
 
-## Arquitectura de la primera etapa
+La aplicación empaqueta el frontend React de My Teacher IA mediante Capacitor 8.6; no depende de una página remota para mostrar la interfaz. La autenticación y el chat online usan FastAPI por HTTPS. El modo offline funciona sin iniciar sesión con `llama.cpp` nativo y el modelo Qwen3 0.6B cuantizado, que se descarga una sola vez desde la app y se comprueba con SHA-256. El modelo completo ocupa alrededor de 484 MB y **no viene dentro del APK**.
 
-- \`frontend/conauti-ui/\`: interfaz existente, login, módulos, chat, voz e historial.
-- \`frontend/dist-conauti/\`: compilación web que se empaqueta dentro de Android.
-- \`mobile/capacitor.config.json\`: nombre, identificador provisional y origen Android.
-- \`mobile/android/\`: proyecto Android generado al compilar; no requiere que los alumnos instalen Ollama.
-- \`backend/\`: FastAPI remoto durante la fase online. En Android necesita autorizar el origen \`http://localhost\` por CORS.
-- Motor local GGUF (llama.cpp), modelo descargable e historial offline: **pendientes**; no se ha incluido un modelo ficticio.
+El historial del estudiante se cifra mediante Android Keystore. La sincronización con la cuenta es voluntaria, requiere consentimiento explícito y bloquea accesos de otros estudiantes. El módulo de voz usa solo capacidades del dispositivo; su comportamiento oral completo en teléfonos físicos aún requiere validación.
 
-## Proceso en CI
+## Evidencia verificable
 
-El workflow \`.github/workflows/android.yml\` instala dependencias móviles, valida configuración, genera el proyecto nativo y compila un **APK debug de prueba**. No genera una aplicación firmada para Google Play.
+- APK Android, biblioteca JNI y AAB sin firmar compilados: [GitHub Actions](https://github.com/erosCordova/Teacher-IA/actions/runs/43340560284).
+- Generación de respuesta real con Qwen3 en emulador, sin API remota: [Prueba de inferencia](https://github.com/erosCordova/Teacher-IA/actions/runs/43301708400).
+- Chat offline, historial cifrado y restauración tras recargar: [Prueba de chat](https://github.com/erosCordova/Teacher-IA/actions/runs/43303896571).
+- Descarga, cancelación y reanudación de los pesos GGUF desde Android: [Prueba del instalador](https://github.com/erosCordova/Teacher-IA/actions/runs/43332714425).
+- Inicio de sesión y sincronización desde Android con dos usuarios de prueba aislados: [Prueba de autenticación](https://github.com/erosCordova/Teacher-IA/actions/runs/43337881805).
+- Auditoría del APK de publicación (copia en nube y transferencia Android 12+ desactivadas; permisos y ELF de ARM64 comprobados) y firma con clave **temporal desechada**: [Pasos aprobados en CI](https://github.com/erosCordova/Teacher-IA/actions/runs/43348693408). La ejecución global fue cancelada después, durante la prueba del emulador; los pasos de auditoría y firma sí aprobaron.
 
-El bundle utiliza \`webDir: ../frontend/dist-conauti\`. No se establece \`server.url\` a una página remota, de modo que los recursos estáticos de la interfaz viajan dentro del APK.
+## Lo pendiente
 
-## Comportamiento por ahora
+- Autenticación con un proveedor real de correo/OAuth e IA online desde Android.
+- Dictado offline y calidad audible con micrófono real.
+- Rendimiento, memoria, batería, privacidad y compatibilidad en teléfonos ARM64.
+- Firma final con clave privada de subida, datos de privacidad y publicación en Google Play.
 
-La web pública mantiene su funcionamiento normal. La app Android empaquetada requiere Internet para autenticación, IA y acceso a PostgreSQL, como la versión web. El indicador \`progreso.json\` cuenta exclusivamente hitos concluidos; **no** significa que el tutor offline ya funcione.
+**Privacidad:** los tokens y las conversaciones locales no se transfieren automáticamente; Android 12+ utiliza `data_extraction_rules.xml` para excluirlos de migración entre dispositivos. La rama de desarrollo móvil no altera el sitio web publicado.
 
-## Requisitos posteriores para IA sin Internet
+**Publicación:** `.github/workflows/android-firma-manual.yml` prepara la firma real con secretos protegidos de GitHub. Su ejecución requiere la configuración autorizada de claves y entorno de publicación. No almacena claves privadas en el repositorio.
 
-1. Implementar el plugin nativo Android de inferencia GGUF usando llama.cpp (no ejecutando Ollama Desktop).
-2. Seleccionar y evaluar un modelo cuantizado con licencia compatible con distribución en Google Play.
-3. Gestionar instalación/descarga/verificación de pesos y espacio requerido; no descargar modelos sin consentimiento.
-4. Implementar base local privada y migración sincronizada tras reconectar Internet.
-5. Añadir reconocimiento y síntesis de voz offline según compatibilidad de cada teléfono.
-6. Probar rendimiento, batería, límites de memoria y modelos de dispositivos.
-7. Crear paquete AAB firmado, política de privacidad y ficha para Play Store.
-
-**No empaquetar tokens, llaves de producción ni secretos en el APK.**
-
-## Evidencia fase 1
-
-- [APK de depuración compilado en GitHub Actions](https://github.com/erosCordova/Teacher-IA/actions/runs/43252557288).
-- [CI general de frontend, backend y PostgreSQL](https://github.com/erosCordova/Teacher-IA/actions/runs/43252557141).
-- Avance global ponderado y medible en `progreso.json`: **15 %**.
-- **Fase 2 en curso:** acceso y chat en Android usando backend HTTPS remoto.

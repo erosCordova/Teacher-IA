@@ -1,61 +1,189 @@
 {
   "project": "My Teacher IA — Android + IA sin conexión",
-  "measurement": "Solo hitos completos y verificables; avance ponderado, no tiempo transcurrido.",
+  "measurement": "Suma ponderada exclusivamente de funciones verificadas en CI o emulador; los subhitos no probados no cuentan.",
+  "progress_percent": 89,
+  "updated_at": "2026-11-12",
   "milestones": [
     {
-      "id": 1,
-      "name": "Proyecto Android con Capacitor y compilación verificable",
+      "id": "1",
+      "name": "Proyecto Android Capacitor y APK de depuración compilado",
       "weight": 15,
-      "status": "completed"
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43252557288"
     },
     {
-      "id": 2,
-      "name": "Inicio de sesión y chat en línea desde Android",
-      "weight": 15,
-      "status": "in_progress"
+      "id": "2a",
+      "name": "Acceso HTTPS y CORS desde WebView Android hacia la API",
+      "weight": 8,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43290997673"
     },
     {
-      "id": 3,
-      "name": "Motor GGUF nativo integrado (llama.cpp)",
-      "weight": 20,
+      "id": "2b1",
+      "name": "Login con credenciales válidas desde la interfaz Android, sesión Keystore, chat persistido y aislamiento de alumnos en PostgreSQL de pruebas",
+      "weight": 5,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43337881805",
+      "note": "Dos usuarios ficticios y backend efímero de CI. No implica haber probado Google/Microsoft ni Gemini de producción."
+    },
+    {
+      "id": "2b2",
+      "name": "Inicio de sesión con proveedor real de correo/OAuth y generación IA en línea desde Android",
+      "weight": 2,
       "status": "pending"
     },
     {
-      "id": 4,
-      "name": "Entrega, descarga y verificación de un modelo local",
-      "weight": 15,
-      "status": "pending"
-    },
-    {
-      "id": 5,
-      "name": "Chat pedagógico offline con historial local y sincronización",
-      "weight": 15,
-      "status": "pending"
-    },
-    {
-      "id": 6,
-      "name": "Voz sin conexión y permisos móviles",
+      "id": "3a",
+      "name": "llama.cpp compilado y biblioteca JNI cargada en Android",
       "weight": 10,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078611"
+    },
+    {
+      "id": "3b",
+      "name": "Inferencia GGUF real sin red y respuesta pedagógica validada en Android",
+      "weight": 10,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43301708400",
+      "note": "Qwen3 0.6B generó pregunta orientadora en español sin usar fetch; 117309 ms en emulador."
+    },
+    {
+      "id": "4a",
+      "name": "Gestor de modelos Android y verificación SHA-256 implementados",
+      "weight": 4,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078611"
+    },
+    {
+      "id": "4b1",
+      "name": "Modelo GGUF real obtenido, instalado y SHA-256 verificado en almacenamiento privado de emulador Android",
+      "weight": 7,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43301708400"
+    },
+    {
+      "id": "4b2",
+      "name": "Descarga desde la interfaz Android, cancelación y reanudación verificadas con el modelo real",
+      "weight": 4,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43332714425",
+      "note": "Prueba UI real: descarga GGUF HTTPS, cancelación tras conservar 16 336 912 bytes, reanudación, 484 220 000 bytes e integridad SHA-256 comprobada dentro de Android; chat habilitado."
+    },
+    {
+      "id": "5a",
+      "name": "Historial privado cifrado con Android Keystore: guardar, leer y borrar",
+      "weight": 5,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078611"
+    },
+    {
+      "id": "5b",
+      "name": "Entrar y salir del tutor local sin iniciar sesión ni conectarse al backend",
+      "weight": 3,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43290997673"
+    },
+    {
+      "id": "5c",
+      "name": "Chat pedagógico offline funcional con historial persistente",
+      "weight": 3,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43303896571",
+      "note": "React Android envió una pregunta real a Qwen3 0.6B, mostró la respuesta, cifró ambas intervenciones y restauró el chat tras recargar WebView."
+    },
+    {
+      "id": "5d1",
+      "name": "API de sincronización voluntaria, idempotente y aislada por estudiante verificada con PostgreSQL",
+      "weight": 2,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43304665847"
+    },
+    {
+      "id": "5d2",
+      "name": "Importar el historial desde Android con sesión real y autorización del estudiante",
+      "weight": 2,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43337881805",
+      "note": "En emulador Android con cuenta de CI: confirmó envío voluntario, mensaje importado a PostgreSQL, reintento sin duplicados, y 404 al consultar desde segunda cuenta."
+    },
+    {
+      "id": "6a",
+      "name": "Puente nativo Android para voz local y detección de capacidades de síntesis y reconocimiento",
+      "weight": 3,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118"
+    },
+    {
+      "id": "6b1",
+      "name": "Síntesis de voz española sin Internet aceptada por el motor local de Android en emulador",
+      "weight": 3,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43297862516"
+    },
+    {
+      "id": "6b2",
+      "name": "Dictado offline en español y reproducción audible comprobados en teléfonos físicos",
+      "weight": 4,
       "status": "pending"
     },
     {
-      "id": 7,
-      "name": "Pruebas en móviles, rendimiento y privacidad",
-      "weight": 5,
+      "id": "7a",
+      "name": "Auditoría de privacidad del APK release: backups, migración Android 12+, permisos y ELF ARM64/x86_64",
+      "weight": 2,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43348693408",
+      "note": "El paso de auditoría terminó exitosamente. La ejecución global fue cancelada después, durante el emulador."
+    },
+    {
+      "id": "7b",
+      "name": "Pruebas de rendimiento, batería, dictado y privacidad en teléfonos físicos ARM64",
+      "weight": 3,
       "status": "pending"
     },
     {
-      "id": 8,
-      "name": "Firma, AAB y preparación de Google Play",
-      "weight": 5,
+      "id": "8a",
+      "name": "Android App Bundle (AAB) sin firma compilado y validado",
+      "weight": 2,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118"
+    },
+    {
+      "id": "8b1",
+      "name": "Prueba técnica de firma AAB verificada con clave temporal que se destruye al finalizar",
+      "weight": 1,
+      "status": "completed",
+      "evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43348693408",
+      "note": "La clave desechable no puede utilizarse para publicar. Solo certifica el pipeline de firma."
+    },
+    {
+      "id": "8b2",
+      "name": "Firma real con clave privada, revisión de requisitos y publicación Google Play",
+      "weight": 2,
       "status": "pending"
     }
   ],
   "evidence": {
-    "android_debug_build": "https://github.com/erosCordova/Teacher-IA/actions/runs/43252557288",
-    "ci_web_backend_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43252557141",
-    "android_artifact": "my-teacher-ia-android-debug",
+    "android_native_jni_and_encrypted_history": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078611",
+    "full_frontend_backend_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43277078621",
+    "last_android_emulator_result": "https://github.com/erosCordova/Teacher-IA/actions/runs/43337881805",
     "offline_model_included": false,
-    "on_device_inference_tested": false
+    "on_device_inference_tested": true,
+    "ready_for_release": false,
+    "android_apk_debug": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118/artifacts/13980200600",
+    "android_voice_and_aab": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118",
+    "aab_unsigned": "https://github.com/erosCordova/Teacher-IA/actions/runs/43295452118/artifacts/13979118597",
+    "android_voice_tts_test": "https://github.com/erosCordova/Teacher-IA/actions/runs/43297862516",
+    "real_gguf_android_test": "https://github.com/erosCordova/Teacher-IA/actions/runs/43301708400",
+    "real_gguf_sha256": "28b1c721c1e476d3e41c629d5993c0aaeca0f3b747afdbab667f5a4bc8e37665",
+    "real_gguf_inference_elapsed_ms_emulator": 117309,
+    "offline_sync_postgres": "https://github.com/erosCordova/Teacher-IA/actions/runs/43304665847",
+    "offline_chat_real": "https://github.com/erosCordova/Teacher-IA/actions/runs/43303896571",
+    "gguf_download_android_ui": "https://github.com/erosCordova/Teacher-IA/actions/runs/43332714425",
+    "gguf_download_ui_evidence": "https://github.com/erosCordova/Teacher-IA/actions/runs/43332714425/artifacts/13996211573",
+    "android_auth_chat_ci": "https://github.com/erosCordova/Teacher-IA/actions/runs/43337881805",
+    "android_sync_ui_ci": "https://github.com/erosCordova/Teacher-IA/actions/runs/43337881805",
+    "android_sync_ui_artifact": "https://github.com/erosCordova/Teacher-IA/actions/runs/43337881805/artifacts/13997484109",
+    "android_release_security_audit": "https://github.com/erosCordova/Teacher-IA/actions/runs/43348693408",
+    "aab_temporary_signing": "https://github.com/erosCordova/Teacher-IA/actions/runs/43348693408"
   }
 }

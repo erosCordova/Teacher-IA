@@ -193,6 +193,20 @@ def me(user=Depends(current_user)):
     return user
 
 
+@router.get("/auth/roles")
+def my_roles(user=Depends(current_user)):
+    """Devuelve únicamente los roles del alumno autenticado.
+
+    El servidor, no la interfaz Android, controla los permisos efectivos.
+    """
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT role_code FROM conauti_user_roles WHERE user_id = %s ORDER BY role_code",
+            (user["id"],),
+        ).fetchall()
+    return {"roles": [row["role_code"] for row in rows]}
+
+
 @router.post("/auth/logout")
 def logout(
     credentials: HTTPAuthorizationCredentials = Depends(bearer),

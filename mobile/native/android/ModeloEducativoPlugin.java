@@ -63,7 +63,7 @@ public final class ModeloEducativoPlugin extends Plugin {
         state.put("downloadBytes", new File(dir, MODEL_NAME + ".part").length());
         state.put("approximateBytes", 484_000_000);
         state.put("downloading", busy.get());
-        state.put("engineAvailable", false); // Solo el instalador está integrado.
+        state.put("engineAvailable", MotorLocalPlugin.estaDisponible()); // Biblioteca JNI real por ABI.
         return state;
     }
 
@@ -84,8 +84,8 @@ public final class ModeloEducativoPlugin extends Plugin {
 
     @PluginMethod
     public void eliminar(PluginCall call) {
-        if (busy.get()) {
-            call.reject("Cancela la descarga antes de eliminar el modelo");
+        if (busy.get() || MotorLocalPlugin.estaOcupado()) {
+            call.reject("Termina la descarga o la respuesta de IA antes de eliminar el modelo");
             return;
         }
         try {
@@ -114,8 +114,12 @@ public final class ModeloEducativoPlugin extends Plugin {
                 File dir = modelDirectory();
                 File finalModel = new File(dir, MODEL_NAME);
                 if (finalModel.isFile() && finalModel.length() > MIN_BYTES) {
-                    call.resolve(info(dir));
-                    return;
+                    // No reutilizar un fichero final sin comprobar su integridad.
+                    if (sha256Matches(finalModel)) {
+                        call.resolve(info(dir));
+                        return;
+                    }
+                    if (!finalModel.delete()) throw new IOException("Modelo local dañado");
                 }
                 if (dir.getUsableSpace() < RECOMMENDED_FREE) {
                     throw new IOException("Libera al menos 650 MB antes de descargar el modelo");
@@ -155,6 +159,16 @@ public final class ModeloEducativoPlugin extends Plugin {
                         if (status != 200 && status != 206) {
                             throw new IOException("Servidor respondió HTTP " + status);
                         }
+                        // Si se reanuda, comprobar que el servidor continúa
+                        // exactamente desde el byte esperado. Nunca mezclar bloques
+                        // equivocados en un archivo GGUF parcial.
+                        if (status == 206) {
+                            String range = connection.getHeaderField("Content-Range");
+                            String prefix = "bytes " + received + "-";
+                            if (range == null || !range.startsWith(prefix)) {
+                                throw new IOException("El servidor devolvió un rango inesperado");
+                            }
+                        }
                         boolean append = status == 206 && received > 0;
                         if (!append) received = 0;
                         long content = connection.getContentLengthLong();
@@ -166,7 +180,7 @@ public final class ModeloEducativoPlugin extends Plugin {
                             byte[] buffer = new byte[64 * 1024];
                             int read;
                             while ((read = in.read(buffer)) != -1) {
-                                if (cancelled.get()) throw new IOException("Descarga cancelada");
+                                if (cancelled.get()) throw new IOException("Descarga cancelada; puedes reanudarla después");
                                 received += read;
                                 if (received > MAX_BYTES) throw new IOException("Límite de tamaño superado");
                                 out.write(buffer, 0, read);
@@ -211,7 +225,7 @@ public final class ModeloEducativoPlugin extends Plugin {
         });
     }
 
-    private static boolean sha256Matches(File file) throws Exception {
+    static boolean sha256Matches(File file) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         try (FileInputStream in = new FileInputStream(file)) {
             byte[] buffer = new byte[256 * 1024];

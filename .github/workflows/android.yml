@@ -22,11 +22,16 @@ on:
 permissions:
   contents: read
 
+# La app usa CI gratuita: no mantener compilaciones duplicadas por cada commit.
+concurrency:
+  group: myteacher-android-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   android-debug:
     name: Compilar APK de prueba (no es versión Play)
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -57,6 +62,12 @@ jobs:
           cp mobile/native/android/MainActivity.java "$JAVA_DIR/MainActivity.java"
           cp mobile/native/android/SesionSeguraPlugin.java "$JAVA_DIR/SesionSeguraPlugin.java"
           cp mobile/native/android/ModeloEducativoPlugin.java "$JAVA_DIR/ModeloEducativoPlugin.java"
+          cp mobile/native/android/MotorLocalPlugin.java "$JAVA_DIR/MotorLocalPlugin.java"
+          cp mobile/native/android/HistorialLocalPlugin.java "$JAVA_DIR/HistorialLocalPlugin.java"
+          cp mobile/native/android/VozLocalPlugin.java "$JAVA_DIR/VozLocalPlugin.java"
+          cp mobile/native/android/AccesoGoogleNativoPlugin.java "$JAVA_DIR/AccesoGoogleNativoPlugin.java"
+      - name: Integrar llama.cpp nativo (ARM64 y emulador x86_64)
+        run: bash mobile/scripts/preparar_motor_android.sh
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -74,6 +85,52 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Generar Android App Bundle para validación (AAB sin firma de publicación)
+        working-directory: mobile/android
+        run: |
+          ./gradlew bundleRelease --no-daemon
+          test -s app/build/outputs/bundle/release/app-release.aab
+          unzip -l app/build/outputs/bundle/release/app-release.aab | grep -q 'base/lib/arm64-v8a/libteacher_llama.so'
+          echo "AAB no firmado generado; no es publicable todavía."
+      - name: Compilar APK release sin firma y auditar privacidad Android
+        working-directory: mobile/android
+        run: |
+          ./gradlew assembleRelease --no-daemon
+          test -s app/build/outputs/apk/release/app-release-unsigned.apk
+          cd ../..
+          python3 mobile/scripts/auditar_release_android.py
+      - name: Validar firma AAB y generar APK release de prueba no depurable
+        env:
+          TEACHER_EXPORT_TEST_RELEASE: '1'
+        run: bash mobile/scripts/probar_firma_android.sh
+      - name: Guardar APK release firmado para pruebas en teléfono
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-teacher-ia-android-release-prueba
+          path: |
+            mobile/release/My-Teacher-IA-Android-Release-Prueba.apk
+            mobile/release/SHA256SUMS-prueba.txt
+            mobile/release/FIRMA_PRUEBA.txt
+          if-no-files-found: error
+          retention-days: 7
+      - name: Guardar AAB de validación sin firma
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-teacher-ia-android-aab-sin-firma
+          path: mobile/android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 7
+      # Publicar el APK compilado ANTES de usar el emulador.
+      # Una prueba de interfaz fallida no debe ocultar el APK ni la auditoría.
+      - name: Guardar APK de prueba y auditoría verificable
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-teacher-ia-android-debug
+          path: |
+            mobile/android/app/build/outputs/apk/debug/app-debug.apk
+            mobile/evidencias/seguridad-release.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Habilitar emulador Android en GitHub Actions
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -97,11 +154,4 @@ jobs:
           name: my-teacher-ia-android-evidencia
           path: mobile/evidencias/
           if-no-files-found: ignore
-          retention-days: 7
-      - name: Guardar APK de prueba
-        uses: actions/upload-artifact@v4
-        with:
-          name: my-teacher-ia-android-debug
-          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
           retention-days: 7
