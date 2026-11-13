@@ -73,6 +73,21 @@ def main() -> None:
                 "La biblioteca no es ELF64 de tipo little-endian: " + abi)
             assert struct.unpack_from("<H", native, 18)[0] == machine, (
                 "Arquitectura ELF incorrecta para " + abi)
+            # Los dispositivos Android de 16 KB no cargan bibliotecas con PT_LOAD
+            # alineados solo a 4096 bytes. Verificar el ELF, no solo el ZIP.
+            phoff = struct.unpack_from("<Q", native, 32)[0]
+            phentsize = struct.unpack_from("<H", native, 54)[0]
+            phnum = struct.unpack_from("<H", native, 56)[0]
+            assert phentsize >= 56 and phnum > 0, "Cabecera ELF inválida: " + abi
+            load_segments = []
+            for index in range(phnum):
+                header = phoff + index * phentsize
+                assert header + 56 <= len(native), "Programa ELF truncado: " + abi
+                p_type = struct.unpack_from("<I", native, header)[0]
+                if p_type == 1:  # PT_LOAD
+                    load_segments.append(struct.unpack_from("<Q", native, header + 48)[0])
+            assert load_segments and all(align >= 16384 for align in load_segments), (
+                "La biblioteca JNI no soporta páginas de 16 KB: " + abi + " " + str(load_segments))
 
         assert not any(x.endswith((".gguf", ".safetensors", ".onnx", ".env"))
                        for x in names), "No incluir modelos/secretos en APK"
@@ -119,6 +134,7 @@ def main() -> None:
         "android_12_device_to_device_excluded": True,
         "arm64_jni_available": True,
         "arm64_elf_verified": True,
+        "elf_16kb_page_compatible": True,
         "emulator_x86_64_elf_verified": True,
         "unnecessary_sensitive_permissions_absent": True,
         "downloaded_model_embedded": False,
