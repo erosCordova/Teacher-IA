@@ -559,8 +559,8 @@ export default function ConversacionVoz({
     try {
       const status = await native.estado()
       if (!status.sintesisDisponible) return false
-      const frase = text.replace(/[`*_#]/g, ' ').replace(/https?:\\/\\/\\S+/g, 'un enlace')
-        .replace(/\\s+/g, ' ').trim().slice(0, 1000)
+      const frase = text.replace(/[`*_#]/g, ' ').replace(/https?:\/\/\S+/g, 'un enlace')
+        .replace(/\s+/g, ' ').trim().slice(0, 1000)
       if (!frase) return false
       const audioId = `teacher-${Date.now()}-${seq}`
       setPhase('hablando')
@@ -606,7 +606,7 @@ export default function ConversacionVoz({
   }
 
   function sayBrowser(text: string, id: number) {
-    if (!('speechSynthesis' in window) && !vozAndroid()) {
+    if (!('speechSynthesis' in window)) {
       halt('El teléfono no dispone de una voz española activa. Configura la síntesis de voz de Android.')
       return
     }
