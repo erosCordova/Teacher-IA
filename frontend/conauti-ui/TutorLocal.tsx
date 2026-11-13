@@ -19,6 +19,7 @@ type EstadoIdioma = {
 type VozLocal = {
   estado(): Promise<{ sintesisDisponible: boolean; reconocimientoDisponible: boolean; soloDispositivo: boolean }>
   comprobarIdioma?(): Promise<EstadoIdioma>
+  prepararIdioma?(): Promise<{ estado: string; detalle?: string }>
   escuchar(): Promise<{ texto: string; origen: string }>
   cancelarEscucha(): Promise<void>
   hablar(options: { texto: string }): Promise<void>
@@ -79,6 +80,8 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
     sintesisDisponible: boolean; reconocimientoDisponible: boolean
   } | null>(null)
   const [escuchando, setEscuchando] = useState(false)
+  const [idiomaLocal, setIdiomaLocal] = useState<EstadoIdioma | null>(null)
+  const [instalandoIdioma, setInstalandoIdioma] = useState(false)
   const [leerRespuestas, setLeerRespuestas] = useState(false)
   const [aviso, setAviso] = useState('')
   const [tema, setTema] = useState<'dark' | 'light'>(() => {
@@ -115,7 +118,9 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
     void iniciar()
     const voz = puente<VozLocal>('VozLocal')
     if (voz) void comprobarEstadoVoz(voz)
-      .then(({ estado }) => { if (live) setVozEstado(estado) }).catch(() => {})
+      .then(({ estado, idioma }) => {
+        if (live) { setVozEstado(estado); setIdiomaLocal(idioma ?? null) }
+      }).catch(() => {})
     return () => { live = false }
   }, [])
 
@@ -149,6 +154,7 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
       if (!voz) throw new Error('La voz nativa no está instalada.')
       const { estado, idioma } = await comprobarEstadoVoz(voz)
       setVozEstado(estado)
+      setIdiomaLocal(idioma ?? null)
       if (idioma?.comprobacionSoportada && !idioma.espanolInstalado) {
         setAviso(idioma.espanolDescargable
           ? 'El reconocimiento de español es compatible, pero falta descargar el paquete sin conexión desde los ajustes de Android.'
@@ -158,6 +164,26 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
       } else setAviso('Voz española y reconocimiento local disponibles según Android. Falta comprobarlos hablando en un teléfono físico.')
     } catch (e) {
       setAviso(e instanceof Error ? e.message : String(e))
+    }
+  }
+
+  async function prepararVozEspanola() {
+    const voz = puente<VozLocal>('VozLocal')
+    if (!voz?.prepararIdioma || instalandoIdioma) return
+    if (!window.confirm('Android puede necesitar Internet para descargar el reconocimiento de español. ¿Solicitar ahora el paquete de voz sin conexión?')) return
+    setInstalandoIdioma(true)
+    setAviso('Solicitando a Android el paquete local de español…')
+    try {
+      const resultado = await voz.prepararIdioma()
+      setAviso(resultado.detalle || 'Android recibió la solicitud de instalación.')
+      // No habilitar dictado hasta que el sistema confirme idioma instalado.
+      const actualizado = await comprobarEstadoVoz(voz)
+      setVozEstado(actualizado.estado)
+      setIdiomaLocal(actualizado.idioma ?? null)
+    } catch (error) {
+      setAviso(error instanceof Error ? error.message : String(error))
+    } finally {
+      setInstalandoIdioma(false)
     }
   }
 
@@ -305,7 +331,13 @@ export default function TutorLocal({ onVolverOnline }: { onVolverOnline: () => v
                   onClick={() => setLeerRespuestas(v => !v)}>
                   Voz en respuestas: {leerRespuestas ? 'Sí' : 'No'}
                 </button>
-                <button type="button" onClick={() => void comprobarVoz()}>Comprobar voz</button>
+                {idiomaLocal?.comprobacionSoportada && idiomaLocal.espanolDescargable && !idiomaLocal.espanolInstalado && (
+                  <button type="button" disabled={instalandoIdioma}
+                    onClick={() => void prepararVozEspanola()}>
+                    {instalandoIdioma ? 'Preparando español…' : 'Descargar dictado en español'}
+                  </button>
+                )}
+                <button type="button" disabled={instalandoIdioma} onClick={() => void comprobarVoz()}>Comprobar voz</button>
               </div>
               <div className="mtc-offline-answer-mode">
                 <label htmlFor="mtc-offline-mode">Extensión de la respuesta</label>
