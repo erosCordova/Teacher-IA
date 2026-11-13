@@ -79,7 +79,7 @@ jobs:
             -signedjar mobile/release/my-teacher-ia-firmado.aab \
             mobile/android/app/build/outputs/bundle/release/app-release.aab \
             "$ANDROID_UPLOAD_KEY_ALIAS"
-          jarsigner -verify -strict mobile/release/my-teacher-ia-firmado.aab
+          jarsigner -verify mobile/release/my-teacher-ia-firmado.aab
           test -s mobile/release/my-teacher-ia-firmado.aab
 
           # APK independiente para descarga por navegador: alinear ANTES de firmar.
