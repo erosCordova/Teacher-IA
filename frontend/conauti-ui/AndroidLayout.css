@@ -81,3 +81,79 @@ html[data-myteacher-platform="android"] .mtc-auth-local-choice {
 }
 html[data-myteacher-platform="android"] .mtc-auth-local-choice strong { font-size:14px; }
 html[data-myteacher-platform="android"] .mtc-auth-local-choice small { opacity:.8; line-height:1.45; }
+
+
+/* Ajuste de contraste del acceso SOLO en el APK Android.
+   Conserva la paleta azul de VISION-AI y ambos modos de apariencia. */
+html[data-myteacher-platform="android"][data-myteacher-theme="dark"] #root .mtc-auth-access {
+  background:linear-gradient(150deg,#081a34,#102e56 63%,#0b2241)!important;
+  color:#f3f8ff!important;
+}
+html[data-myteacher-platform="android"][data-myteacher-theme="light"] #root .mtc-auth-access {
+  background:linear-gradient(155deg,#f6faff,#e4f0ff 72%,#dae9ff)!important;
+  color:#122c53!important;
+}
+html[data-myteacher-platform="android"][data-myteacher-theme="dark"] #root .mtc-auth-google-panel {
+  background:#132c4d!important;
+  border:1px solid #597cae!important;
+  box-shadow:0 12px 30px rgba(0,0,0,.18)!important;
+}
+html[data-myteacher-platform="android"][data-myteacher-theme="light"] #root .mtc-auth-google-panel {
+  background:#fff!important;
+  border:1px solid #a7c6e7!important;
+  box-shadow:0 12px 25px rgba(23,70,130,.10)!important;
+}
+html[data-myteacher-platform="android"][data-myteacher-theme="dark"] #root .mtc-auth-google-panel :is(h2,p,small,strong,span) {
+  color:#e5f2ff;
+}
+html[data-myteacher-platform="android"][data-myteacher-theme="light"] #root .mtc-auth-google-panel :is(h2,p,small,strong,span) {
+  color:#213f66;
+}
+html[data-myteacher-platform="android"] #root .mtc-auth-google-panel .mtc-auth-email-choice:not(:disabled) {
+  border:1px solid #81b9ff!important;
+  background:#174c8e!important;
+  color:#fff!important;
+  box-shadow:0 4px 14px rgba(0,15,50,.20);
+}
+html[data-myteacher-platform="android"] #root .mtc-auth-google-panel .mtc-auth-email-choice:not(:disabled) span {
+  color:#fff!important;
+}
+html[data-myteacher-platform="android"] #root .mtc-auth-google-panel .mtc-auth-email-choice:disabled {
+  opacity:.76!important;
+}
+html[data-myteacher-platform="android"] #root .mtc-auth-google-panel .mtc-auth-email-choice,
+html[data-myteacher-platform="android"] #root .mtc-auth-google-panel button {
+  min-height:48px;
+}
+html[data-myteacher-platform="android"] #root .mtc-auth-google-panel .mtc-auth-method-pending,
+html[data-myteacher-platform="android"] #root .mtc-auth-google-panel .mtc-google-unavailable {
+  padding:9px 12px;
+  line-height:1.5;
+  border-radius:10px;
+}
+html[data-myteacher-platform="android"][data-myteacher-theme="dark"] #root .mtc-auth-google-panel .mtc-google-unavailable {
+  color:#f7d4c6!important;background:#3c2632!important;
+}
+html[data-myteacher-platform="android"][data-myteacher-theme="light"] #root .mtc-auth-google-panel .mtc-google-unavailable {
+  color:#8c2e2e!important;background:#fff1eb!important;
+}
+html[data-myteacher-platform="android"] .mtc-auth-local-choice {
+  background:#143e70;
+  color:#f5faff;
+  border-color:#69a7f0;
+  min-height:80px;
+}
+html[data-myteacher-platform="android"][data-myteacher-theme="light"] .mtc-auth-local-choice {
+  background:#e0edff;color:#12375f;border-color:#8aafe2;
+}
+html[data-myteacher-platform="android"] .mtc-auth-local-choice small {
+  opacity:1;color:inherit;
+}
+html[data-myteacher-platform="android"] #root .mtc-auth-shell :is(button,a,input):focus-visible {
+  outline:3px solid #8bbdff!important;outline-offset:3px!important;
+}
+@media(max-width:420px){
+  html[data-myteacher-platform="android"] #root .mtc-auth-google-panel {
+    padding:16px 13px!important;
+  }
+}
