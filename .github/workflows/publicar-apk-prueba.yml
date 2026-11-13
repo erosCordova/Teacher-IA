@@ -1,0 +1,56 @@
+name: My Teacher IA - Publicar APK de prueba descargable
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publicar-apk-prueba.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: myteacher-apk-test-publication
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    name: Publicar descarga directa de APK ya verificado
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Descargar el APK de la ejecución Android validada
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/teacher-apk" "$RUNNER_TEMP/teacher-release"
+          gh run download 43353091400 \
+            --repo "${{ github.repository }}" \
+            --name my-teacher-ia-android-debug \
+            --dir "$RUNNER_TEMP/teacher-apk"
+          src="$RUNNER_TEMP/teacher-apk/android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$src"
+          cp "$src" "$RUNNER_TEMP/teacher-release/My-Teacher-IA-Android-Prueba.apk"
+          echo '002d1117eee4234a0f69a52abbc8a9b0e11c2d00b98649eef31f788e492c4bc1  ' "${RUNNER_TEMP}/teacher-release/My-Teacher-IA-Android-Prueba.apk" \
+            | sha256sum -c -
+          echo "Huella SHA-256 de Android verificada."
+      - name: Publicar prerrelease con acceso directo (no es producción)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="android-prueba-20261113"
+          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "La versión de pruebas ya existe; no sobrescribir sin verificar."
+            exit 0
+          fi
+          gh release create "$TAG" \
+            "$RUNNER_TEMP/teacher-release/My-Teacher-IA-Android-Prueba.apk" \
+            --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" \
+            --title "My Teacher IA Android - APK de prueba (13-11-2026)" \
+            --notes "Versión de evaluación: APK de depuración probado en emulador. NO es un release de producción ni está firmado con clave definitiva. Descarga opcional del modelo IA (~484 MB), pruebas en teléfono físico pendientes. SHA-256: 002d1117eee4234a0f69a52abbc8a9b0e11c2d00b98649eef31f788e492c4bc1. Compilación validada: https://github.com/erosCordova/Teacher-IA/actions/runs/43353091400" \
+            --prerelease
+          gh release view "$TAG" --repo "${{ github.repository }}" --json url,assets
