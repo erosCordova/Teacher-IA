@@ -27,3 +27,9 @@ add_library(teacher_llama SHARED teacher_llama.cpp)
 target_include_directories(teacher_llama PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp/include")
 find_library(android_log log)
 target_link_libraries(teacher_llama PRIVATE llama ${android_log})
+
+# NDK r27: alinear todos los segmentos ELF a 16 KB (dispositivos Android recientes).
+# La propia auditoría de APK verifica p_align en cada segmento PT_LOAD.
+if(ANDROID)
+    target_link_options(teacher_llama PRIVATE "-Wl,-z,max-page-size=16384")
+endif()
