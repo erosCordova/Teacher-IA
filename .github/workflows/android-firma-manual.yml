@@ -50,7 +50,7 @@ jobs:
         run: |
           JAVA_DIR=mobile/android/app/src/main/java/pe/myteacheria/alumno
           mkdir -p "$JAVA_DIR"
-          cp mobile/native/android/{MainActivity,SesionSeguraPlugin,ModeloEducativoPlugin,MotorLocalPlugin,HistorialLocalPlugin,VozLocalPlugin}.java "$JAVA_DIR/"
+          cp mobile/native/android/{MainActivity,SesionSeguraPlugin,ModeloEducativoPlugin,MotorLocalPlugin,HistorialLocalPlugin,VozLocalPlugin,AccesoGoogleNativoPlugin}.java "$JAVA_DIR/"
           bash mobile/scripts/preparar_motor_android.sh
       - uses: actions/setup-java@v4
         with:
