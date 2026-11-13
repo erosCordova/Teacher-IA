@@ -52,6 +52,15 @@ type Message = {
 
 type Page = 'chat' | 'progress' | 'settings' | 'privacy' | 'games' | 'facts' | 'achievements' | 'materials' | 'study'
 
+type AccesoGoogleNativo = {
+  iniciar(args: { clientId: string }): Promise<{ credential: string }>
+}
+function accesoGoogleNativo(): AccesoGoogleNativo | undefined {
+  const c = window.Capacitor
+  return (c?.Plugins as unknown as { AccesoGoogleNativo?: AccesoGoogleNativo } | undefined)?.AccesoGoogleNativo
+    ?? c?.registerPlugin?.('AccesoGoogleNativo') as unknown as AccesoGoogleNativo | undefined
+}
+
 type GoogleAccountAPI = {
   accounts: { id: {
     initialize: (data: { client_id: string; callback: (answer: { credential: string }) => void }) => void
@@ -412,6 +421,33 @@ function App() {
     setToken(tokenValue)
   }
 
+  async function iniciarGoogleEnAndroid() {
+    if (busy || !googleConfig?.enabled || !googleConfig.client_id) return
+    const auth = accesoGoogleNativo()
+    if (!auth) {
+      setNotice('Esta versión Android no incluye el acceso seguro con Google. Actualiza la aplicación.')
+      return
+    }
+    setBusy(true)
+    setNotice('')
+    try {
+      // Credential Manager muestra las cuentas desde Android, no en el WebView.
+      const { credential } = await auth.iniciar({ clientId: googleConfig.client_id })
+      // La firma de Google se verifica únicamente en FastAPI por HTTPS.
+      const result = await api<{ access_token: string }>(
+        '/auth/google', null, 'POST', {
+          credential,
+          mode: register ? 'register' : 'login',
+        },
+      )
+      completeSignIn(result.access_token)
+    } catch (error) {
+      setNotice(errorText(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function handleGoogleIdentity(credential: string, mode: 'login' | 'register') {
     if (busy) return
     setBusy(true)
@@ -537,7 +573,7 @@ function App() {
 
   useEffect(() => {
     googleMode.current = register ? 'register' : 'login'
-    if (token || checking || !googleConfig?.enabled || !googleConfig.client_id) return
+    if (sesionNativaDisponible() || token || checking || !googleConfig?.enabled || !googleConfig.client_id) return
     let cancelled = false
     const holder = googleButton.current
     if (!holder) return
@@ -1039,7 +1075,15 @@ function App() {
                 <span><strong>Accede con tu cuenta Google</strong><small>Una forma rápida y segura de entrar</small></span>
               </div>
               {googleConfig?.enabled && !googleConfigurationError ? (
-                <div ref={googleButton} className="mtc-google-button" aria-label="Iniciar con Google" />
+                sesionNativaDisponible() ? (
+                  <button type="button" className="mtc-auth-email-choice"
+                    disabled={busy} onClick={() => void iniciarGoogleEnAndroid()}>
+                    <span aria-hidden="true">G</span>
+                    <span>{busy ? 'Abriendo acceso de Google…' : 'Continuar con Google de forma segura'}</span>
+                  </button>
+                ) : (
+                  <div ref={googleButton} className="mtc-google-button" aria-label="Iniciar con Google" />
+                )
               ) : (
                 <p role="status" className="mtc-google-unavailable">
                   {googleConfigurationError || 'Conectando con Google de forma segura...'}
