@@ -6,7 +6,9 @@ apunta solo a localhost:8010 del runner mediante adb reverse; ningún dato
 se envía al despliegue público. Nunca imprime credenciales ni tokens.
 """
 import json
+import re
 import time
+import urllib.request
 from pathlib import Path
 from websocket import create_connection
 from probar_emulador import APK, PKG, OUT, adb, eval_js, get_target, wait_for_debug_socket
@@ -14,6 +16,54 @@ from probar_emulador import APK, PKG, OUT, adb, eval_js, get_target, wait_for_de
 API = "http://localhost:8010/api/conauti"
 QUESTION = "¿Cómo comprendo las fracciones en secundaria?"
 HINT = "Si divides una unidad en cuatro partes, ¿cuántas forman la mitad?"
+
+
+def conectar_webview_android():
+    """Preferir el proceso WebView de ESTA aplicación, no Google Play Services."""
+    previous = []
+    for attempt in range(45):
+        pids = adb("shell", "pidof", PKG, check=False).split()
+        sockets = adb("shell", "cat", "/proc/net/unix", check=False)
+        candidates = re.findall(r"webview_devtools_remote_\\d+", sockets)
+        preferred = ["webview_devtools_remote_" + pid for pid in pids
+                     if "webview_devtools_remote_" + pid in candidates]
+        candidates = preferred + [v for v in reversed(candidates)
+                                   if v not in preferred]
+        for name in candidates:
+            adb("forward", "tcp:9222", "localabstract:" + name,
+                timeout=25, check=False)
+            try:
+                with urllib.request.urlopen(
+                    "http://127.0.0.1:9222/json", timeout=3
+                ) as response:
+                    pages = json.load(response)
+                suitable = [page for page in pages
+                            if page.get("type") == "page"
+                            and page.get("webSocketDebuggerUrl")
+                            and ("localhost" in page.get("url", "")
+                                 or "my-teacher" in page.get("title", "").lower())]
+                if suitable:
+                    print("WebView Android conectada:", name,
+                          suitable[0].get("url"), flush=True)
+                    return suitable[0]
+            except Exception as error:
+                if attempt % 10 == 0:
+                    previous.append(str(error)[:160])
+        if attempt % 10 == 0:
+            print("Buscando WebView de My Teacher IA:",
+                  {"pids":pids,"sockets":candidates[:8]}, flush=True)
+            if pids and not preferred:
+                adb("shell", "am", "start", "-n",
+                    PKG + "/.MainActivity", timeout=20, check=False)
+        time.sleep(2)
+    OUT.mkdir(exist_ok=True)
+    import subprocess
+    data = subprocess.run(["adb", "logcat", "-d", "-t", "1300", "*:E"],
+                          capture_output=True, text=True, timeout=35)
+    (OUT / "errores-conexion-webview.txt").write_text(
+        data.stdout, encoding="utf-8")
+    raise RuntimeError("WebView de la aplicación no aparece. " +
+                       "; ".join(previous[-6:]))
 
 
 def run(ws, expression, number):
@@ -40,9 +90,7 @@ def main():
     print(adb("shell", "am", "start", "-W", "-n", PKG + "/.MainActivity",
               timeout=75)[:400])
     time.sleep(9)
-    socket = wait_for_debug_socket()
-    adb("forward", "tcp:9222", "localabstract:" + socket)
-    target = get_target()
+    target = conectar_webview_android()
     ws = create_connection(target["webSocketDebuggerUrl"], timeout=50,
                            suppress_origin=True)
     ws.settimeout(50)
