@@ -11,7 +11,7 @@ jobs:
     timeout-minutes: 20
     services:
       ollama:
-        image: ollama/ollama:0.40.17
+        image: ollama/ollama:0.40.16
         ports:
           - 11434:11434
     steps:
