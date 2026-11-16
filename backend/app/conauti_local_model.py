@@ -4,7 +4,6 @@ No se ejecuta en Render Free: requiere Ollama instalado en la misma máquina.
 Nunca se aceptan URLs aportadas por estudiantes (previene SSRF).
 """
 from __future__ import annotations
-import os
 import re
 import httpx
 
