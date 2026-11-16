@@ -10,30 +10,32 @@ import httpx
 
 
 def local_enabled() -> bool:
-    return (os.getenv("OLLAMA_ENABLED", "false").lower() == "true"
-            and os.getenv("AI_PROVIDER", "gemini").lower() == "ollama")
+    from app.conauti_ai import config
+    return (config("OLLAMA_ENABLED", "false").lower() == "true"
+            and config("AI_PROVIDER", "gemini").lower() == "ollama")
 
 
 def local_model() -> str:
-    model = os.getenv("OLLAMA_MODEL", "gemma3:1b").strip()
+    from app.conauti_ai import config
+    model = config("OLLAMA_MODEL", "qwen3:4b").strip()
     if not re.fullmatch(r"[\w.:-]{2,70}", model):
         raise ValueError("Modelo local no válido.")
     return model
 
 
-def local_reply(history: list[dict], instructions: str) -> tuple[str,dict]:
+def local_reply(history: list[dict], instructions: str, *, max_tokens: int = 650) -> tuple[str,dict]:
     if not local_enabled():
         raise RuntimeError("El proveedor local no está habilitado.")
-    messages = [{"role": "system", "content": instructions[:5000]}]
+    messages = [{"role": "system", "content": instructions[:12000]}]
     for entry in history[-10:]:
         role = entry.get("role")
         if role in ("user","assistant"):
             messages.append({"role":role, "content":str(entry.get("body", ""))[:3000]})
     answer = httpx.post(
         "http://127.0.0.1:11434/api/chat",
-        json={"model": local_model(), "stream": False, "messages": messages,
-              "options": {"temperature": 0.55,"num_predict": 650}},
-        timeout=45.0,
+        json={"model": local_model(), "stream": False, "think": False, "messages": messages,
+              "options": {"temperature": 0.4, "num_predict": max(32, min(int(max_tokens), 700))}},
+        timeout=180.0,
         trust_env=False,
     )
     answer.raise_for_status()

@@ -178,9 +178,24 @@ def _myteacher_with_learning_memory(
 
 
 def generate_reply(history, pedagogical_instruction='', *, student_id=None, conversation_id=None, voice_mode=False):
-    from app.conauti_local_model import local_enabled, local_reply
-    if local_enabled():
-        return local_reply(history, SYSTEM_PROMPT + "\n\n" + pedagogical_instruction)
+    provider = config("AI_PROVIDER", "gemini").strip().lower()
+    if provider in ("ollama", "openrouter"):
+        from app.conauti_multi_agent import run_open_graph
+        try:
+            return run_open_graph(
+                history, pedagogical_instruction, SYSTEM_PROMPT,
+                voice_mode=voice_mode,
+            )
+        except httpx.TimeoutException as error:
+            raise HTTPException(504, "La IA tardó demasiado. Inténtalo de nuevo.") from error
+        except httpx.HTTPStatusError as error:
+            if error.response.status_code == 429:
+                raise HTTPException(429, "El modelo alcanzó su límite temporal.") from error
+            raise HTTPException(503, "El modelo abierto no está disponible.") from error
+        except (httpx.RequestError, ValueError, KeyError, TypeError, RuntimeError) as error:
+            raise HTTPException(503, "No se pudo iniciar el modelo abierto configurado.") from error
+    if provider != "gemini":
+        raise HTTPException(503, "El proveedor de IA seleccionado no está disponible.")
 
     # CONAUTI_ORCHESTRATOR: LangGraph activo.
     if config(
@@ -401,11 +416,9 @@ def generate_reply(history, pedagogical_instruction='', *, student_id=None, conv
 
 @router.get("/status")
 def ai_status(user=Depends(current_user)):
-    return {
-        "configured": bool(config("GEMINI_API_KEY")),
-        "provider": "Gemini",
-        "model": current_model(),
-    }
+    from app.conauti_open_model import active_details
+    provider, model, configured = active_details()
+    return {"configured": configured, "provider": provider, "model": model}
 
 
 @router.post("/conversations/{conversation_id}/respond")
@@ -632,6 +645,8 @@ def respond(
             (conversation_id, answer),
         ).fetchone()
 
+        from app.conauti_open_model import active_details
+        used_provider, used_model, _configured = active_details()
         conn.execute(
             """
             INSERT INTO conauti_ai_requests(
@@ -648,7 +663,7 @@ def respond(
             )
             VALUES (
                 %s, %s, %s, %s, %s,
-                %s, 'Gemini', %s, %s, %s
+                %s, %s, %s, %s, %s
             )
             """,
             (
@@ -658,7 +673,8 @@ def respond(
                 prompt_hash,
                 student_message["id"],
                 assistant_message["id"],
-                current_model(),
+                used_provider,
+                used_model,
                 usage["input_tokens"],
                 usage["output_tokens"],
             ),
@@ -693,12 +709,14 @@ def respond(
 def orchestration_engine(
     user=Depends(current_user),
 ):
+    from app.conauti_open_model import active_details, provider_name
+    provider, model, configured = active_details()
+    multi_agent = provider_name() in ("ollama", "openrouter")
     return {
-        "engine": config(
-            "CONAUTI_ORCHESTRATOR",
-            "langgraph",
-        ),
+        "engine": "multiagente" if multi_agent else config("CONAUTI_ORCHESTRATOR", "langgraph"),
         "framework": "LangChain",
         "workflow": "LangGraph",
-        "model": current_model(),
+        "model": model,
+        "provider": provider,
+        "configured": configured,
     }

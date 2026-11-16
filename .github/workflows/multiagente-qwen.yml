@@ -1,0 +1,32 @@
+name: CONAUTI - Modelo abierto real
+on:
+  push:
+    branches:
+      - 'codex/multiagente-qwen-*'
+  workflow_dispatch:
+
+jobs:
+  qwen-en-cpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      ollama:
+        image: ollama/ollama:0.40.17
+        ports:
+          - 11434:11434
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install -r backend/requirements.txt
+      - name: Descargar Qwen3 0.6B para una prueba temporal
+        run: docker exec ${{ job.services.ollama.id }} ollama pull qwen3:0.6b
+      - name: Probar agentes con inferencia real
+        working-directory: backend
+        env:
+          AI_PROVIDER: ollama
+          OLLAMA_ENABLED: 'true'
+          OLLAMA_MODEL: qwen3:0.6b
+          CONAUTI_LIVE_OLLAMA: 'true'
+        run: python -m pytest -q tests/test_conauti_multi_agent_live.py
