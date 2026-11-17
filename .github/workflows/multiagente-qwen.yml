@@ -78,3 +78,27 @@ jobs:
           OLLAMA_VISION_MODEL: qwen3-vl:2b-instruct
           CONAUTI_LIVE_VISION: 'true'
         run: python -m pytest -q tests/test_conauti_open_media_live.py
+
+  voz-memoria-limitada:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: python:3.13-slim
+      options: --memory=512m --cpus=1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar audio sintético de prueba
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq espeak-ng
+          espeak-ng -v es "Hola necesito ayuda con matemáticas" -w /tmp/conauti-audio.wav
+      - run: python -m pip install -r backend/requirements.txt
+      - name: Probar voz con límite de memoria
+        working-directory: backend
+        env:
+          OPEN_ASR_ENABLED: 'true'
+          OPEN_WHISPER_MODEL: base
+          CONAUTI_LIVE_WHISPER: 'true'
+          CONAUTI_FULL_APP: 'true'
+          CONAUTI_TEST_AUDIO: /tmp/conauti-audio.wav
+        run: python -m pytest -q tests/test_conauti_open_media_live.py
