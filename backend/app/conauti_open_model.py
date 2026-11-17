@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import httpx
 
-FREE_MODEL = "qwen/qwen3-4b:free"
+FREE_MODEL = "dots-studio/dots-3-note-preview:free"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
@@ -50,7 +50,7 @@ def open_reply(history: list[dict], instructions: str, *, max_tokens: int = 350)
         raise ValueError("El proveedor de modelo abierto no está configurado.")
     model = _config("OPENROUTER_MODEL", FREE_MODEL)
     if model != FREE_MODEL:
-        raise ValueError("Solo se admite el modelo Qwen3 gratuito configurado.")
+        raise ValueError("Solo se admite el modelo abierto gratuito configurado.")
     key = _config("OPENROUTER_API_KEY")
     if not key:
         raise ValueError("Falta configurar la clave del proveedor de IA.")

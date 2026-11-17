@@ -2,7 +2,7 @@
 
 El chat usa un flujo LangGraph con coordinador, diagnóstico, planificación,
 tutor y verificación. Diagnóstico, tutor y verificación realizan llamadas
-separadas a Qwen3; el coordinador y la planificación usan reglas y herramientas.
+separadas a un modelo abierto; el coordinador y la planificación usan reglas y herramientas.
 Se aprovechan la memoria académica y los materiales que ya proporciona el
 backend. No se registran diagnósticos ni niveles inventados.
 
@@ -11,8 +11,8 @@ backend. No se registran diagnósticos ni niveles inventados.
 - Local: AI_PROVIDER=ollama, OLLAMA_ENABLED=true, OLLAMA_MODEL=qwen3:4b y
   OLLAMA_VISION_MODEL=qwen3-vl:2b-instruct. Ollama y los modelos deben estar en
   la misma máquina del backend.
-- Nube: AI_PROVIDER=openrouter, OPENROUTER_MODEL=qwen/qwen3-4b:free,
-  OPENROUTER_VISION_MODEL=qwen/qwen3-vl-235b-a22b-thinking:free y
+- Nube: AI_PROVIDER=openrouter, OPENROUTER_MODEL=dots-studio/dots-3-note-preview:free,
+  OPENROUTER_VISION_MODEL=dots-studio/dots-3-note-preview:free y
   OPENROUTER_API_KEY almacenada como secreto. Las conversaciones y las
   imágenes enviadas se procesan a través de OpenRouter. Se solicita a los
   proveedores no recopilar datos; si no hay uno compatible, la petición falla.
@@ -23,8 +23,10 @@ en el servidor, con OPEN_ASR_ENABLED=true y OPEN_WHISPER_MODEL=base.
 El modelo de voz se descarga al primer uso. La búsqueda documental mantiene
 el método léxico en modo abierto y no envía embeddings a Gemini.
 
-Las opciones gratuitas pueden imponer límites y no se cambia automáticamente
-a modelos de pago. La selección predeterminada del servicio existente permanece
+El modelo Dots3-Note Preview publica pesos y código bajo Apache 2.0. Su oferta
+gratuita está anunciada hasta el 31 de diciembre de 2026 y puede cambiar. Las
+opciones gratuitas imponen límites compartidos y no se cambia automáticamente
+a modelos de pago. Cada consulta del flujo completo realiza tres peticiones. La selección predeterminada del servicio existente permanece
 sin cambios hasta configurar un proveedor y desplegar esta versión.
 
 ## Alcance y validación

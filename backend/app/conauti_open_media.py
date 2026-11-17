@@ -1,4 +1,4 @@
-"""Visión Qwen3-VL y transcripción Whisper para el modo de modelos abiertos."""
+"""Visión con modelos abiertos y transcripción Whisper para el modo de modelos abiertos."""
 from __future__ import annotations
 
 import base64
@@ -11,7 +11,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.conauti_open_model import provider_name
 
-OPEN_VISION_MODEL = "qwen/qwen3-vl-235b-a22b-thinking:free"
+OPEN_VISION_MODEL = "dots-studio/dots-3-note-preview:free"
 LOCAL_VISION_MODEL = "qwen3-vl:2b-instruct"
 
 
@@ -87,7 +87,7 @@ async def analyze_open_image(image: bytes, media: str, question: str, context: s
         headers = {"Content-Type": "application/json", "Authorization": "Bearer " + key}
         payload = {
             "model": model, "stream": False, "temperature": 0.2, "max_tokens": 1600,
-            "provider": {"data_collection": "deny"},
+            "provider": {"data_collection": "deny"}, "reasoning": {"enabled": False},
             "messages": [
                 {"role": "system", "content": instructions},
                 {"role": "user", "content": [

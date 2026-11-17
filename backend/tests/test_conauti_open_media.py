@@ -134,3 +134,34 @@ def test_open_mode_does_not_request_gemini_embeddings(monkeypatch):
     monkeypatch.setenv("AI_PROVIDER", "ollama")
     monkeypatch.setenv("RAG_EMBEDDINGS_ENABLED", "true")
     assert rag._embedding("Prueba", "query") is None
+
+
+def test_cloud_vision_sends_only_the_approved_free_model(monkeypatch):
+    seen = {}
+
+    class Response:
+        status_code = 200
+        def json(self):
+            return {"choices": [{"message": {"content": "Veo un cuadrado rojo."}}]}
+
+    class Client:
+        def __init__(self, **kwargs):
+            assert kwargs["follow_redirects"] is False
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, *args):
+            return None
+        async def post(self, url, headers, json):
+            seen.update({"url": url, "payload": json})
+            return Response()
+
+    monkeypatch.setenv("AI_PROVIDER", "openrouter")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "clave-de-prueba")
+    monkeypatch.delenv("OPENROUTER_VISION_MODEL", raising=False)
+    monkeypatch.setattr(media.httpx, "AsyncClient", Client)
+    answer, model = asyncio.run(media.analyze_open_image(b"imagen", "image/png", "¿Qué ves?", "", "Tutor"))
+    assert answer == "Veo un cuadrado rojo."
+    assert model == media.OPEN_VISION_MODEL == "dots-studio/dots-3-note-preview:free"
+    assert seen["payload"]["provider"] == {"data_collection": "deny"}
+    assert seen["payload"]["reasoning"] == {"enabled": False}
+    assert seen["payload"]["messages"][1]["content"][1]["image_url"]["url"].startswith("data:image/png;base64,")
