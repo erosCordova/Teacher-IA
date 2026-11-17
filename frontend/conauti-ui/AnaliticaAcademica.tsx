@@ -9,6 +9,7 @@ import {
 
 import "./AnaliticaAcademica.css";
 import LogrosAcademicos from "./LogrosAcademicos";
+import ResumenFamilia from "./ResumenFamilia";
 
 type Props = {
   revision: number;
@@ -421,6 +422,8 @@ export default function AnaliticaAcademica({
             datos={analitica}
             onPracticar={onPracticar}
           />
+
+          {resumen && <ResumenFamilia resumen={resumen} materias={analitica.materias} diasActivos={analitica.diasActivos} onPracticar={onPracticar} />}
 
           <p className="ma-aclaracion">
             *Los días activos, la constancia y el gráfico

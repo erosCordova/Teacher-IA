@@ -6,6 +6,7 @@ import { NatureCompanion } from "./NatureWorld";
 import HistorialEvaluaciones from "./HistorialEvaluaciones";
 import AnaliticaAcademica from "./AnaliticaAcademica";
 import PlanAprendizaje from "./PlanAprendizaje";
+import PracticaConcreta from "./PracticaConcreta";
 
 type Tema = "fracciones" | "ecuaciones";
 type Opcion = "A" | "B" | "C" | "D";
@@ -556,6 +557,7 @@ export default function EvaluacionesAcademicas() {
       )}
       
         
+  <PracticaConcreta />
   <SimulacroAcademico
     onProgress={() => {
       setRevisionPlan((actual) => actual + 1);
