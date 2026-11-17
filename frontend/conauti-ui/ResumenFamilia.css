@@ -14,4 +14,5 @@
 .familia-tarjeta p { margin: 8px 0; font-size: 13px; }
 .familia-tarjeta button { padding: 8px 11px; border: 0; border-radius: 8px; background: var(--ma-acento); color: #fff; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .familia-contenido .familia-nota { margin: 15px 0 0; font-size: 11px; }
+[data-myteacher-theme="dark"] .familia-resumen { --ma-fondo: #1e293b; --ma-panel: #29364c; --ma-texto: #f2f5ff; --ma-muted: #b6c1d5; --ma-borde: #44516b; --ma-acento: #91a9ff; }
 @media (max-width: 640px) { .familia-lista { grid-template-columns: 1fr; } }

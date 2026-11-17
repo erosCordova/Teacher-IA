@@ -46,4 +46,4 @@
 .cpa-mensaje.correcto { border-left: 3px solid var(--cpa-acento); }
 .cpa-acciones { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
 .cpa-nota { margin-top: 17px !important; }
-[data-theme="dark"] .cpa, .dark .cpa { --cpa-fondo: #1e293b; --cpa-superficie: #29364c; --cpa-texto: #f2f5ff; --cpa-suave: #b6c1d5; --cpa-borde: #44516b; --cpa-acento: #6d86ee; }
+[data-myteacher-theme="dark"] .cpa, [data-theme="dark"] .cpa, .dark .cpa { --cpa-fondo: #1e293b; --cpa-superficie: #29364c; --cpa-texto: #f2f5ff; --cpa-suave: #b6c1d5; --cpa-borde: #44516b; --cpa-acento: #6d86ee; }
