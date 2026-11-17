@@ -358,7 +358,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
     }
   }
 
-  /** Una única inferencia de Gemini comprende voz + captura del momento. */
+  /** Consulta con voz y captura autorizada del momento. */
   async function transcribir(blob: Blob) {
     if (!mountedRef.current) return;
     const token = sessionStorage.getItem("conauti_token");
@@ -409,7 +409,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
       const result: { question?: string; analysis?: string; detail?: string } =
         await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.detail || "No se pudo interpretar la consulta por voz.");
-      if (!result.analysis?.trim()) throw new Error("Gemini no devolvió una orientación.");
+      if (!result.analysis?.trim()) throw new Error("El servicio de IA no devolvió una orientación.");
       if (request.signal.aborted || !mountedRef.current) return;
 
       const question = String(result.question || "Pregunta oral sobre la pantalla").trim().slice(0, 240);
@@ -615,7 +615,7 @@ export default function PantallaCompartida({ archivoInicial = null, onClose }: E
             )}
           </div>
           <p className="mt-pantalla-privacy">
-            La pantalla no se transmite continuamente: se envía una imagen a Gemini
+            La pantalla no se transmite continuamente: se envía una imagen al servicio de IA
             cuando haces una pregunta. El audio del micrófono se envía a transcripción
             únicamente si detecta una pregunta y deja de escuchar al desactivarlo.
             No se guardan capturas. Oculta datos personales; usa auriculares para reducir el eco.

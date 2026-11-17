@@ -272,7 +272,7 @@ export default function CentroEstudio({
               </form>
               <div className="study-create-box">
                 <h3>Crear desde tus materiales</h3>
-                <p>La IA puede proponer tarjetas a partir de fragmentos de un documento guardado. Se envían fragmentos a Gemini únicamente cuando eliges generar.</p>
+                <p>La IA puede proponer tarjetas a partir de fragmentos de un documento guardado. Se envían fragmentos al servicio de IA únicamente cuando eliges generar.</p>
                 {documents.length?<><label>Documento
                   <select value={materialId} onChange={e=>setMaterialId(e.target.value)}>
                     {documents.map(doc=><option key={doc.id} value={doc.id}>{doc.filename}</option>)}

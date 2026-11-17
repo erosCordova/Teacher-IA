@@ -443,7 +443,7 @@ export default function ConversacionVoz({
         throw new Error(
           String(
             result.detail ||
-            'No se obtuvo respuesta de Gemini.',
+            'No se obtuvo respuesta del tutor.',
           ),
         )
       }

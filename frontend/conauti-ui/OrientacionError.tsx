@@ -79,7 +79,7 @@ export default function OrientacionError({
 
       if (!data.orientation?.trim()) {
         throw new Error(
-          "Gemini no devolvió una orientación válida.",
+          "El tutor no devolvió una orientación válida.",
         );
       }
 
@@ -105,7 +105,7 @@ export default function OrientacionError({
         onClick={() => void consultar()}
       >
         {ocupado
-          ? "Consultando a Gemini..."
+          ? "Consultando al tutor..."
           : orientacion
             ? "Solicitar otra orientación"
             : "Ayúdame a entender este error"}
