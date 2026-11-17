@@ -1,34 +1,39 @@
-# Tutor multiagente con Qwen3
+# Tutor multiagente con modelos abiertos
 
-Este cambio incorpora al chat un flujo LangGraph con coordinador, diagnóstico,
-planificación, tutor y verificación. Diagnóstico, tutor y verificación realizan
-llamadas separadas a Qwen3; el coordinador y la planificación utilizan reglas y
-herramientas verificables. El flujo usa la memoria académica y los materiales
-que ya entrega el backend por cada solicitud, sin registrar diagnósticos inventados.
+El chat usa un flujo LangGraph con coordinador, diagnóstico, planificación,
+tutor y verificación. Diagnóstico, tutor y verificación realizan llamadas
+separadas a Qwen3; el coordinador y la planificación usan reglas y herramientas.
+Se aprovechan la memoria académica y los materiales que ya proporciona el
+backend. No se registran diagnósticos ni niveles inventados.
 
-## Ejecución
+## Configuración de ejecución
 
-- Ollama en el mismo servidor: AI_PROVIDER=ollama, OLLAMA_ENABLED=true y
-  OLLAMA_MODEL=qwen3:4b. Se admiten variantes Qwen3 0.6B, 1.7B, 4B y 8B.
-- En un servidor remoto sin Ollama: AI_PROVIDER=openrouter,
-  OPENROUTER_MODEL=qwen/qwen3-4b:free y OPENROUTER_API_KEY almacenada como secreto.
-  Las solicitudes se envían a OpenRouter; se pide a los proveedores no recopilar
-  datos. Si no hay proveedor compatible o se agota la cuota se muestra un error.
-  No se usa automáticamente un modelo de pago o Gemini como sustituto.
+- Local: AI_PROVIDER=ollama, OLLAMA_ENABLED=true, OLLAMA_MODEL=qwen3:4b y
+  OLLAMA_VISION_MODEL=qwen3-vl:2b-instruct. Ollama y los modelos deben estar en
+  la misma máquina del backend.
+- Nube: AI_PROVIDER=openrouter, OPENROUTER_MODEL=qwen/qwen3-4b:free,
+  OPENROUTER_VISION_MODEL=qwen/qwen3-vl-235b-a22b-thinking:free y
+  OPENROUTER_API_KEY almacenada como secreto. Las conversaciones y las
+  imágenes enviadas se procesan a través de OpenRouter. Se solicita a los
+  proveedores no recopilar datos; si no hay uno compatible, la petición falla.
 
-El modelo gratuito puede tener límites de disponibilidad y de consultas.
-La prueba CI con Ollama utiliza Qwen3 0.6B por recursos; no mide la calidad ni
-el rendimiento de Qwen3 4B en un teléfono o en producción.
+El chat, la visión, las tarjetas y la orientación de errores usan modelos
+abiertos cuando se configura uno de estos proveedores. Whisper procesa la voz
+en el servidor, con OPEN_ASR_ENABLED=true y OPEN_WHISPER_MODEL=base.
+El modelo de voz se descarga al primer uso. La búsqueda documental mantiene
+el método léxico en modo abierto y no envía embeddings a Gemini.
 
-## Alcance pendiente
+Las opciones gratuitas pueden imponer límites y no se cambia automáticamente
+a modelos de pago. La selección predeterminada del servicio existente permanece
+sin cambios hasta configurar un proveedor y desplegar esta versión.
 
-La generación del chat usa el modelo abierto cuando se configura una de las
-opciones anteriores. Las rutas existentes de análisis de pantalla, transcripción
-de audio y orientación de errores siguen utilizando Gemini. Los embeddings de
-Gemini continúan siendo opcionales. No afirmar que toda la plataforma utiliza
-exclusivamente modelos abiertos hasta sustituir y probar también esas rutas.
+## Alcance y validación
 
-El método CPA se incorpora como estrategia de orientación del tutor, pero
-todavía no constituye una secuencia completa de actividades manipulativas y
-gráficas ni acredita un nivel PISA. El planificador no guarda predicciones
-de habilidades ni crea informes parentales.
+La integración continua incluye pruebas con respuestas simuladas y pruebas
+independientes con Qwen3 0.6B, Qwen3-VL 2B y Whisper base. Estas pruebas no
+garantizan calidad pedagógica, velocidad o consumo de memoria en producción;
+el nivel gratuito de Render tiene recursos limitados.
+
+La estrategia CPA guía las explicaciones, pero aún no es una secuencia completa
+de actividades manipulativas y gráficas ni acredita un nivel PISA. Todavía
+faltan predicciones basadas en datos y un informe específico para padres.

@@ -75,6 +75,7 @@ def test_openrouter_is_pinned_to_the_free_model_and_private_routing(monkeypatch)
     assert url == "https://openrouter.ai/api/v1/chat/completions"
     assert options["json"]["model"] == FREE_MODEL
     assert options["json"]["provider"]["data_collection"] == "deny"
+    assert options["json"]["reasoning"] == {"enabled": False}
     assert active_details() == ("OpenRouter", FREE_MODEL, True)
 
 

@@ -37,6 +37,10 @@ PROMPT = (
 
 
 async def recognize(audio: bytes, mime: str) -> str:
+    from app.conauti_open_model import provider_name
+    if provider_name() in ("ollama", "openrouter"):
+        from app.conauti_open_media import transcribe_open
+        return await transcribe_open(audio)
     key = config("GEMINI_API_KEY")
 
     if not key:
@@ -155,8 +159,12 @@ async def recognize(audio: bytes, mime: str) -> str:
 
 @router.get("/status")
 def status(user=Depends(current_user)):
+    from app.conauti_open_model import provider_name
+    from app.conauti_open_media import voice_configured
+    configured = (voice_configured() if provider_name() in ("ollama", "openrouter")
+                  else bool(config("GEMINI_API_KEY")))
     return {
-        "configured": bool(config("GEMINI_API_KEY")),
+        "configured": configured,
         "language": "es-PE",
         "maximum_seconds": 20,
         "audio_saved": False,

@@ -88,6 +88,23 @@ async def orientar_error(
             "El ejercicio no tiene informacion suficiente.",
         )
 
+    from app.conauti_open_model import active_details, provider_name
+    if provider_name() in ("ollama", "openrouter"):
+        from app.conauti_ai import generate_reply
+        from starlette.concurrency import run_in_threadpool
+        question = (
+            "Ayúdame a revisar mi intento en este ejercicio de " + str(tema) + ": "
+            + str(ejercicio[1])[:1200]
+        )
+        orientacion, _usage = await run_in_threadpool(
+            generate_reply, [{"role": "user", "body": question}], INSTRUCCIONES
+        )
+        return {
+            "attempt_id": str(attempt_id), "topic": tema,
+            "orientation": orientacion[:3000], "provider": active_details()[0],
+            "stored": False,
+        }
+
     api_key = config("GEMINI_API_KEY")
 
     if not api_key:

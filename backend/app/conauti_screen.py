@@ -137,6 +137,17 @@ async def analyze_screen(
             "Formato de imagen inválido.",
         )
 
+    from app.conauti_open_model import provider_name
+    if provider_name() in ("ollama", "openrouter"):
+        from app.conauti_open_media import analyze_open_image
+        answer, model = await analyze_open_image(bytes(image), media, question, context, INSTRUCTIONS)
+        return {
+            "analysis": answer,
+            "provider": model,
+            "image_stored": False,
+            "automatic_capture": False,
+        }
+
     key = config("GEMINI_API_KEY")
 
     if not key:

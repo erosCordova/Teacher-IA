@@ -200,6 +200,10 @@ def _embedding(text: str, mode: str) -> list[float] | None:
     """Opt-in: evita consumir cuota si no se habilitan embeddings."""
     if os.getenv("RAG_EMBEDDINGS_ENABLED", "false").lower() != "true":
         return None
+    from app.conauti_open_model import provider_name
+    if provider_name() in ("ollama", "openrouter"):
+        # El modo abierto conserva la búsqueda léxica sin enviar datos a Gemini.
+        return None
     from app.conauti_ai import config
     api_key = config("GEMINI_API_KEY")
     if not api_key:

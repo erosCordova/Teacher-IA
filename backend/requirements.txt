@@ -18,3 +18,6 @@ langgraph==1.2.18
 
 # Checkpoints de LangGraph en PostgreSQL: solo si se activa la opción.
 langgraph-checkpoint-postgres>=3.0,<4.0
+
+# Reconocimiento de voz abierto, cargado solo cuando se utiliza.
+faster-whisper==1.2.1

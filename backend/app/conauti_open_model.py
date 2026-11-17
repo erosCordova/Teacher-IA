@@ -69,6 +69,7 @@ def open_reply(history: list[dict], instructions: str, *, max_tokens: int = 350)
             "messages": messages,
             "stream": False,
             "temperature": 0.4,
+            "reasoning": {"enabled": False},
             "max_tokens": max(32, min(int(max_tokens), 700)),
             "provider": {"data_collection": "deny"},
         },

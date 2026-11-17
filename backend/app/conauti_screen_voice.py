@@ -79,6 +79,24 @@ async def ask_voice_over_screen(
     if row["total"] >= MAX_DAILY:
         raise HTTPException(429, "Has alcanzado el límite diario de preguntas por voz.")
 
+    from app.conauti_open_model import provider_name
+    if provider_name() in ("ollama", "openrouter"):
+        from app.conauti_voice import recognize
+        from app.conauti_open_media import analyze_open_image
+        question = await recognize(raw_audio, media)
+        answer, model = await analyze_open_image(
+            raw_image, "image/jpeg", question, context, INSTRUCTIONS
+        )
+        with connect() as conn:
+            conn.execute(
+                "INSERT INTO conauti_voice_usage(user_id, audio_bytes) VALUES (%s, %s)",
+                (user["id"], len(raw_audio)),
+            )
+        return {
+            "question": question[:240], "analysis": answer[:4200],
+            "provider": model, "image_stored": False, "audio_stored": False,
+        }
+
     key = config("GEMINI_API_KEY")
     model = current_model()
     if not key or not re.fullmatch(r"[A-Za-z0-9_.-]+", model):
