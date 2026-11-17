@@ -44,6 +44,7 @@ try {
   assert.equal(await page.getByText('Hay 6 libros. Separa 2 para leer.').count(), 1)
   await page.setViewportSize({ width: 375, height: 812 })
   await page.evaluate(() => document.documentElement.setAttribute('data-myteacher-theme', 'dark'))
+  assert.equal(await page.locator('.ma-academica').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(30, 41, 59)')
   assert.equal(await page.locator('.cpa').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(30, 41, 59)')
   assert.equal(await page.locator('.cpa h3').evaluate(el => getComputedStyle(el).color), 'rgb(242, 245, 255)')
   assert.equal(await page.locator('.cpa-cabecera p').evaluate(el => getComputedStyle(el).color), 'rgb(182, 193, 213)')

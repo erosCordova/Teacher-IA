@@ -260,6 +260,7 @@
   color: #a52735 !important;
 }
 
+[data-myteacher-theme="dark"] .ma-academica,
 [data-theme="dark"] .ma-academica,
 .dark .ma-academica {
   --ma-fondo: #1e293b;
@@ -301,3 +302,4 @@
     display: none;
   }
 }
+
