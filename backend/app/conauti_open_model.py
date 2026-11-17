@@ -10,7 +10,7 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 def _config(name: str, default: str = "") -> str:
     # Importación diferida: conauti_ai también utiliza este módulo.
     from app.conauti_ai import config
-    return config(name, default)
+    return config(name) or default
 
 
 def provider_name() -> str:

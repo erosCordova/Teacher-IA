@@ -21,3 +21,6 @@ langgraph-checkpoint-postgres>=3.0,<4.0
 
 # Reconocimiento de voz abierto, cargado solo cuando se utiliza.
 faster-whisper==1.2.1
+
+# PyAV 19 retiró metadata_errors, necesario para faster-whisper 1.2.1.
+av>=11,<19
