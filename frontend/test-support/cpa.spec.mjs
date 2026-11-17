@@ -45,6 +45,8 @@ try {
   await page.setViewportSize({ width: 375, height: 812 })
   await page.evaluate(() => document.documentElement.setAttribute('data-myteacher-theme', 'dark'))
   assert.equal(await page.locator('.cpa').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(30, 41, 59)')
+  assert.equal(await page.locator('.cpa h3').evaluate(el => getComputedStyle(el).color), 'rgb(242, 245, 255)')
+  assert.equal(await page.locator('.cpa-cabecera p').evaluate(el => getComputedStyle(el).color), 'rgb(182, 193, 213)')
   assert.equal(await page.locator('.familia-resumen').first().evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(41, 54, 76)')
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true)
   await page.screenshot({ path: '/tmp/cpa-movil.png', fullPage: true })

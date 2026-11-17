@@ -1,18 +1,18 @@
-.familia-resumen { margin: 20px 0; border: 1px solid var(--ma-borde); border-radius: 16px; background: var(--ma-panel); }
+.familia-resumen { --familia-enlace: #405bc7; margin: 20px 0; border: 1px solid var(--ma-borde); border-radius: 16px; background: var(--ma-panel); }
 .familia-resumen summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 18px; color: var(--ma-texto); font-weight: 750; cursor: pointer; list-style: none; }
 .familia-resumen summary::-webkit-details-marker { display: none; }
-.familia-resumen summary span { color: var(--ma-acento); font-size: 12px; white-space: nowrap; }
+.familia-resumen summary span { color: var(--familia-enlace); font-size: 12px; white-space: nowrap; }
 .familia-resumen[open] summary span { font-size: 0; }
 .familia-resumen[open] summary span::after { content: 'Cerrar'; font-size: 12px; }
 .familia-resumen summary:focus-visible, .familia-resumen button:focus-visible { outline: 3px solid #efad31; outline-offset: 3px; }
 .familia-contenido { padding: 0 18px 18px; }
 .familia-contenido > p { margin: 0 0 13px; font-size: 13px; }
-.familia-cifras { color: var(--ma-acento) !important; font-weight: 700; }
+.familia-cifras { color: var(--familia-enlace) !important; font-weight: 700; }
 .familia-lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .familia-tarjeta { padding: 15px; border-radius: 12px; background: var(--ma-fondo); }
 .familia-tarjeta strong { color: var(--ma-texto); font-size: 14px; }
 .familia-tarjeta p { margin: 8px 0; font-size: 13px; }
-.familia-tarjeta button { padding: 8px 11px; border: 0; border-radius: 8px; background: var(--ma-acento); color: #fff; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.familia-tarjeta button { padding: 8px 11px; border: 0; border-radius: 8px; background: #405bc7; color: #fff; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .familia-contenido .familia-nota { margin: 15px 0 0; font-size: 11px; }
-[data-myteacher-theme="dark"] .familia-resumen { --ma-fondo: #1e293b; --ma-panel: #29364c; --ma-texto: #f2f5ff; --ma-muted: #b6c1d5; --ma-borde: #44516b; --ma-acento: #91a9ff; }
+[data-myteacher-theme="dark"] .familia-resumen { --familia-enlace: #9ab0ff; --ma-fondo: #1e293b; --ma-panel: #29364c; --ma-texto: #f2f5ff; --ma-muted: #b6c1d5; --ma-borde: #44516b; --ma-acento: #91a9ff; }
 @media (max-width: 640px) { .familia-lista { grid-template-columns: 1fr; } }

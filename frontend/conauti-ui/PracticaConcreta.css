@@ -5,6 +5,7 @@
   --cpa-suave: #64738b;
   --cpa-borde: #d9e3f2;
   --cpa-acento: #526de3;
+  --cpa-boton: #405bc7;
   box-sizing: border-box;
   margin: 24px 0;
   padding: clamp(18px, 3vw, 26px);
@@ -16,10 +17,10 @@
 .cpa * { box-sizing: border-box; }
 .cpa-cabecera { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
 .cpa-etiqueta { color: var(--cpa-acento); font-size: 11px; font-weight: 800; letter-spacing: .1em; }
-.cpa h3 { margin: 7px 0; font-size: clamp(19px, 2.5vw, 24px); color: var(--cpa-texto); }
-.cpa p { margin: 8px 0; color: var(--cpa-suave); line-height: 1.55; }
+.cpa.cpa h3 { margin: 7px 0; font-size: clamp(19px, 2.5vw, 24px); color: var(--cpa-texto); }
+.cpa.cpa p { margin: 8px 0; color: var(--cpa-suave); line-height: 1.55; }
 .cpa button { font: inherit; cursor: pointer; }
-.cpa-abrir, .cpa-principal { padding: 11px 16px; border: 0; border-radius: 11px; background: var(--cpa-acento); color: white; font-weight: 700; }
+.cpa-abrir, .cpa-principal { padding: 11px 16px; border: 0; border-radius: 11px; background: var(--cpa-boton); color: white; font-weight: 700; }
 .cpa-abrir:hover, .cpa-principal:hover { filter: brightness(.94); }
 .cpa button:focus-visible, .cpa input:focus-visible { outline: 3px solid #efad31; outline-offset: 3px; }
 .cpa-actividad { margin-top: 22px; }
@@ -27,7 +28,7 @@
 .cpa-pasos li { display: flex; gap: 7px; align-items: center; color: var(--cpa-suave); font-size: 13px; font-weight: 700; }
 .cpa-pasos li span { display: grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: var(--cpa-superficie); }
 .cpa-pasos .cpa-paso-activo { color: var(--cpa-acento); }
-.cpa-pasos .cpa-paso-activo span, .cpa-pasos .cpa-paso-listo span { background: var(--cpa-acento); color: #fff; }
+.cpa-pasos .cpa-paso-activo span, .cpa-pasos .cpa-paso-listo span { background: var(--cpa-boton); color: #fff; }
 .cpa-reto { padding: 16px; background: var(--cpa-superficie); border-radius: 14px; }
 .cpa-reto span { color: var(--cpa-acento); font-size: 12px; font-weight: 700; }
 .cpa-reto h4 { margin: 7px 0 0; color: var(--cpa-texto); font-size: 17px; }
@@ -46,4 +47,4 @@
 .cpa-mensaje.correcto { border-left: 3px solid var(--cpa-acento); }
 .cpa-acciones { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
 .cpa-nota { margin-top: 17px !important; }
-[data-myteacher-theme="dark"] .cpa, [data-theme="dark"] .cpa, .dark .cpa { --cpa-fondo: #1e293b; --cpa-superficie: #29364c; --cpa-texto: #f2f5ff; --cpa-suave: #b6c1d5; --cpa-borde: #44516b; --cpa-acento: #6d86ee; }
+[data-myteacher-theme="dark"] .cpa, [data-theme="dark"] .cpa, .dark .cpa { --cpa-fondo: #1e293b; --cpa-superficie: #29364c; --cpa-texto: #f2f5ff; --cpa-suave: #b6c1d5; --cpa-borde: #44516b; --cpa-acento: #9ab0ff; }
